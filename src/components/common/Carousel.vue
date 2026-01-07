@@ -239,6 +239,7 @@ export default {
 .carousel-track-wrapper {
     flex: 1;
     overflow: hidden;
+    padding-top: 8px;
 }
 
 .carousel-track {
