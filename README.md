@@ -5,18 +5,18 @@ A comprehensive web application that allows users to query a database with colle
 ## 🎮 Features
 
 - **Game Search**: Search for Steam games by name with real-time results
-- **Settings Database**: Access AI-curated optimal settings for thousands of games
-- **Performance Optimization**: Get specific configuration recommendations for Steam Deck
+- **Community Game Reports**: Access a curated database of community-reported optimal settings for thousands of games
+- **AI-Generated Summaries**: Get concise summaries of game performance and settings recommendations
 - **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
 - **Accessibility**: Full WCAG compliance with keyboard navigation and screen reader support
 
 ## 🚀 Live Demo
 
-Visit the live application: [Steam Deck Settings Database](https://deckudb.com)
+Visit the live application: [DeckuDB](https://deckudb.com)
 
 ## 🛠 Technical Stack
 
-- **Frontend**: Vue.js 3 with Composition API
+- **Frontend**: Vue.js 3
 - **Routing**: Vue Router 4
 - **Build Tool**: Vite
 - **Icons**: Lucide Vue Next
@@ -28,13 +28,8 @@ Visit the live application: [Steam Deck Settings Database](https://deckudb.com)
 
 ### Routes
 - `/` - Home page with game search functionality
-- `/game/:gameId` - Individual game settings page
-
-### Key Components
-- **GameSearch**: Search and select games from Steam database
-- **GameSettings**: Display optimized settings for selected games
-- **Home**: Landing page with search interface
-- **GamePage**: Individual game settings page
+- `/game/:gameId` - Individual game page
+- `/search` - Search results page
 
 ## 🏗 Development
 
@@ -43,9 +38,8 @@ Visit the live application: [Steam Deck Settings Database](https://deckudb.com)
 - npm or yarn
 
 ### Installation
+Download the repository and install dependencies:
 ```bash
-git clone https://github.com/dani-beltran/steam-deck-db.git
-cd steamdeck-settings-db-web
 npm install
 ```
 
@@ -66,10 +60,11 @@ npm run preview
 
 ## 📊 Data Sources
 
-Game settings recommendations are AI-generated from:
-- Community forums and guides
-- Steam Deck official website  
-- Performance benchmarking data
+Game Reports are aggregated from various community sources, including:
+- Community forums and guides, such as Reddit and Steam Community.
+- Dedicated Steam Deck optimization websites, like ProtonDB, Deck Verified, ShareDeck, etc.
+- YouTube tutorials and gameplay analysis
+- Media articles
 
 > **Disclaimer**: Recommendations are community-sourced and may not be suitable for every system configuration. Users assume all risks when applying settings.
 
@@ -83,7 +78,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 🎮 Community
 
-Join the Steam Deck Unofficial DB community:
+Join the conversation and share your experiences:
 - [Discord Server](https://discord.gg/e5q4QqfVQx)
 
 ---
