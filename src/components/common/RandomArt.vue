@@ -37,6 +37,11 @@ const artList = [
     caption_quote: "“In the end, we only regret the chances we didn't take.”",
     caption_author: 'Lewis Carroll',
   },
+  {
+    file: 'saturn_goya.png',
+    caption_quote: '“Who controls the past controls the future. Who controls the present controls the past.”',
+    caption_author: 'George Orwell',
+  },
 ]
 
 const randomIndex = Math.floor(Math.random() * artList.length)
