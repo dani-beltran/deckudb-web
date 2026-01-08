@@ -38,7 +38,7 @@ const artList = [
     caption_author: 'Lewis Carroll',
   },
   {
-    file: 'saturn_goya.png',
+    file: 'saturn_goya.jpeg',
     caption_quote: '“Who controls the past controls the future. Who controls the present controls the past.”',
     caption_author: 'George Orwell',
   },
