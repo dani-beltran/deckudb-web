@@ -36,6 +36,11 @@
         </div>
       </div>
     </ExpandTransition>
+    <Notification
+      message="Thanks for your feedback!"
+      :show="showNotification"
+      @hide="hideNotification"
+    />
   </section>
 </template>
 
@@ -46,6 +51,7 @@ import { useTypewriter } from '../../composables/useTypewriter'
 import Button from '../base/Button.vue'
 import ExpandTransition from '../base/ExpandTransition.vue'
 import Tooltip from '../base/Tooltip.vue'
+import Notification from '../base/Notification.vue'
 import FeedbackButtons from './FeedbackButtons.vue'
 
 export default {
@@ -55,6 +61,7 @@ export default {
     Button,
     ExpandTransition,
     Tooltip,
+    Notification,
     FeedbackButtons,
   },
   props: {
@@ -90,6 +97,7 @@ export default {
   setup(props, { emit }) {
     const isCollapsed = ref(true)
     const textContentRef = ref(props.content)
+    const showNotification = ref(false)
 
     // Initialize typewriter with reactive text
     const typewriter = useTypewriter({
@@ -125,6 +133,11 @@ export default {
 
     const handleFeedback = (type) => {
       emit('feedback', type)
+      showNotification.value = true
+    }
+
+    const hideNotification = () => {
+      showNotification.value = false
     }
 
     return {
@@ -132,6 +145,8 @@ export default {
       displayedContent,
       toggleCollapsed,
       handleFeedback,
+      hideNotification,
+      showNotification,
       typewriter,
     }
   },
