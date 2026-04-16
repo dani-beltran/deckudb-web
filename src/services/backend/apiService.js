@@ -1,6 +1,3 @@
-import axios from 'axios'
-import Cookies from 'js-cookie'
-
 /**
  * Backend API Service
  */
@@ -22,8 +19,9 @@ class ApiService {
     }
 
     try {
-      const { data } = await axios.get(`${this.baseUrl}/games/${encodeURIComponent(gameId)}`)
-      return data
+      const res = await fetch(`${this.baseUrl}/games/${encodeURIComponent(gameId)}`)
+      if (!res.ok) throw new Error(res.statusText)
+      return res.json()
     } catch (err) {
       console.error('Error fetching game settings:', err)
       return null
@@ -36,8 +34,9 @@ class ApiService {
     }
 
     try {
-      const { data } = await axios.get(`${this.baseUrl}/steam/games/${encodeURIComponent(gameId)}`)
-      return data
+      const res = await fetch(`${this.baseUrl}/steam/games/${encodeURIComponent(gameId)}`)
+      if (!res.ok) throw new Error(res.statusText)
+      return res.json()
     } catch (err) {
       console.error('Error fetching Steam game details:', err)
       return null
@@ -50,8 +49,9 @@ class ApiService {
     }
 
     const searchUrl = `${this.baseUrl}/steam/games?term=${encodeURIComponent(term)}&limit=${limit}`
-    const { data } = await axios.get(searchUrl)
-    return data
+    const res = await fetch(searchUrl)
+    if (!res.ok) throw new Error(res.statusText)
+    return res.json()
   }
 
   async fetchSteamGamesByIds(gameIds) {
@@ -61,8 +61,9 @@ class ApiService {
 
     try {
       const idsParam = gameIds.map((id) => encodeURIComponent(id)).join(',')
-      const { data } = await axios.get(`${this.baseUrl}/steam/games/batch?ids=${idsParam}`)
-      return data
+      const res = await fetch(`${this.baseUrl}/steam/games/batch?ids=${idsParam}`)
+      if (!res.ok) throw new Error(res.statusText)
+      return res.json()
     } catch (err) {
       console.error('Error fetching Steam games by IDs:', err)
       return []
@@ -82,61 +83,12 @@ class ApiService {
         page: page.toString(),
         page_size: page_size.toString()
       })
-      const { data } = await axios.get(`${this.baseUrl}/steam/most-played-steam-deck-games?${params}`)
-      return data
+      const res = await fetch(`${this.baseUrl}/steam/most-played-steam-deck-games?${params}`)
+      if (!res.ok) throw new Error(res.statusText)
+      return res.json()
     } catch (err) {
       console.error('Error fetching most played games:', err)
       return []
-    }
-  }
-
-  async fetchAuthUser() {
-    try {
-      const { data } = await axios.get(`${this.baseUrl}/auth/user`, { withCredentials: true })
-      return data
-    } catch (err) {
-      console.error('Error fetching authenticated user:', err)
-      return null
-    }
-  }
-
-  loginWithSteam() {
-    Cookies.set('login_referer', window.location.href)
-    window.location.href = `${this.baseUrl}/auth/steam`
-  }
-
-  logout() {
-    Cookies.set('logout_referer', window.location.href)
-    window.location.href = `${this.baseUrl}/auth/logout`
-  }
-
-  async submitVote(gameSettingId, voteType) {
-    try {
-      if (!gameSettingId) {
-        throw new Error('Game ID is required to submit a vote')
-      }
-      if (!['up', 'down'].includes(voteType)) {
-        throw new Error('Invalid vote type. Must be "up" or "down"')
-      }
-
-      await axios.post(
-        `${this.baseUrl}/games/${gameSettingId}/vote`,
-        { vote: voteType },
-        { withCredentials: true }
-      )
-    } catch (err) {
-      console.error('Error submitting vote:', err)
-    }
-  }
-
-  async removeVote(gameSettingId) {
-    try {
-      if (!gameSettingId) {
-        throw new Error('Game ID is required to remove a vote')
-      }
-      await axios.delete(`${this.baseUrl}/games/${gameSettingId}/vote`, { withCredentials: true })
-    } catch (err) {
-      console.error('Error removing vote:', err)
     }
   }
 
@@ -149,11 +101,12 @@ class ApiService {
         throw new Error('Invalid vote type. Must be "up" or "down"')
       }
 
-      await axios.post(
-        `${this.baseUrl}/games/${gameId}/summary-vote`,
-        { vote_type: voteType },
-        { withCredentials: true }
-      )
+      await fetch(`${this.baseUrl}/games/${gameId}/summary-vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vote_type: voteType }),
+        credentials: 'include',
+      })
     } catch (err) {
       console.error('Error submitting game summary vote:', err)
     }
