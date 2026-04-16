@@ -72,15 +72,15 @@ class ApiService {
   /**
    * Fetch most played Steam Deck games
    * @param {number} page - Page number (1-based)
-   * @param {number} pageSize - Number of games per page
-   * @returns {Promise<Object[]>} - Array of games
+   * @param {number} page_size - Number of games per page
+   * @returns {Promise<{items: Object[], total: number}>} - Array of games and total count
    * @throws {Error} - Throws error if request fails
    */
-  async fetchMostPlayedGames(page = 1, pageSize = 20) {
+  async fetchMostPlayedGames(page = 1, page_size = 20) {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        pageSize: pageSize.toString()
+        page_size: page_size.toString()
       })
       const { data } = await axios.get(`${this.baseUrl}/steam/most-played-steam-deck-games?${params}`)
       return data
