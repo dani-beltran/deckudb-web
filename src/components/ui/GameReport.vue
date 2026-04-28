@@ -247,7 +247,7 @@ export default {
 }
 
 .source-protondb {
-  background: #fef3c7;
+  background: #485265;
   color: #c28c04;
 }
 
@@ -259,6 +259,21 @@ export default {
 .source-steamdeckhq {
   background: #fce7f3;
   color: #E0196D;
+}
+
+.source-reddit {
+  background: #FF4500;
+  color: #ffe8e0;
+}
+
+.source-youtube {
+  background: #FF0034;
+  color: #FFFFFF;
+}
+
+.source-other {
+  background: #e8e9eb;
+  color: #374151;
 }
 
 .hardware-badge {
