@@ -55,7 +55,6 @@ import GameDescription from '../components/ui/GameDescription.vue'
 import GameReportsSection from '../components/ui/GameReportsSection.vue'
 import ProcessingWarning from '../components/ui/ProcessingWarning.vue'
 import apiService from '../services/backend/apiService.js'
-import { sortGameReportsPerRelevance } from '../helpers/report.helper.js'
 import NavigationHeader from '../components/ui/NavigationHeader.vue'
 
 export default {
@@ -175,7 +174,12 @@ export default {
           return
         }
 
-        const sortedReports = sortGameReportsPerRelevance(res.game.reports)
+        const sortedReports = [...res.game.reports].sort((a, b) => {
+          const dateA = a.posted_at ? new Date(a.posted_at) : new Date(0)
+          const dateB = b.posted_at ? new Date(b.posted_at) : new Date(0)
+          return dateB - dateA
+        })
+        
         this.game = { ...res.game, reports: sortedReports }
       } catch (err) {
         this.error = err.message
