@@ -10,7 +10,7 @@
           class="social-link"
           aria-label="Visit Daniel Beltran's portfolio website"
         >
-          <WebsiteIcon/>
+          <WebsiteIcon aria-hidden/>
         </a>
         <a 
           href="https://github.com/dani-beltran" 
@@ -19,7 +19,7 @@
           class="social-link"
           aria-label="Visit Daniel Beltran's GitHub profile"
         >
-          <GitHubIcon/>
+          <GitHubIcon aria-hidden/>
         </a>
         <a 
           href="https://x.com/danlbeltran" 
@@ -28,7 +28,7 @@
           class="social-link"
           aria-label="Visit Daniel Beltran's Twitter/X profile"
         >
-          <XIcon/>
+          <XIcon aria-hidden/>
         </a>
         <a 
           href="https://www.linkedin.com/in/daniellidonbeltran/" 
@@ -37,7 +37,7 @@
           class="social-link"
           aria-label="Visit Daniel Beltran's LinkedIn profile"
         >
-          <LinkedInIcon/>
+          <LinkedInIcon aria-hidden/>
         </a>
         <a 
           href="https://reddit.com/r/SteamDeck" 
@@ -46,7 +46,7 @@
           class="social-link"
           aria-label="Visit Steam Deck subreddit"
         >
-          <RedditIcon/>
+          <RedditIcon aria-hidden/>
         </a>
       </nav>
       
