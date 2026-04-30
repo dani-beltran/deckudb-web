@@ -77,6 +77,8 @@ export default {
 
 .source-badge {
   transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
 }
 
 .source-badge:hover {

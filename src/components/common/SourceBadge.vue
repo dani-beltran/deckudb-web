@@ -59,9 +59,6 @@ export default {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-}
-
-.source-badge {
   background: #e0e7ff;
   color: #3730a3;
 }

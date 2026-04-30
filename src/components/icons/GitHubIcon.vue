@@ -21,7 +21,7 @@ defineProps({
   },
   ariaLabel: {
     type: String,
-    default: 'Github',
+    default: 'GitHub',
   },
 });
 </script>
