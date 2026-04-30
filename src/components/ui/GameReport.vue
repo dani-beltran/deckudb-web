@@ -49,9 +49,9 @@
             </span>
         </div>
         <div class="report-source">
-            <span class="source-badge" :class="`source-${report.source}`">
-            {{ report.source }}
-            </span>
+            <SourceBadge :sourceName="report.source">
+              {{ report.source }}
+            </SourceBadge>
         </div>
       </div>
 
@@ -70,8 +70,13 @@
 </template>
 
 <script>
+import SourceBadge from '../common/SourceBadge.vue'
+
 export default {
   name: 'GameReport',
+  components: {
+    SourceBadge
+  },
   props: {
     report: {
       type: Object,
@@ -230,7 +235,6 @@ export default {
   flex-wrap: wrap;
 }
 
-.source-badge,
 .hardware-badge,
 .frame-rate-badge,
 .tdp-badge {
@@ -239,41 +243,6 @@ export default {
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-}
-
-.source-badge {
-  background: #e0e7ff;
-  color: #3730a3;
-}
-
-.source-protondb {
-  background: #485265;
-  color: #c28c04;
-}
-
-.source-sharedeck {
-  background: #e6f0ff;
-  color: #1a75ff;
-}
-
-.source-steamdeckhq {
-  background: #fce7f3;
-  color: #E0196D;
-}
-
-.source-reddit {
-  background: #FF4500;
-  color: #ffe8e0;
-}
-
-.source-youtube {
-  background: #FF0034;
-  color: #FFFFFF;
-}
-
-.source-other {
-  background: #e8e9eb;
-  color: #374151;
 }
 
 .hardware-badge {
