@@ -40,15 +40,6 @@
           <LinkedInIcon/>
         </a>
         <a 
-          href="https://discord.gg/e5q4QqfVQx" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          class="social-link"
-          aria-label="Join Steam Deck community Discord server"
-        >
-          <DiscordIcon/>
-        </a>
-        <a 
           href="https://reddit.com/r/SteamDeck" 
           target="_blank" 
           rel="noopener noreferrer"
@@ -71,7 +62,6 @@
 </template>
 
 <script>
-import DiscordIcon from '../icons/DiscordIcon.vue'; 
 import RedditIcon from '../icons/RedditIcon.vue';
 import LinkedInIcon from '../icons/LinkedInIcon.vue';
 import GitHubIcon from '../icons/GitHubIcon.vue';
@@ -81,7 +71,6 @@ import WebsiteIcon from '../icons/WebsiteIcon.vue';
 export default {
   name: 'Footer',
   components: {
-    DiscordIcon,
     RedditIcon,
     LinkedInIcon,
     GitHubIcon,
