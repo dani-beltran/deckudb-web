@@ -25,10 +25,10 @@ const CACHE_DURATION = 5 * 60 * 1000
  */
 async function fetchUser(forceRefresh = false) {
   const now = Date.now()
-  
+
   // Return cached user if available and not expired
   if (!forceRefresh && state.authCheckComplete && state.lastFetched) {
-    const cacheValid = (now - state.lastFetched) < CACHE_DURATION
+    const cacheValid = now - state.lastFetched < CACHE_DURATION
     if (cacheValid) {
       return state.user
     }

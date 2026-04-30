@@ -51,7 +51,7 @@ export default {
     game: {
       type: Object,
       default: null,
-    }
+    },
   },
   computed: {
     gameTitle() {

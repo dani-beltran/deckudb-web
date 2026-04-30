@@ -27,11 +27,7 @@
 </template>
 
 <script>
-import {
-  trackSearch,
-  trackSearchInput,
-  trackSuggestionSelect,
-} from '../../services/analytics'
+import { trackSearch, trackSearchInput, trackSuggestionSelect } from '../../services/analytics'
 import apiService from '../../services/backend/apiService.js'
 import recentGamesStore from '../../stores/recentGamesStore.js'
 import { isMobile } from '../../utils/deviceUtils.js'
@@ -156,7 +152,11 @@ export default {
       // Set new timeout to track input after 1 second of inactivity
       this.inputTrackingTimeout = setTimeout(() => {
         if (this.modelValue && this.modelValue.trim().length > 0) {
-          trackSearchInput(this.modelValue.trim(), this.modelValue.trim().length, 'game_search_input')
+          trackSearchInput(
+            this.modelValue.trim(),
+            this.modelValue.trim().length,
+            'game_search_input'
+          )
         }
       }, 1000)
     },

@@ -152,7 +152,7 @@ export default {
     },
     setupIntersectionObserver() {
       this.disconnectIntersectionObserver()
-      
+
       this.intersectionObserver = new IntersectionObserver(
         (entries) => {
           const lastItem = entries[0]
@@ -166,7 +166,7 @@ export default {
           threshold: 0.1,
         }
       )
-      
+
       this.$nextTick(() => {
         this.observeLastItem()
       })
@@ -175,10 +175,10 @@ export default {
       if (!this.intersectionObserver) {
         return
       }
-      
+
       // Disconnect all previous observations
       this.intersectionObserver.disconnect()
-      
+
       const items = this.$el.querySelectorAll('.carousel-item')
       if (items.length > 0) {
         const lastItem = items[items.length - 1]

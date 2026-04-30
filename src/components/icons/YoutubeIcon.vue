@@ -24,5 +24,5 @@ defineProps({
     type: String,
     default: 'YouTube',
   },
-});
+})
 </script>

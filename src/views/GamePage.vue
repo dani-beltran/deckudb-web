@@ -179,7 +179,7 @@ export default {
           const dateB = b.posted_at ? new Date(b.posted_at) : new Date(0)
           return dateB - dateA
         })
-        
+
         this.game = { ...res.game, reports: sortedReports }
       } catch (err) {
         this.error = err.message

@@ -81,7 +81,7 @@ class ApiService {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        page_size: page_size.toString()
+        page_size: page_size.toString(),
       })
       const res = await fetch(`${this.baseUrl}/steam/most-played-steam-deck-games?${params}`)
       if (!res.ok) throw new Error(res.statusText)

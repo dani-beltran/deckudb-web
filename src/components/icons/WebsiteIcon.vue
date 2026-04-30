@@ -24,5 +24,5 @@ defineProps({
     type: String,
     default: 'Portfolio website',
   },
-});
+})
 </script>

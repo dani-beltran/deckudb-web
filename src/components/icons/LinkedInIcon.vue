@@ -23,5 +23,5 @@ defineProps({
     type: String,
     default: 'LinkedIn',
   },
-});
+})
 </script>

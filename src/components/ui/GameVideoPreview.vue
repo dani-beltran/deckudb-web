@@ -24,7 +24,7 @@ export default {
   data() {
     return {
       showTrailer: false,
-      hlsInstance: null
+      hlsInstance: null,
     }
   },
   computed: {
@@ -35,42 +35,42 @@ export default {
     },
   },
   async mounted() {
-    await this.setupVideoSource();
+    await this.setupVideoSource()
   },
   beforeUnmount() {
-    this.destroyHls();
+    this.destroyHls()
   },
   methods: {
     async setupVideoSource() {
-      const video = this.$refs.videoElement;
-      const videoData = await this.getValidVideoData();
-      if (!video || !videoData) return;
+      const video = this.$refs.videoElement
+      const videoData = await this.getValidVideoData()
+      if (!video || !videoData) return
 
-      const { url, type } = videoData;
+      const { url, type } = videoData
 
       // Clean up any existing HLS instance
-      this.destroyHls();
+      this.destroyHls()
 
       if (type === 'hls') {
         // HLS format - use hls.js or native support
         if (Hls.isSupported()) {
-          this.hlsInstance = new Hls();
-          this.hlsInstance.loadSource(url);
-          this.hlsInstance.attachMedia(video);
+          this.hlsInstance = new Hls()
+          this.hlsInstance.loadSource(url)
+          this.hlsInstance.attachMedia(video)
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
           // Native HLS support (Safari)
-          video.src = url;
+          video.src = url
         }
       } else {
         // Direct video formats (webm, mp4)
-        video.src = url;
+        video.src = url
       }
     },
 
     destroyHls() {
       if (this.hlsInstance) {
-        this.hlsInstance.destroy();
-        this.hlsInstance = null;
+        this.hlsInstance.destroy()
+        this.hlsInstance = null
       }
     },
 
@@ -79,12 +79,12 @@ export default {
         // Find the first valid trailer URL
         for (const movie of this.game.steam_app.movies) {
           // Try direct video formats first (webm, mp4)
-          const directUrl = movie?.webm?.max || movie?.mp4?.max;
+          const directUrl = movie?.webm?.max || movie?.mp4?.max
           if (directUrl) {
             try {
-              const response = await fetch(directUrl, { method: 'HEAD' });
+              const response = await fetch(directUrl, { method: 'HEAD' })
               if (response.status === 200) {
-                return { url: directUrl, type: 'direct' };
+                return { url: directUrl, type: 'direct' }
               }
             } catch {
               // Continue to next format if fetch fails
@@ -94,9 +94,9 @@ export default {
           // Try HLS format (hls_h264) - widely supported
           if (movie?.hls_h264) {
             try {
-              const response = await fetch(movie.hls_h264, { method: 'HEAD' });
+              const response = await fetch(movie.hls_h264, { method: 'HEAD' })
               if (response.status === 200) {
-                return { url: movie.hls_h264, type: 'hls' };
+                return { url: movie.hls_h264, type: 'hls' }
               }
             } catch {
               // Continue to next format if fetch fails
@@ -104,13 +104,13 @@ export default {
           }
         }
       }
-      return null;
+      return null
     },
 
     onMouseEnter() {
-      const video = this.$refs.videoElement;
-      if (!video || (!video.src && !this.hlsInstance)) return;
-      
+      const video = this.$refs.videoElement
+      if (!video || (!video.src && !this.hlsInstance)) return
+
       this.showTrailer = true
       // Resume video playback when mouse enters
       this.$nextTick(() => {

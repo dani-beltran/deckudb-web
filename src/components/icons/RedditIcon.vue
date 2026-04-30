@@ -27,5 +27,5 @@ defineProps({
     type: String,
     default: 'Reddit',
   },
-});
+})
 </script>

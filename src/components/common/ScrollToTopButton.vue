@@ -24,7 +24,7 @@ export default {
     const handleScroll = () => {
       // Throttle scroll event handler for better performance
       if (throttleTimeout) return
-      
+
       throttleTimeout = setTimeout(() => {
         // Show button when scrolled down at least twice the screen height
         const scrollThreshold = window.innerHeight * 2

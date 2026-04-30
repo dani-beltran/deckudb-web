@@ -62,5 +62,5 @@ defineProps({
     type: String,
     default: 'Proton',
   },
-});
+})
 </script>

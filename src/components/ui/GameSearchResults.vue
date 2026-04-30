@@ -31,10 +31,7 @@
 </template>
 
 <script>
-import {
-  trackGameSelect,
-  trackShowMoreResults,
-} from '../../services/analytics'
+import { trackGameSelect, trackShowMoreResults } from '../../services/analytics'
 import Button from '../base/Button.vue'
 import GameCard from './GameCard.vue'
 import recentGamesStore from '../../stores/recentGamesStore.js'
@@ -84,7 +81,7 @@ export default {
     results() {
       // Reset show all when results change
       this.showAllResults = false
-    }
+    },
   },
   methods: {
     selectGameCard(game) {
@@ -94,11 +91,7 @@ export default {
     },
 
     handleShowMore() {
-      trackShowMoreResults(
-        this.searchTerm,
-        this.results.length,
-        this.initialResultsCount
-      )
+      trackShowMoreResults(this.searchTerm, this.results.length, this.initialResultsCount)
       this.showAllResults = true
     },
   },

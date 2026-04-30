@@ -55,18 +55,18 @@ export default {
   computed: {
     initialResultsCount() {
       return this.isWideScreen ? 8 : 4
-    }
+    },
   },
   created() {
     document.title = 'Search Results - DeckuDB'
-    
+
     // Get search term from URL query parameter
     this.searchTerm = this.$route.query.q || ''
-    
+
     // Check screen width and set up listener
     this.checkScreenWidth()
     window.addEventListener('resize', this.checkScreenWidth)
-    
+
     // Perform initial search if there's a search term
     this.onSearch(this.searchTerm)
   },
@@ -76,14 +76,14 @@ export default {
   watch: {
     searchTerm() {
       this.updateUrl()
-    }
+    },
   },
   methods: {
     async onSearch(term) {
       if (!term?.trim()) {
         this.searchError = {
-            title: 'No search term entered',
-            message: 'Please enter a game name into the search bar.'
+          title: 'No search term entered',
+          message: 'Please enter a game name into the search bar.',
         }
         return
       }
@@ -98,14 +98,14 @@ export default {
         if (this.searchResults.length === 0) {
           this.searchError = {
             title: 'No games found with that name',
-            message: 'Try a different search term or check the spelling.'
+            message: 'Try a different search term or check the spelling.',
           }
         }
       } catch (err) {
         console.error('Error searching for games:', err)
         this.searchError = {
-            title: 'Error searching for games',
-            message: 'An error occurred while searching. Please try again later.'
+          title: 'Error searching for games',
+          message: 'An error occurred while searching. Please try again later.',
         }
       } finally {
         this.searchLoading = false

@@ -34,8 +34,8 @@
 </template>
 
 <script>
-import { SquarePen } from 'lucide-vue-next';
-import SourceBadge from '../common/SourceBadge.vue';
+import { SquarePen } from 'lucide-vue-next'
+import SourceBadge from '../common/SourceBadge.vue'
 
 export default {
   name: 'AddReport',

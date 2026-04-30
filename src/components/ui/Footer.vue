@@ -62,11 +62,11 @@
 </template>
 
 <script>
-import RedditIcon from '../icons/RedditIcon.vue';
-import LinkedInIcon from '../icons/LinkedInIcon.vue';
-import GitHubIcon from '../icons/GitHubIcon.vue';
-import XIcon from '../icons/XIcon.vue';
-import WebsiteIcon from '../icons/WebsiteIcon.vue';
+import RedditIcon from '../icons/RedditIcon.vue'
+import LinkedInIcon from '../icons/LinkedInIcon.vue'
+import GitHubIcon from '../icons/GitHubIcon.vue'
+import XIcon from '../icons/XIcon.vue'
+import WebsiteIcon from '../icons/WebsiteIcon.vue'
 
 export default {
   name: 'Footer',
@@ -75,8 +75,8 @@ export default {
     LinkedInIcon,
     GitHubIcon,
     WebsiteIcon,
-    XIcon
-  }
+    XIcon,
+  },
 }
 </script>
 

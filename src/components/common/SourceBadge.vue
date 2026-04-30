@@ -6,47 +6,47 @@
 </template>
 
 <script>
-import { Gamepad2 } from 'lucide-vue-next';
-import RedditIcon from '@/components/icons/RedditIcon.vue';
-import YoutubeIcon from '@/components/icons/YoutubeIcon.vue';
-import ProtonIcon from '@/components/icons/ProtonIcon.vue';
-import WebsiteIcon from '@/components/icons/WebsiteIcon.vue';
+import { Gamepad2 } from 'lucide-vue-next'
+import RedditIcon from '@/components/icons/RedditIcon.vue'
+import YoutubeIcon from '@/components/icons/YoutubeIcon.vue'
+import ProtonIcon from '@/components/icons/ProtonIcon.vue'
+import WebsiteIcon from '@/components/icons/WebsiteIcon.vue'
 
 const SOURCE_ICONS = {
-    reddit: RedditIcon,
-    youtube: YoutubeIcon,
-    protondb: ProtonIcon,
-    sharedeck: Gamepad2,
-    other: WebsiteIcon
-};
+  reddit: RedditIcon,
+  youtube: YoutubeIcon,
+  protondb: ProtonIcon,
+  sharedeck: Gamepad2,
+  other: WebsiteIcon,
+}
 
 export default {
-    name: 'SourceBadge',
-    props: {
-        sourceName: {
-            type: String,
-            required: true,
-        }
+  name: 'SourceBadge',
+  props: {
+    sourceName: {
+      type: String,
+      required: true,
     },
-    computed: {
-        icon() {
-            return SOURCE_ICONS[this.sourceName] ?? null;
-        },
-        iconColor() {
-            switch (this.sourceName) {
-                case 'reddit':
-                    return '#FF4500';
-                case 'youtube':
-                    return '#FF0034';
-                case 'protondb':
-                    return '#485265';
-                case 'sharedeck':
-                    return '#FB923C';
-                default:
-                    return 'currentColor';
-            }
-        }
-    }
+  },
+  computed: {
+    icon() {
+      return SOURCE_ICONS[this.sourceName] ?? null
+    },
+    iconColor() {
+      switch (this.sourceName) {
+        case 'reddit':
+          return '#FF4500'
+        case 'youtube':
+          return '#FF0034'
+        case 'protondb':
+          return '#485265'
+        case 'sharedeck':
+          return '#FB923C'
+        default:
+          return 'currentColor'
+      }
+    },
+  },
 }
 </script>
 <style scoped>

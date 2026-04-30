@@ -75,7 +75,7 @@ import SourceBadge from '../common/SourceBadge.vue'
 export default {
   name: 'GameReport',
   components: {
-    SourceBadge
+    SourceBadge,
   },
   props: {
     report: {
@@ -89,7 +89,7 @@ export default {
     }
   },
   computed: {
-    fps:  function () {
+    fps: function () {
       return (
         this.report?.steamdeck_settings?.frame_rate_cap ||
         this.report?.steamdeck_experience?.average_frame_rate ||
@@ -98,7 +98,7 @@ export default {
     },
     tdp: function () {
       return this.report?.steamdeck_settings?.tdp_limit || null
-    }
+    },
   },
   methods: {
     openLink(url) {

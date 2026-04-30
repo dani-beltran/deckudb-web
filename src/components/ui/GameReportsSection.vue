@@ -64,24 +64,26 @@ export default {
         return this.reports
       }
       if (this.selectedFilter === 'performance') {
-        return this.reports.filter(report => {
-          const fps = report.steamdeck_settings?.frame_rate_cap || report.steamdeck_experience?.average_frame_rate
+        return this.reports.filter((report) => {
+          const fps =
+            report.steamdeck_settings?.frame_rate_cap ||
+            report.steamdeck_experience?.average_frame_rate
           return fps && parseInt(fps) >= 60
         })
       }
       if (this.selectedFilter === 'battery_saving') {
-        return this.reports.filter(report => {
+        return this.reports.filter((report) => {
           const tdp = report.steamdeck_settings?.tdp_limit
           return tdp && parseInt(tdp) < 10
         })
       }
-      return this.reports.filter(report => 
-        report.steamdeck_hardware && 
-        report.steamdeck_hardware.toLowerCase() === this.selectedFilter
+      return this.reports.filter(
+        (report) =>
+          report.steamdeck_hardware &&
+          report.steamdeck_hardware.toLowerCase() === this.selectedFilter
       )
-    }
+    },
   },
-
 }
 </script>
 
