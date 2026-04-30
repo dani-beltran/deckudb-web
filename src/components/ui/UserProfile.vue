@@ -16,7 +16,7 @@
 
 <script>
 import { LogOut } from 'lucide-vue-next'
-import userStore from '../../stores/userStore';
+import userStore from '../../stores/userStore'
 
 export default {
   name: 'UserProfile',

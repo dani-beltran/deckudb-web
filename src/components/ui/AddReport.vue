@@ -3,34 +3,45 @@
     <h3 class="add-report-title">Add your own report</h3>
     <div class="source-badges">
       <a
-        :href="`https://sharedeck.games/apps/${gameId}/reports/new`"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="source-badge source-sharedeck"
-        aria-label="Add report on ShareDeck"
-      >
-        sharedeck <SquarePen class="icon-square-pen"/>
-      </a>
-      <a
         :href="`https://www.protondb.com/contribute?appId=${gameId}`"
         target="_blank"
         rel="noopener noreferrer"
         class="source-badge source-protondb"
         aria-label="Add report on ProtonDB"
       >
-        protondb <SquarePen class="icon-square-pen"/>
+        <SourceBadge sourceName="protondb">ProtonDB<SquarePen class="icon-square-pen"/></SourceBadge>
+      </a>
+      <a
+        :href="`https://sharedeck.games/apps/${gameId}/reports/new`"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="source-badge source-sharedeck"
+        aria-label="Add report on ShareDeck"
+      >
+        <SourceBadge sourceName="sharedeck">ShareDeck<SquarePen class="icon-square-pen"/></SourceBadge>
+      </a>
+      <a
+        :href="`https://www.reddit.com/r/SteamDeck/submit/?type=TEXT`"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="source-badge source-reddit"
+        aria-label="Add report on Reddit"
+      >
+        <SourceBadge sourceName="reddit">Reddit<SquarePen class="icon-square-pen"/></SourceBadge>
       </a>
     </div>
   </div>
 </template>
 
 <script>
-import { SquarePen } from 'lucide-vue-next';
+import { SquarePen } from 'lucide-vue-next'
+import SourceBadge from '../common/SourceBadge.vue'
 
 export default {
   name: 'AddReport',
   components: {
-    SquarePen
+    SquarePen,
+    SourceBadge,
   },
   props: {
     gameId: {
@@ -61,30 +72,22 @@ export default {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  
 }
 
 .source-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
+  transition: all 0.2s ease;
   text-decoration: none;
-  transition: opacity 0.2s ease;
+  display: inline-flex;
 }
 
 .source-badge:hover {
-  opacity: 0.8;
+  transform: translateY(-1px);
 }
 
-.source-protondb {
-  background: #fef3c7;
-  color: #c28c04;
-}
-
-.source-sharedeck {
-  background: #e6f0ff;
-  color: #1a75ff;
+.source-reddit {
+  background: #F7F8F9;
+  border-radius: 12px;
 }
 
 .icon-square-pen {

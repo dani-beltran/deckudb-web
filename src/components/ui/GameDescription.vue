@@ -51,7 +51,7 @@ export default {
     game: {
       type: Object,
       default: null,
-    }
+    },
   },
   computed: {
     gameTitle() {
@@ -67,11 +67,11 @@ export default {
   methods: {
     getRatingTooltip(rating) {
       const tooltips = {
-        native: 'Game works natively on linux',
-        silver: 'Game works with minor issues, but generally playable',
-        gold: 'Game works flawlessly after a few changes',
-        platinum: 'Game works flawlessly out of the box',
-        unsupported: 'Game is not supported',
+        native: 'Game works natively on SteamOS, Proton is not required',
+        silver: 'Game works with minor issues using Proton on SteamOS, but generally playable',
+        gold: 'Game works flawlessly after a few changes using Proton on SteamOS',
+        platinum: 'Game works flawlessly out of the box using Proton on SteamOS',
+        unsupported: 'Game is not supported by Proton on SteamOS',
         borked: 'Game is broken or is unplayable',
       }
       return tooltips[rating] || ''

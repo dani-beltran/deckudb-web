@@ -68,7 +68,7 @@
 import apiService from '../../services/backend/apiService.js'
 import LoadingDots from '../base/LoadingDots.vue'
 import Carousel from '../common/Carousel.vue'
-import InfiniteScrollCollection from '../common/InfiniteScrollCollection.vue';
+import InfiniteScrollCollection from '../common/InfiniteScrollCollection.vue'
 import PopularGameCard from './PopularGameCard.vue'
 import Button from '../base/Button.vue'
 
@@ -110,7 +110,10 @@ export default {
       this.isLoading = true
       this.error = null
       try {
-        const { items: games, total } = await apiService.fetchMostPlayedGames(this.currentPage, this.pageSize)
+        const { items: games, total } = await apiService.fetchMostPlayedGames(
+          this.currentPage,
+          this.pageSize
+        )
         this.popularGames = games || []
         this.hasMoreGames = total >= this.currentPage * this.pageSize
       } catch (err) {
@@ -125,13 +128,16 @@ export default {
       if (this.isLoadingMore || !this.hasMoreGames) {
         return
       }
-      
+
       this.isLoadingMore = true
       this.currentPage++
-      
+
       try {
-        const { items: games, total } = await apiService.fetchMostPlayedGames(this.currentPage, this.pageSize)
-        
+        const { items: games, total } = await apiService.fetchMostPlayedGames(
+          this.currentPage,
+          this.pageSize
+        )
+
         if (games && games.length > 0) {
           this.popularGames = [...this.popularGames, ...games]
           this.hasMoreGames = total >= this.currentPage * this.pageSize

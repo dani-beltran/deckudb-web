@@ -39,7 +39,8 @@ const artList = [
   },
   {
     file: 'saturn_goya.jpeg',
-    caption_quote: '“Who controls the past controls the future. Who controls the present controls the past.”',
+    caption_quote:
+      '“Who controls the past controls the future. Who controls the present controls the past.”',
     caption_author: 'George Orwell',
   },
 ]
