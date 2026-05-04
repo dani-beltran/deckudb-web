@@ -113,7 +113,6 @@ export default {
   async mounted() {
     // Add keyboard event listener for backspace key
     document.addEventListener('keydown', this.handleKeydown)
-    await this.loadGame()
     this.updateDocumentTitle()
   },
   unmounted() {
