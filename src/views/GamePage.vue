@@ -15,8 +15,14 @@
     <!-- Error State -->
     <ErrorMessage :message="error" @dismiss="clearError" class="error-with-top-margin" />
 
+    <!-- Not a game item State -->
+    <div v-if="game && !isGameType && !loading && !error">
+      <WarningMessage :message="`This is not a video game! You may be looking for ${game?.steam_app?.fullgame?.name || 'another item'} instead.`" />
+      <GameDescription :game="game" />
+    </div>
+
     <!-- Game ready State -->
-     <div v-if="game && !pendingGame && !loading && !error">
+     <div v-if="game && isGameType && !pendingGame && !loading && !error">
       <GameDescription :game="game" />
       <AskAICard 
         class="settings-section" 
@@ -33,15 +39,16 @@
       <GameReportsSection v-if="game.reports" :reports="game.reports" />
       <AddReport :game-id="gameId" />
     </div>
+
     <!-- Processing State -->
-    <div v-else-if="!loading && !error">
+    <div v-if="isGameType && pendingGame && !loading && !error">
       <ProcessingWarning :game-name="gameTitle" />
       <div class="refresh-button-container">
         <RefreshButton :countdown-start="60" />
       </div>
       <RandomArt />
     </div>
-  </div>
+    </div>
 </template>
 
 <script>
@@ -56,6 +63,7 @@ import GameReportsSection from '../components/ui/GameReportsSection.vue'
 import ProcessingWarning from '../components/ui/ProcessingWarning.vue'
 import apiService from '../services/backend/apiService.js'
 import NavigationHeader from '../components/ui/NavigationHeader.vue'
+import WarningMessage from '../components/common/WarningMessage.vue'
 
 export default {
   name: 'GamePage',
@@ -70,6 +78,7 @@ export default {
     RandomArt,
     AskAICard,
     NavigationHeader,
+    WarningMessage,
   },
   props: {
     gameId: {
@@ -91,6 +100,9 @@ export default {
   computed: {
     gameTitle() {
       return this.game?.steam_app?.name || `Game ID ${this.gameId}`
+    },
+    isGameType() {
+      return this.game?.steam_app?.type === 'game'
     },
     aiCardContent() {
       if (!this.game?.game_performance_summary) return ''
