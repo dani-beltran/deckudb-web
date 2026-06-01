@@ -19,6 +19,15 @@
     <div v-if="game && !isGameType && !loading && !error">
       <WarningMessage :message="`This is not a video game! You may be looking for ${game?.steam_app?.fullgame?.name || 'another item'} instead.`" />
       <GameDescription :game="game" />
+      <p v-if="game?.steam_app?.fullgame?.appid" class="parent-game-link">
+        View original game:
+        <router-link
+          class="parent-game-link__cta"
+          :to="{ name: 'Game', params: { gameId: game.steam_app.fullgame.appid } }"
+        >
+          {{ game?.steam_app?.fullgame?.name || `App ${game.steam_app.fullgame.appid}` }}
+        </router-link>
+      </p>
     </div>
 
     <!-- Game ready State -->
@@ -218,6 +227,39 @@ export default {
 
 .settings-section {
   margin-top: 20px;
+}
+
+.parent-game-link {
+  margin: 20px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+}
+
+.parent-game-link__cta {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--secondary-border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.parent-game-link__cta:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: var(--primary-bg-active);
+}
+
+.parent-game-link__cta:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .error-with-top-margin {
