@@ -1,7 +1,19 @@
 <template>
-  <div class="tooltip-wrapper" :class="wrapperClass">
+  <div
+    class="tooltip-wrapper"
+    :class="wrapperClass"
+    @mouseenter="adjustPosition"
+    @focusin="adjustPosition"
+    @mouseleave="resetPosition"
+  >
     <slot></slot>
-    <span v-if="text" class="tooltip-content" :class="position">
+    <span
+      v-if="text"
+      ref="tooltipContent"
+      class="tooltip-content"
+      :class="position"
+      :style="tooltipStyle"
+    >
       {{ text }}
     </span>
   </div>
@@ -10,6 +22,18 @@
 <script>
 export default {
   name: 'Tooltip',
+  data() {
+    return {
+      tooltipShiftX: 0,
+    }
+  },
+  computed: {
+    tooltipStyle() {
+      return {
+        '--tooltip-shift-x': `${this.tooltipShiftX}px`,
+      }
+    },
+  },
   props: {
     text: {
       type: String,
@@ -35,6 +59,43 @@ export default {
       default: '',
     },
   },
+  methods: {
+    /**
+     * Position the tooltip to ensure it stays within the viewport, especially for top and bottom positions in mobile design where horizontal 
+     * overflow is more likely.
+     */
+    adjustPosition() {
+      this.$nextTick(() => {
+        requestAnimationFrame(() => {
+          const tooltip = this.$refs.tooltipContent
+          if (!tooltip) return
+
+          if (this.position !== 'top' && this.position !== 'bottom') {
+            this.tooltipShiftX = 0
+            return
+          }
+
+          // Caculated from mobile design, where tooltips are more constrainted
+          const viewportPadding = 16
+          const rect = tooltip.getBoundingClientRect()
+          const minLeft = viewportPadding
+          const maxRight = window.innerWidth - viewportPadding
+
+          let shiftX = 0
+          if (rect.left < minLeft) {
+            shiftX = minLeft - rect.left
+          } else if (rect.right > maxRight) {
+            shiftX = maxRight - rect.right
+          }
+
+          this.tooltipShiftX = shiftX
+        })
+      })
+    },
+    resetPosition() {
+      this.tooltipShiftX = 0
+    },
+  },
 }
 </script>
 
@@ -47,13 +108,19 @@ export default {
 
 .tooltip-content {
   position: absolute;
+  display: block;
   background: rgba(31, 41, 55, 0.95);
   color: white;
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 500;
-  white-space: nowrap;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   opacity: 0;
   pointer-events: none;
   transition: all 0.2s ease;
@@ -68,7 +135,7 @@ export default {
 .tooltip-content.top {
   bottom: calc(100% + 8px);
   left: 50%;
-  transform: translateX(-50%) scale(0.95);
+  transform: translateX(calc(-50% + var(--tooltip-shift-x, 0px))) scale(0.95);
 }
 
 .tooltip-content.top::after {
@@ -76,7 +143,7 @@ export default {
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(calc(-50% - var(--tooltip-shift-x, 0px)));
   border: 6px solid transparent;
   border-top-color: rgba(31, 41, 55, 0.95);
 }
@@ -85,7 +152,7 @@ export default {
 .tooltip-content.bottom {
   top: calc(100% + 8px);
   left: 50%;
-  transform: translateX(-50%) scale(0.95);
+  transform: translateX(calc(-50% + var(--tooltip-shift-x, 0px))) scale(0.95);
 }
 
 .tooltip-content.bottom::after {
@@ -93,7 +160,7 @@ export default {
   position: absolute;
   bottom: 100%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(calc(-50% - var(--tooltip-shift-x, 0px)));
   border: 6px solid transparent;
   border-bottom-color: rgba(31, 41, 55, 0.95);
 }
@@ -199,12 +266,12 @@ export default {
 /* Hover effects */
 .tooltip-wrapper:hover .tooltip-content.top {
   opacity: 1;
-  transform: translateX(-50%) scale(1);
+  transform: translateX(calc(-50% + var(--tooltip-shift-x, 0px))) scale(1);
 }
 
 .tooltip-wrapper:hover .tooltip-content.bottom {
   opacity: 1;
-  transform: translateX(-50%) scale(1);
+  transform: translateX(calc(-50% + var(--tooltip-shift-x, 0px))) scale(1);
 }
 
 .tooltip-wrapper:hover .tooltip-content.left {
