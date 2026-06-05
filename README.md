@@ -48,6 +48,11 @@ npm install
 npm run dev
 ```
 
+Optionally, you can run the development server available in your local network (useful for testing on devices):
+```bash
+npm run dev -- --host
+```
+
 ### Build for Production
 ```bash
 npm run build

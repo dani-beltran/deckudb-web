@@ -3,8 +3,8 @@
  */
 class ApiService {
   constructor() {
-    // Use localhost in development, production URL otherwise
-    this.baseUrl = import.meta.env.DEV ? 'http://localhost:3000' : 'https://api.deckudb.com'
+    // Prefer explicit Vite env override, with mode-based fallback.
+    this.baseUrl = import.meta.env.VITE_API_URL ?? "/api"
   }
 
   /**
