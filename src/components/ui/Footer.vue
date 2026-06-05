@@ -55,7 +55,10 @@
       
       <div class="disclaimer-info">
         <span class="disclaimer-text">This site has no affiliation with Valve Software. All game images and logos are property of their respective owners.
-</span>
+        </span>
+      </div>
+      <div class="copyright">
+        <span class="copyright-text">© 2025-2026 by Daniel J.L. Beltran. All rights reserved.</span>
       </div>
     </div>
   </footer>
@@ -150,6 +153,16 @@ export default {
 }
 
 .disclaimer-text {
+  font-weight: 400;
+}
+
+.copyright {
+  color: #b8b8b8;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.copyright-text {
   font-weight: 400;
 }
 
