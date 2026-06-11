@@ -39,6 +39,7 @@ export default {
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow-y: hidden;
 }
 
 .app-layout::before {
@@ -47,7 +48,7 @@ export default {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: -50px;
   background-image: url('./assets/steamdeck_bg_vector.png');
   background-repeat: no-repeat;
   background-position: center bottom;
