@@ -79,7 +79,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 120px;
+  margin-bottom: 100px;
 }
 
 .search-title {
