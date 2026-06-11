@@ -48,7 +48,7 @@ export default {
   top: 0;
   left: 0;
   right: 0;
-  bottom: -50px;
+  bottom: -175px;
   background-image: url('./assets/steamdeck_bg_vector.png');
   background-repeat: no-repeat;
   background-position: center bottom;
@@ -95,6 +95,12 @@ export default {
   gap: 30px;
 }
 
+@media (max-width: 1200px) {
+  .app-layout::before {
+    bottom: -60px;
+  }
+}
+
 @media (max-width: 1200px) and (orientation: landscape) {
   .app-layout::before {
     position: absolute;
@@ -111,6 +117,9 @@ export default {
   .container {
     padding: 16px;
     width: calc(100% - 32px);
+  }
+  .app-layout::before {
+    opacity: 0;
   }
 }
 
