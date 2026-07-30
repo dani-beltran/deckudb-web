@@ -1,5 +1,5 @@
 {
-  "name": "steamdeck-settings-db-web",
+  "name": "deckudb",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -7,26 +7,47 @@
     "npm": ">=11.10.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "biome lint ./src",
-    "lint:fix": "biome lint --write ./src",
-    "format": "biome format ./src",
-    "format:fix": "biome format --write ./src",
-    "check": "biome check ./src",
-    "check:fix": "biome check --write ./src"
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare && npx playwright install",
+    "lint": "biome lint ./src ./server",
+    "lint:fix": "biome lint --write ./src ./server",
+    "format": "biome format ./src ./server",
+    "format:fix": "biome format --write ./src ./server",
+    "check": "biome check ./src ./server",
+    "check:fix": "biome check --write ./src ./server",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
+    "@danilidonbeltran/webscrapper": "2.3.1",
+    "connect-mongo": "^6.0.0",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.20",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-session": "^1.18.2",
     "hls.js": "^1.6.15",
     "js-cookie": "^3.0.5",
     "lucide-vue-next": "^0.544.0",
-    "vue": "^3.3.4",
-    "vue-router": "^4.5.1"
+    "mbs3": "^0.3.1",
+    "mongodb": "^6.3.0",
+    "nuxt": "^4.0.0",
+    "protobufjs": "^7.5.6",
+    "vue": "^3.5.0",
+    "vue-router": "^5.2.0",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^5.0.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.3",
-    "@vitejs/plugin-vue": "^4.2.3",
-    "vite": "^4.4.5"
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/express-session": "1.19.0",
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3",
+    "vue-tsc": "^3.0.0"
   }
 }

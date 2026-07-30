@@ -15,9 +15,8 @@ node_modules/
 # Build output
 dist/
 build/
-
-# Vite
-.vite/
+.nuxt/
+.output/
 
 # Editor directories and files
 .vscode/*
