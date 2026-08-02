@@ -10,7 +10,6 @@ type DatabaseClientOptions = {
 export class DatabaseClient {
   private client: MongoClient | null = null
   private readonly opts: DatabaseClientOptions
-  
 
   constructor(opts: DatabaseClientOptions) {
     this.opts = opts
@@ -18,7 +17,7 @@ export class DatabaseClient {
   }
 
   connect = async (): Promise<Db> => {
-    const { connectionName,mongodbDatabase: dbName, mongodbUri: uri } = this.opts
+    const { connectionName, mongodbDatabase: dbName, mongodbUri: uri } = this.opts
 
     try {
       logger.info(`Connecting ${connectionName} to MongoDB ${dbName}...`)
@@ -53,21 +52,27 @@ export class DatabaseClient {
 
   getDB = (): Db => {
     if (!this.client) {
-      throw new Error(`Database not initialized for ${this.opts.connectionName}. Call connect() first.`)
+      throw new Error(
+        `Database not initialized for ${this.opts.connectionName}. Call connect() first.`
+      )
     }
     return this.client.db(this.opts.mongodbDatabase)
   }
 
   getClient = (): MongoClient => {
     if (!this.client) {
-      throw new Error(`Database not initialized for ${this.opts.connectionName}. Call connect() first.`)
+      throw new Error(
+        `Database not initialized for ${this.opts.connectionName}. Call connect() first.`
+      )
     }
     return this.client
   }
 
   flushDB = async (): Promise<void> => {
     if (!this.client) {
-      throw new Error(`Database not initialized for ${this.opts.connectionName}. Call connect() first.`)
+      throw new Error(
+        `Database not initialized for ${this.opts.connectionName}. Call connect() first.`
+      )
     }
     const db = this.client.db(this.opts.mongodbDatabase)
     const collections = await db.collections()

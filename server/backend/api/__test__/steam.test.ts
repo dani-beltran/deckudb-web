@@ -46,9 +46,7 @@ describe('steam router', () => {
     }
     vi.spyOn(steamCache(), 'getSearchResults').mockResolvedValueOnce(cachedSearch)
 
-    const response = await request(app)
-      .get('/steam/games?term=helldivers&limit=5')
-      .expect(200)
+    const response = await request(app).get('/steam/games?term=helldivers&limit=5').expect(200)
 
     expect(response.body).toEqual(cachedSearch)
     expect(steamCache().getSearchResults).toHaveBeenCalledWith('helldivers', 5)
@@ -125,9 +123,7 @@ describe('steam router', () => {
     vi.spyOn(steamCache(), 'getGamesDetails').mockResolvedValueOnce(gameDetails)
     vi.mocked(steamService.mapGamesToSearchItems).mockReturnValueOnce(mappedItems)
 
-    const response = await request(app)
-      .get('/steam/most-played-steam-deck-games')
-      .expect(200)
+    const response = await request(app).get('/steam/most-played-steam-deck-games').expect(200)
 
     expect(response.body).toEqual({
       items: mappedItems,

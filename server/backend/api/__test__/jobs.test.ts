@@ -550,8 +550,7 @@ describe('DELETE /jobs/:job_id', () => {
     jobModel = app.locals.dependencies.repositories.jobs
   })
 
-  beforeEach(async () => {
-  })
+  beforeEach(async () => {})
 
   afterAll(async () => {
     if (app) await unmountTestApp(app)

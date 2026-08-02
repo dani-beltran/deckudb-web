@@ -14,14 +14,14 @@ export const createTestDb = async () => {
   return {
     db,
     connection,
-    mongoServer
+    mongoServer,
   }
 }
 
 /**
  * Remove the test database, close the connection and stop the in-memory server.
- * @param db 
- * @param mongoServer 
+ * @param db
+ * @param mongoServer
  */
 export const removeTestDb = async (db: Db, mongoServer: MongoMemoryServer) => {
   if (db) {

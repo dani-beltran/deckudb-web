@@ -32,7 +32,7 @@ export const createApp = (
   const app: Express = express()
   const { nodeEnv } = getBackendConfig()
 
-  app.locals.dependencies = dependencies;
+  app.locals.dependencies = dependencies
 
   if (nodeEnv === 'production') {
     app.set('trust proxy', 1)

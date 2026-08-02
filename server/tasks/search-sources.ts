@@ -5,11 +5,11 @@ import {
 } from '../backend/api/game-sources/game-sources.schema'
 import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
 import { getBackendConfig } from '../backend/config'
-import logger from '../backend/lib/logger'
 import type { MinerConstructor } from '../backend/lib/data-mining/Miner'
 import { ProtondbMiner } from '../backend/lib/data-mining/ProtondbMiner'
 import { SharedeckMiner } from '../backend/lib/data-mining/SharedeckMiner'
 import { runJob } from '../backend/lib/job-runner'
+import logger from '../backend/lib/logger'
 import { FirecrawlService } from '../backend/services/firecrawl'
 import type { AppDependencies } from '../backend/types/dependencies'
 

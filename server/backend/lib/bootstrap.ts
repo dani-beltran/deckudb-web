@@ -5,9 +5,9 @@ import { GamesModel } from '../api/games/games.model'
 import { JobsModel } from '../api/jobs/jobs.model'
 import { ScrapesModel } from '../api/scrapes/scrapes.model'
 import { SteamCacheModel } from '../api/steam/steam-cache.model'
+import { getBackendConfig } from '../config'
 import type { AppDependencies } from '../types/dependencies'
 import { DatabaseClient } from './DatabaseClient'
-import { getBackendConfig } from '../config'
 import logger from './logger'
 
 export type BootstrappedDependencies = {

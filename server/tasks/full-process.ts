@@ -1,6 +1,6 @@
 import { JOB_TYPE } from '../backend/api/jobs/jobs.model'
-import logger from '../backend/lib/logger'
 import { runJob } from '../backend/lib/job-runner'
+import logger from '../backend/lib/logger'
 import { generateGameReports } from './generate-game-reports'
 import { generateGameSummary } from './generate-game-summary'
 import { scrapeGameSources } from './scrape-game'

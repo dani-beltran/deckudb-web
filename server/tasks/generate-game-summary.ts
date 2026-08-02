@@ -1,9 +1,9 @@
 import type { GameReportBody } from '../backend/api/games/game-reports.schema'
 import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
 import { getBackendConfig } from '../backend/config'
-import logger from '../backend/lib/logger'
 import { SCRAPE_SOURCES } from '../backend/lib/data-mining/scrapes.schema'
 import { runJob } from '../backend/lib/job-runner'
+import logger from '../backend/lib/logger'
 import { ClaudeService } from '../backend/services/claude'
 import type { AppDependencies } from '../backend/types/dependencies'
 

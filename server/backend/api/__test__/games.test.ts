@@ -1,6 +1,8 @@
 import request from 'supertest'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mountTestApp, unmountTestApp } from '../../lib/test-setup/test-app'
+import type { TestApp } from '../../lib/test-setup/test-app.js'
+import { flushDB } from '../../lib/test-setup/test-db.js'
 import * as steamService from '../../services/steam/steam.js'
 import { STEAMDECK_VERIFICATION_STATUS, type SteamApp } from '../../services/steam/steam.types'
 import type { AppDependencies } from '../../types/dependencies'
@@ -8,8 +10,6 @@ import { SCRAPE_SOURCES } from '../game-sources/game-sources.schema.js'
 import type { GameReport } from '../games/game-reports.schema'
 import { type Game, STEAMDECK_HARDWARE, STEAMDECK_RATING } from '../games/games.schema'
 import { JOB_STATUS, JOB_TYPE } from '../jobs/jobs.model'
-import { TestApp } from '../../lib/test-setup/test-app.js'
-import { flushDB } from '../../lib/test-setup/test-db.js'
 
 // Mock steam service to avoid network calls in tests
 vi.mock('../../services/steam/steam', () => ({

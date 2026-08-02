@@ -1,15 +1,15 @@
-import { Db } from "mongodb";
-import { createApp, ExpressApp } from "../../app";
-import { createTestDependencies } from "./test-dependencies";
-import { createTestDb } from "./test-db";
-import { MongoMemoryServer } from "mongodb-memory-server";
+import type { Db } from 'mongodb'
+import type { MongoMemoryServer } from 'mongodb-memory-server'
+import { createApp, type ExpressApp } from '../../app'
+import { createTestDb } from './test-db'
+import { createTestDependencies } from './test-dependencies'
 
 export type TestApp = ExpressApp & {
-    locals: {
-        db: Db;
-        mongoServer: MongoMemoryServer;
-    };
-};
+  locals: {
+    db: Db
+    mongoServer: MongoMemoryServer
+  }
+}
 
 /**
  * Creates the Express application mounting a test db server in memory.
@@ -19,23 +19,23 @@ export type TestApp = ExpressApp & {
  * @returns The created Express application for testing.
  */
 export const mountTestApp = async () => {
-    const { db, mongoServer } = await createTestDb();
-    const app = createApp(createTestDependencies(db), { apiPrefix: '' })
-    app.locals.db = db;
-    app.locals.mongoServer = mongoServer;
-    return app as TestApp;
+  const { db, mongoServer } = await createTestDb()
+  const app = createApp(createTestDependencies(db), { apiPrefix: '' })
+  app.locals.db = db
+  app.locals.mongoServer = mongoServer
+  return app as TestApp
 }
 
 /**
  * Unmounts the test application by dropping the test database, closing the connection and stopping the in-memory server.
- * @param app 
+ * @param app
  */
 export const unmountTestApp = async (app: TestApp) => {
-    if (app.locals.db) {
-        await app.locals.db.dropDatabase();
-        await app.locals.db.client.close();
-    }
-    if (app.locals.mongoServer) {
-        await app.locals.mongoServer.stop();
-    }
+  if (app.locals.db) {
+    await app.locals.db.dropDatabase()
+    await app.locals.db.client.close()
+  }
+  if (app.locals.mongoServer) {
+    await app.locals.mongoServer.stop()
+  }
 }
