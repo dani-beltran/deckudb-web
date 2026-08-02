@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import { getBackendConfig } from '../../config'
-import logger from '../../config/logger'
+import logger from '../../lib/logger'
 import { ConflictError } from '../../errors/ConflictError'
 import { createController } from '../../lib/controller-factory'
 import type { SteamApp } from '../../services/steam/steam.types'

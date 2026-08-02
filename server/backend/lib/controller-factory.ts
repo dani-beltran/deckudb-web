@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import logger from '../config/logger'
+import logger from '../lib/logger'
 import { ConflictError } from '../errors/ConflictError'
 import { NotFoundError } from '../errors/NotFoundError'
 import { ValidationError } from '../errors/ValidationError'

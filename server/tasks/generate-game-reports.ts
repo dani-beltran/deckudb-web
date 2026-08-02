@@ -1,6 +1,6 @@
 import type { GameReportBody } from '../backend/api/games/game-reports.schema'
 import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
-import logger from '../backend/config/logger'
+import logger from '../backend/lib/logger'
 import { buildMiner } from '../backend/lib/data-mining/MinerFactory'
 import { ProtondbMiner } from '../backend/lib/data-mining/ProtondbMiner'
 import { SCRAPE_SOURCES, type Scrape } from '../backend/lib/data-mining/scrapes.schema'

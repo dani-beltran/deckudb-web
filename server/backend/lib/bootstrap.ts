@@ -7,7 +7,7 @@ import { ScrapesModel } from '../api/scrapes/scrapes.model'
 import { SteamCacheModel } from '../api/steam/steam-cache.model'
 import type { AppDependencies } from '../types/dependencies'
 import { DatabaseClient } from './DatabaseClient'
-import { getBackendConfig } from './index'
+import { getBackendConfig } from '../config'
 import logger from './logger'
 
 export type BootstrappedDependencies = {

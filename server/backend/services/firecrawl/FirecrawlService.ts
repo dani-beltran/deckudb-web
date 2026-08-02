@@ -1,4 +1,4 @@
-import logger from '../../config/logger'
+import logger from '../../lib/logger'
 import type {
   FirecrawlSearchParams,
   FirecrawlSearchResponse,

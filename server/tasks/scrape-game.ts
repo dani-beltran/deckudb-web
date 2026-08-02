@@ -6,7 +6,7 @@ import {
 } from '@danilidonbeltran/webscrapper/src/scraper'
 import type { GameSource, SCRAPE_SOURCES } from '../backend/api/game-sources/game-sources.schema'
 import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
-import logger from '../backend/config/logger'
+import logger from '../backend/lib/logger'
 import { buildMiner } from '../backend/lib/data-mining/MinerFactory'
 import { runJob } from '../backend/lib/job-runner'
 import type { AppDependencies } from '../backend/types/dependencies'

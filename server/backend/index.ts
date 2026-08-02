@@ -1,7 +1,7 @@
 import { createApp } from './app'
 import { getBackendConfig } from './config'
 import { bootstrapDependencies, createDBIndexes } from './config/bootstrap'
-import logger from './config/logger'
+import logger from './lib/logger'
 
 // Start server
 const startServer = async () => {

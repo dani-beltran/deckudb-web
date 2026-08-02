@@ -30,6 +30,8 @@ const level = () => {
   return isDevelopment ? 'debug' : 'info'
 }
 
+const isTestEnvironment = () => useRuntimeConfig().nodeEnv === 'test'
+
 // Define format for console output (with colors)
 const consoleFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
@@ -74,6 +76,8 @@ const transports = [
 const baseLogger = winston.createLogger({
   level: level(),
   levels,
+  // Tests exercise expected error paths; keep those logs out of the test output.
+  silent: isTestEnvironment(),
   transports,
 })
 
