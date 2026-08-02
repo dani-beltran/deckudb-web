@@ -1,8 +1,11 @@
 import type { NextFunction, Request, Response } from 'express'
+import { useRuntimeConfig } from '#imports'
 import logger from '../config/logger'
 
+const runtimeConfig = useRuntimeConfig()
+
 export const requireApiKey = (req: Request, res: Response, next: NextFunction): void => {
-  const apiKey = process.env.JOB_API_KEY
+  const apiKey = runtimeConfig.jobApiKey
 
   if (!apiKey) {
     logger.error('JOB_API_KEY is not configured')

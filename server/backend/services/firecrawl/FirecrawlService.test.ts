@@ -15,6 +15,7 @@ describe('FirecrawlService', () => {
   let service: FirecrawlService
 
   beforeEach(() => {
+    vi.clearAllMocks()
     service = new FirecrawlService('test-api-key')
   })
 

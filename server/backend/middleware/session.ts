@@ -1,22 +1,26 @@
 import MongoStore from 'connect-mongo'
 import session from 'express-session'
-import {
-  MONGODB_DATABASE,
-  MONGODB_URI,
-  NODE_ENV,
-  NODE_ENVS,
-  SESSION_MAX_AGE_MS,
-  SESSION_SECRETS,
-} from '../config/env'
+import { useRuntimeConfig } from '#imports'
+
+const config = useRuntimeConfig()
+const sessionSecrets = config.sessionSecret
+  .split(',')
+  .map((secret) => secret.trim())
+  .filter(Boolean)
+const sessionMaxAgeMs = Number.parseInt(config.sessionMaxAgeMs, 10)
+
+if (sessionSecrets.length === 0) {
+  throw new Error('sessionSecret runtime config must contain at least one non-empty secret.')
+}
 
 const sessionMiddleware = session({
   name: 'decku.sid',
-  secret: SESSION_SECRETS,
+  secret: sessionSecrets,
   store: MongoStore.create({
-    mongoUrl: MONGODB_URI,
-    dbName: MONGODB_DATABASE,
+    mongoUrl: config.mongodbUri,
+    dbName: config.mongodbDatabase,
     collectionName: 'sessions',
-    ttl: Math.floor(SESSION_MAX_AGE_MS / 1000),
+    ttl: Math.floor(sessionMaxAgeMs / 1000),
     autoRemove: 'native',
   }),
   resave: false,
@@ -25,8 +29,8 @@ const sessionMiddleware = session({
   cookie: {
     httpOnly: true,
     sameSite: 'lax',
-    secure: NODE_ENV === NODE_ENVS.PRODUCTION,
-    maxAge: SESSION_MAX_AGE_MS,
+    secure: config.nodeEnv === 'production',
+    maxAge: sessionMaxAgeMs,
   },
 })
 

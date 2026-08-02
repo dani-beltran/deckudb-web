@@ -57,12 +57,12 @@ describe('SharedeckMiner', () => {
   describe('getUrl', () => {
     it('should generate correct Sharedeck URL for game ID', () => {
       const url = SharedeckMiner.getUrl(1091500)
-      expect(url).toBe('https://sharedeck.games/apps/1091500')
+      expect(url).toBe('https://sharedeck.games/reports?app_id=1091500')
     })
 
     it('should handle different game IDs', () => {
       const url = SharedeckMiner.getUrl(570)
-      expect(url).toBe('https://sharedeck.games/apps/570')
+      expect(url).toBe('https://sharedeck.games/reports?app_id=570')
     })
   })
 
@@ -390,7 +390,7 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].notes).toBe('Game runs smoothly.\n\nNo issues encountered.')
+      expect(polished.reports[0].notes).toBe('Game runs smoothly. No issues encountered.')
     })
 
     it('should return empty notes when Note is not found', () => {

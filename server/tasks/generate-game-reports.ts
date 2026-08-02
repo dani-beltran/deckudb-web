@@ -1,4 +1,3 @@
-import dotenv from 'dotenv'
 import type { GameReportBody } from '../backend/api/games/game-reports.schema'
 import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
 import logger from '../backend/config/logger'
@@ -11,8 +10,6 @@ import { STEAMDECK_VERIFICATION_STATUS } from '../backend/services/steam/steam.t
 import type { AppDependencies } from '../backend/types/dependencies'
 import { flatMapAsync } from '../backend/utils/async'
 import { getFaviconUrl, getWebsiteApproximatePublishedDate } from '../backend/utils/web'
-
-dotenv.config()
 
 export const generateGameReports = async (job: Job, { repositories }: AppDependencies) => {
   const gameId = job.game_id

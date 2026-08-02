@@ -1,7 +1,7 @@
 import type { Db } from 'mongodb'
 import {
   getMostPlayedSteamDeckGameIds,
-  getSteamGameDestails,
+  getSteamGameDetails,
   searchSteamGames,
 } from '../../services/steam/steam'
 import type { SteamApp, SteamSearch } from '../../services/steam/steam.types'
@@ -42,7 +42,7 @@ export class SteamCacheModel {
     if (cached) {
       return cached
     }
-    const results = await getSteamGameDestails(gameId)
+    const results = await getSteamGameDetails(gameId)
     await this.cacheGameDetails(gameId, results)
     return results
   }
@@ -56,7 +56,7 @@ export class SteamCacheModel {
       return cached
     }
 
-    const fetchedDetails = await Promise.all(missingGameIds.map((id) => getSteamGameDestails(id)))
+    const fetchedDetails = await Promise.all(missingGameIds.map((id) => getSteamGameDetails(id)))
 
     await Promise.all(
       fetchedDetails.map((details) => this.cacheGameDetails(details.steam_appid, details))

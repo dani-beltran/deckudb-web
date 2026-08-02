@@ -8,7 +8,7 @@
 import { randomUUID } from 'node:crypto'
 import type { Db } from 'mongodb'
 import z from 'zod'
-import { JOB_MAX_ATTEMPTS } from '../../config/env'
+import { useRuntimeConfig } from '#imports'
 import { ConflictError } from '../../errors/ConflictError'
 import type { PaginatedResult, PaginationParams } from '../../lib/pagination'
 import type { Sort } from '../../types/db.types'
@@ -62,6 +62,7 @@ export type CreateJobParams = z.infer<typeof createJobSchema>
 // CONSTANTS
 // ---------------------------------------------------------------------------
 const COLLECTION = 'jobs'
+const jobMaxAttempts = Number.parseInt(useRuntimeConfig().jobMaxAttempts, 10)
 
 export class JobsModel {
   constructor(private readonly db: Db) {}
@@ -251,7 +252,7 @@ export class JobsModel {
     }
 
     const attempts = job.attempt_count ?? 1
-    const maxAttempts = job.max_attempts ?? JOB_MAX_ATTEMPTS
+    const maxAttempts = job.max_attempts ?? jobMaxAttempts
 
     if (attempts < maxAttempts) {
       const utcNow = new Date(Date.now())
@@ -364,7 +365,7 @@ export class JobsModel {
       ...validatedJob,
       status: JOB_STATUS.QUEUED,
       attempt_count: 0,
-      max_attempts: validatedJob.max_attempts ?? JOB_MAX_ATTEMPTS,
+      max_attempts: validatedJob.max_attempts ?? jobMaxAttempts,
       started_at: null,
       completed_at: null,
       created_at: utcNow,
@@ -390,7 +391,7 @@ export class JobsModel {
               $add: [{ $ifNull: ['$attempt_count', 0] }, 1],
             },
             max_attempts: {
-              $ifNull: ['$max_attempts', JOB_MAX_ATTEMPTS],
+              $ifNull: ['$max_attempts', jobMaxAttempts],
             },
           },
         },

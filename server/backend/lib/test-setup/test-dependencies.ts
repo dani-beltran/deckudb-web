@@ -9,7 +9,7 @@ import { createApp } from '../../app'
 import type { AppDependencies } from '../../types/dependencies'
 import { getTestDB } from './test-db'
 
-export const createTestDependencies = (): AppDependencies => {
+const createTestDependencies = (): AppDependencies => {
   const db = getTestDB()
 
   return {
@@ -25,4 +25,10 @@ export const createTestDependencies = (): AppDependencies => {
   }
 }
 
-export const createTestApp = () => createApp(createTestDependencies())
+/**
+ * Creates the Express application configured for testing using
+ * the test database. The test dependencies are accesible via `app.locals.dependencies`.
+ * It does not use any API prefix for the routes, so they can be accessed at the root level.
+ * @returns The created Express application for testing.
+ */
+export const createTestApp = () => createApp(createTestDependencies(), { apiPrefix: '' })

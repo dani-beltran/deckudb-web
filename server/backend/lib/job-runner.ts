@@ -1,7 +1,7 @@
+import { useRuntimeConfig } from '#imports'
 import type { JOB_TYPE, Job } from '../api/jobs/jobs.model'
 import { bootstrapDependencies } from '../config/bootstrap'
 import type { DatabaseClient } from '../config/DatabaseClient'
-import { JOB_TIMEOUT_MINUTES } from '../config/env'
 import logger from '../config/logger'
 import type { AppDependencies } from '../types/dependencies'
 
@@ -14,6 +14,7 @@ export const runJob = async (
   let job: Job | null = null
   let databaseClient: DatabaseClient | null = null
   let deps: AppDependencies | null = null
+  const { jobTimeoutMinutes } = useRuntimeConfig()
 
   process.on('SIGINT', async () => {
     await gracefulShutdown(job, deps, databaseClient)
@@ -31,7 +32,10 @@ export const runJob = async (
     databaseClient = boot.databaseClient
 
     // Re-queue any timed-out jobs before attempting to start a new one
-    await deps.repositories.jobs.requeueTimedOutJobs(jobType, JOB_TIMEOUT_MINUTES)
+    await deps.repositories.jobs.requeueTimedOutJobs(
+      jobType,
+      Number.parseInt(jobTimeoutMinutes, 10)
+    )
 
     job = await deps.repositories.jobs.startQueuedJob(jobType)
 

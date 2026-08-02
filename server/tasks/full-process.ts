@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { JOB_TYPE } from '../backend/api/jobs/jobs.model'
 import logger from '../backend/config/logger'
 import { runJob } from '../backend/lib/job-runner'

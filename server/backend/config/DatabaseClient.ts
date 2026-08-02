@@ -1,5 +1,5 @@
 import { type Db, MongoClient } from 'mongodb'
-import { MONGODB_DATABASE, MONGODB_URI } from './env'
+import { useRuntimeConfig } from '#imports'
 import logger from './logger'
 
 export class DatabaseClient {
@@ -12,8 +12,7 @@ export class DatabaseClient {
 
   connect = async (): Promise<Db> => {
     try {
-      const uri = MONGODB_URI || 'mongodb://localhost:27017'
-      const dbName = MONGODB_DATABASE || 'decku'
+      const { mongodbDatabase: dbName, mongodbUri: uri } = useRuntimeConfig()
 
       logger.info(`Connecting ${this.connectionName} to MongoDB ${dbName}...`)
 

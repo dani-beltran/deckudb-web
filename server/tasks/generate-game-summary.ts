@@ -1,14 +1,11 @@
-import dotenv from 'dotenv'
+import { useRuntimeConfig } from '#imports'
 import type { GameReportBody } from '../backend/api/games/game-reports.schema'
 import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
-import { CLAUDE_AI_MODEL, CLAUDE_API_KEY } from '../backend/config/env'
 import logger from '../backend/config/logger'
 import { SCRAPE_SOURCES } from '../backend/lib/data-mining/scrapes.schema'
 import { runJob } from '../backend/lib/job-runner'
 import { ClaudeService } from '../backend/services/claude'
 import type { AppDependencies } from '../backend/types/dependencies'
-
-dotenv.config()
 
 export async function generateGameSummary(job: Job, { repositories }: AppDependencies) {
   const warnings: string[] = []
@@ -87,11 +84,15 @@ Summary:`
 
 async function askClaudeAI(msg: string) {
   if (!msg) return ''
+  const { claudeAiModel, claudeApiKey } = useRuntimeConfig()
+  if (!claudeApiKey) {
+    throw new Error('claudeApiKey runtime config is required for game summary generation.')
+  }
   const claudeService = new ClaudeService({
-    apiKey: CLAUDE_API_KEY,
+    apiKey: claudeApiKey,
   })
   return claudeService.prompt(msg, {
-    model: CLAUDE_AI_MODEL,
+    model: claudeAiModel,
     maxTokens: 300,
     temperature: 0.3,
   })

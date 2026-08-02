@@ -16,7 +16,7 @@ export const searchSteamGames = async (term: string, limit = 100) => {
   return data
 }
 
-export const getSteamGameDestails = async (gameId: number) => {
+export const getSteamGameDetails = async (gameId: number) => {
   const url = `https://${STEAM_STORE_DOMAIN}/api/appdetails?appids=${gameId}&l=english`
   const response = await fetch(url)
   const data = (await response.json()) as SteamAppDetailsResponse

@@ -1,27 +1,20 @@
-import express from 'express'
 import request from 'supertest'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearTestDB, closeTestDB, connectTestDB } from '../../lib/test-setup/test-db'
-import { createTestDependencies } from '../../lib/test-setup/test-dependencies'
+import { createTestApp } from '../../lib/test-setup/test-dependencies'
 import * as steamService from '../../services/steam/steam.js'
 import type { SteamApp, SteamSearch } from '../../services/steam/steam.types'
 import type { AppDependencies } from '../../types/dependencies'
-import { createSteamRouter } from '../steam/steam.router'
+import type { ExpressApp } from '../../app.js'
 
 vi.mock('../../services/steam/steam', () => ({
   searchSteamGames: vi.fn(),
-  getSteamGameDestails: vi.fn(),
+  getSteamGameDetails: vi.fn(),
   getMostPlayedSteamDeckGameIds: vi.fn(),
   mapGamesToSearchItems: vi.fn(),
 }))
 
 let dependencies: AppDependencies
-
-const buildTestApp = () => {
-  const app = express()
-  app.use('/', createSteamRouter(dependencies))
-  return app
-}
 
 describe('steam router', () => {
   const steamCache = () => dependencies.repositories.steamCache
@@ -31,8 +24,11 @@ describe('steam router', () => {
   })
 
   beforeEach(() => {
-    dependencies = createTestDependencies()
+    app = createTestApp()
+    dependencies = app.locals.dependencies
   })
+
+  let app: ExpressApp
 
   afterEach(async () => {
     vi.clearAllMocks()
@@ -56,7 +52,7 @@ describe('steam router', () => {
     }
     vi.spyOn(steamCache(), 'getSearchResults').mockResolvedValueOnce(cachedSearch)
 
-    const response = await request(buildTestApp())
+    const response = await request(app)
       .get('/steam/games?term=helldivers&limit=5')
       .expect(200)
 
@@ -66,7 +62,7 @@ describe('steam router', () => {
   })
 
   it('returns 400 for GET /steam/games when term is missing', async () => {
-    const response = await request(buildTestApp()).get('/steam/games?limit=5').expect(400)
+    const response = await request(app).get('/steam/games?limit=5').expect(400)
 
     expect(response.body.error).toBe('Invalid query parameters')
   })
@@ -78,24 +74,24 @@ describe('steam router', () => {
     } as SteamApp
     vi.spyOn(steamCache(), 'getGameDetails').mockResolvedValueOnce(cachedDetails)
 
-    const response = await request(buildTestApp()).get('/steam/games/42').expect(200)
+    const response = await request(app).get('/steam/games/42').expect(200)
 
     expect(response.body).toEqual(cachedDetails)
     expect(steamCache().getGameDetails).toHaveBeenCalledWith(42)
-    expect(steamService.getSteamGameDestails).not.toHaveBeenCalled()
+    expect(steamService.getSteamGameDetails).not.toHaveBeenCalled()
   })
 
   it('returns 404 for GET /steam/games/:id when steam details are unavailable', async () => {
     vi.spyOn(steamCache(), 'getGameDetails').mockRejectedValueOnce(new Error('Not found'))
-    vi.mocked(steamService.getSteamGameDestails).mockRejectedValueOnce(new Error('steam error'))
+    vi.mocked(steamService.getSteamGameDetails).mockRejectedValueOnce(new Error('steam error'))
 
-    const response = await request(buildTestApp()).get('/steam/games/999').expect(404)
+    const response = await request(app).get('/steam/games/999').expect(404)
 
     expect(response.body).toEqual({ error: 'Game not found on Steam' })
   })
 
   it('returns 400 for GET /steam/games/:id with invalid ID', async () => {
-    const response = await request(buildTestApp()).get('/steam/games/not-a-number').expect(400)
+    const response = await request(app).get('/steam/games/not-a-number').expect(400)
 
     expect(response.body.error).toBe('Invalid request parameters')
   })
@@ -113,7 +109,7 @@ describe('steam router', () => {
     vi.spyOn(steamCache(), 'getGamesDetails').mockResolvedValueOnce(gameDetails)
     vi.mocked(steamService.mapGamesToSearchItems).mockReturnValueOnce(mappedItems)
 
-    const response = await request(buildTestApp()).get('/steam/games/batch?ids=1,2').expect(200)
+    const response = await request(app).get('/steam/games/batch?ids=1,2').expect(200)
 
     expect(response.body).toEqual({
       items: mappedItems,
@@ -135,7 +131,7 @@ describe('steam router', () => {
     vi.spyOn(steamCache(), 'getGamesDetails').mockResolvedValueOnce(gameDetails)
     vi.mocked(steamService.mapGamesToSearchItems).mockReturnValueOnce(mappedItems)
 
-    const response = await request(buildTestApp())
+    const response = await request(app)
       .get('/steam/most-played-steam-deck-games')
       .expect(200)
 

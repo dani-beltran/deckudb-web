@@ -1,14 +1,6 @@
-import logger from '../backend/config/logger'
-import 'dotenv/config'
 import { JOB_STATUS, JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
 import { bootstrapDependencies } from '../backend/config/bootstrap'
-import {
-  JOB_TIMEOUT_MINUTES,
-  WORKER_IDLE_LOG_EVERY,
-  WORKER_POLL_INTERVAL_MS,
-  WORKER_POLL_JITTER_MS,
-  WORKER_REQUEUE_SWEEP_MS,
-} from '../backend/config/env'
+import logger from '../backend/config/logger'
 import type { AppDependencies } from '../backend/types/dependencies'
 import { sleep, withTimeout } from '../backend/utils/async'
 import { getTimeBetweenDates } from '../backend/utils/time'
@@ -19,6 +11,12 @@ import { searchGameSources } from '../tasks/search-sources'
 
 const MIN_POLL_INTERVAL_MS = 100
 const MIN_IDLE_LOG_EVERY = 1
+const config = useRuntimeConfig()
+const jobTimeoutMinutes = Number.parseInt(config.jobTimeoutMinutes, 10)
+const workerPollIntervalMs = Number.parseInt(config.workerPollIntervalMs, 10)
+const workerPollJitterMs = Number.parseInt(config.workerPollJitterMs, 10)
+const workerRequeueSweepMs = Number.parseInt(config.workerRequeueSweepMs, 10)
+const workerIdleLogEvery = Number.parseInt(config.workerIdleLogEvery, 10)
 
 export default defineNitroPlugin((nitroApp) => {
   const config = useRuntimeConfig()
@@ -53,20 +51,20 @@ async function runQueueWorker(signal: AbortSignal) {
   logger.info('Queue worker started')
 
   await runTimedOutSweep(deps)
-  let nextSweepAt = Date.now() + WORKER_REQUEUE_SWEEP_MS
+  let nextSweepAt = Date.now() + workerRequeueSweepMs
   let idlePollCount = 0
 
   while (!signal.aborted) {
     try {
       if (Date.now() >= nextSweepAt) {
         await runTimedOutSweep(deps)
-        nextSweepAt = Date.now() + WORKER_REQUEUE_SWEEP_MS
+        nextSweepAt = Date.now() + workerRequeueSweepMs
       }
 
       const job = await deps.repositories.jobs.startNextQueuedJob('asc')
       if (!job) {
         idlePollCount += 1
-        const idleLogEvery = Math.max(MIN_IDLE_LOG_EVERY, WORKER_IDLE_LOG_EVERY)
+        const idleLogEvery = Math.max(MIN_IDLE_LOG_EVERY, workerIdleLogEvery)
         if (idlePollCount % idleLogEvery === 0) {
           const queued = await deps.repositories.jobs.getQueuedJobsCount()
           logger.info(`Worker idle. Queued jobs: ${queued}`)
@@ -104,8 +102,8 @@ async function processJob(job: Job, deps: AppDependencies) {
   try {
     const warnings = await withTimeout(
       processJobByType(job, deps),
-      JOB_TIMEOUT_MINUTES * 60 * 1000,
-      `Job ${job.job_id} (${job.job_type}) exceeded ${JOB_TIMEOUT_MINUTES} minutes timeout`
+      jobTimeoutMinutes * 60 * 1000,
+      `Job ${job.job_id} (${job.job_type}) exceeded ${jobTimeoutMinutes} minutes timeout`
     )
     job = await deps.repositories.jobs.completeJob(job.job_id, warnings.join('\n'))
     logger.info(`Job ${job.job_id} completed`)
@@ -158,15 +156,15 @@ async function processJobByType(job: Job, deps: AppDependencies): Promise<string
  * This function finds jobs that have been in progress for too long (potentially stuck) and re-queues them to be picked up again.
  */
 async function runTimedOutSweep({ repositories }: AppDependencies) {
-  const result = await repositories.jobs.requeueTimedOutJobs(undefined, JOB_TIMEOUT_MINUTES)
+  const result = await repositories.jobs.requeueTimedOutJobs(undefined, jobTimeoutMinutes)
   if (result.modifiedCount > 0) {
     logger.warn(`Re-queued ${result.modifiedCount} timed-out jobs`)
   }
 }
 
 function getPollingDelayMs() {
-  const baseInterval = Math.max(MIN_POLL_INTERVAL_MS, WORKER_POLL_INTERVAL_MS)
-  const jitterCap = Math.max(0, WORKER_POLL_JITTER_MS)
+  const baseInterval = Math.max(MIN_POLL_INTERVAL_MS, workerPollIntervalMs)
+  const jitterCap = Math.max(0, workerPollJitterMs)
   if (jitterCap === 0) {
     return baseInterval
   }

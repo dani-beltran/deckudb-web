@@ -1,6 +1,7 @@
 import { formatWithOptions } from 'node:util'
 import winston from 'winston'
 import DailyRotateFile from 'winston-daily-rotate-file'
+import { useRuntimeConfig } from '#imports'
 
 // Define log levels
 const levels = {
@@ -25,8 +26,7 @@ winston.addColors(colors)
 
 // Define which level to log based on environment
 const level = () => {
-  const env = process.env.NODE_ENV || 'development'
-  const isDevelopment = env === 'development'
+  const isDevelopment = useRuntimeConfig().nodeEnv === 'development'
   return isDevelopment ? 'debug' : 'info'
 }
 

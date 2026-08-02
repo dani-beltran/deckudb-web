@@ -1,8 +1,7 @@
 import request from 'supertest'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createApp } from '../../app'
 import { clearTestDB, closeTestDB, connectTestDB } from '../../lib/test-setup/test-db'
-import { createTestDependencies } from '../../lib/test-setup/test-dependencies'
+import { createTestApp } from '../../lib/test-setup/test-dependencies'
 import * as steamService from '../../services/steam/steam.js'
 import { STEAMDECK_VERIFICATION_STATUS, type SteamApp } from '../../services/steam/steam.types'
 import type { AppDependencies } from '../../types/dependencies'
@@ -10,14 +9,14 @@ import { SCRAPE_SOURCES } from '../game-sources/game-sources.schema.js'
 import type { GameReport } from '../games/game-reports.schema'
 import { type Game, STEAMDECK_HARDWARE, STEAMDECK_RATING } from '../games/games.schema'
 import { JOB_STATUS, JOB_TYPE } from '../jobs/jobs.model'
+import type { ExpressApp } from '../../app.js'
 
 // Mock steam service to avoid network calls in tests
 vi.mock('../../services/steam/steam', () => ({
-  getSteamGameDestails: vi.fn(),
+  getSteamGameDetails: vi.fn(),
 }))
 
-let dependencies: AppDependencies
-let app: ReturnType<typeof createApp>
+let app: ExpressApp
 let jobsModel: AppDependencies['repositories']['jobs']
 let gameModel: AppDependencies['repositories']['games']
 let gameSummaryVotesModel: AppDependencies['repositories']['gameSummaryVotes']
@@ -29,13 +28,12 @@ describe('GET /games/:id', () => {
   })
 
   beforeEach(async () => {
-    dependencies = createTestDependencies()
-    app = createApp(dependencies)
-    jobsModel = dependencies.repositories.jobs
-    gameModel = dependencies.repositories.games
-    gameSummaryVotesModel = dependencies.repositories.gameSummaryVotes
-    insertTestGameReports = dependencies.repositories.gameReports.insertTestGameReports
-    vi.mocked(steamService.getSteamGameDestails).mockResolvedValue({
+    app = createTestApp()
+    jobsModel = app.locals.dependencies.repositories.jobs
+    gameModel = app.locals.dependencies.repositories.games
+    gameSummaryVotesModel = app.locals.dependencies.repositories.gameSummaryVotes
+    insertTestGameReports = app.locals.dependencies.repositories.gameReports.insertTestGameReports
+    vi.mocked(steamService.getSteamGameDetails).mockResolvedValue({
       name: 'Mocked Steam Game',
       type: 'game',
     } as SteamApp)
@@ -380,7 +378,7 @@ describe('GET /games/:id', () => {
     it('should not queue jobs when not an actual steam game', async () => {
       // Arrange
       const queueJobSpy = vi.spyOn(jobsModel, 'queueJob')
-      vi.mocked(steamService.getSteamGameDestails).mockResolvedValue({
+      vi.mocked(steamService.getSteamGameDetails).mockResolvedValue({
         name: 'Mocked Non-Game App',
         type: 'application',
       } as SteamApp)
@@ -444,12 +442,11 @@ describe('POST /games/:id/summary-vote', () => {
   })
 
   beforeEach(async () => {
-    dependencies = createTestDependencies()
-    app = createApp(dependencies)
-    jobsModel = dependencies.repositories.jobs
-    gameModel = dependencies.repositories.games
-    gameSummaryVotesModel = dependencies.repositories.gameSummaryVotes
-    insertTestGameReports = dependencies.repositories.gameReports.insertTestGameReports
+    app = createTestApp()
+    jobsModel = app.locals.dependencies.repositories.jobs
+    gameModel = app.locals.dependencies.repositories.games
+    gameSummaryVotesModel = app.locals.dependencies.repositories.gameSummaryVotes
+    insertTestGameReports = app.locals.dependencies.repositories.gameReports.insertTestGameReports
   })
 
   afterAll(async () => {

@@ -4,15 +4,12 @@ import {
   SectionNotFoundError,
   SelectorTimeoutError,
 } from '@danilidonbeltran/webscrapper/src/scraper'
-import dotenv from 'dotenv'
 import type { GameSource, SCRAPE_SOURCES } from '../backend/api/game-sources/game-sources.schema'
 import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
 import logger from '../backend/config/logger'
 import { buildMiner } from '../backend/lib/data-mining/MinerFactory'
 import { runJob } from '../backend/lib/job-runner'
 import type { AppDependencies } from '../backend/types/dependencies'
-
-dotenv.config()
 
 export async function scrapeGameSources(job: Job, { repositories }: AppDependencies) {
   const warnings: string[] = []

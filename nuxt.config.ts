@@ -49,7 +49,46 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
+    // Private server-side configuration
+    /** Port used by the legacy standalone Express server. */
+    backendPort: process.env.PORT || '3000',
+    /** Application environment; production enables production-only backend behavior. */
+    nodeEnv: process.env.NODE_ENV || 'development',
+    /** Base URL of the frontend, used to configure API CORS. */
+    webHost: process.env.WEB_HOST || 'http://localhost:3001',
+    /** MongoDB connection URI. Keep this server-only. */
+    mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/steamdeckdb',
+    /** MongoDB database name. */
+    mongodbDatabase: process.env.MONGODB_DATABASE || 'steamdeckdb',
+    /** Anthropic API key used for game summary generation. Keep this server-only. */
+    claudeApiKey: process.env.CLAUDE_API_KEY,
+    /** Anthropic model used for game summary generation. */
+    claudeAiModel: process.env.CLAUDE_AI_MODEL || 'claude-haiku-4-5-20251001',
+    /** Firecrawl API key used to find game sources. Keep this server-only. */
+    firecrawlApiKey: process.env.FIRECRAWL_API_KEY,
+    /** Comma-separated session signing secrets, allowing key rotation. Keep this server-only. */
+    sessionSecret: process.env.SESSION_SECRET,
+    /** Session lifetime in milliseconds. */
+    sessionMaxAgeMs: process.env.SESSION_MAX_AGE_MS || (30 * 24 * 60 * 60 * 1000).toString(),
+    /** Number of days before a game's data should be scraped again. */
+    daysBetweenScrapes: process.env.DAYS_BETWEEN_SCRAPES || '180',
+    /** API key required to access background-job endpoints. Keep this server-only. */
+    jobApiKey: process.env.JOB_API_KEY,
+    /** Minutes after which an unfinished job is treated as timed out. */
+    jobTimeoutMinutes: process.env.JOB_TIMEOUT_MINUTES || '10',
+    /** Maximum attempts before a failed job is permanently marked as failed. */
+    jobMaxAttempts: process.env.JOB_MAX_ATTEMPTS || '3',
+    /** Idle worker polling interval in milliseconds. */
+    workerPollIntervalMs: process.env.WORKER_POLL_INTERVAL_MS || '10000',
+    /** Maximum random delay added to worker polling, in milliseconds. */
+    workerPollJitterMs: process.env.WORKER_POLL_JITTER_MS || '1000',
+    /** Interval in milliseconds for re-queuing timed-out jobs. */
+    workerRequeueSweepMs: process.env.WORKER_REQUEUE_SWEEP_MS || '60000',
+    /** Number of idle polls between worker status log entries. */
+    workerIdleLogEvery: process.env.WORKER_IDLE_LOG_EVERY || '6',
+    /** Whether the background queue worker starts with the Nitro server. */
     workerEnabled: process.env.NODE_ENV === 'production',
+    // Public runtime configuration.
     public: {
       apiBase: '/api',
     },

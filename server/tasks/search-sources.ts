@@ -1,11 +1,10 @@
-import dotenv from 'dotenv'
+import { useRuntimeConfig } from '#imports'
 import { getSourceFromUrl } from '../backend/api/game-sources/game-sources.model'
 import {
   type GameSourceCreate,
   SCRAPE_SOURCES,
 } from '../backend/api/game-sources/game-sources.schema'
 import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
-import { FIRECRAWL_API_KEY } from '../backend/config/env'
 import logger from '../backend/config/logger'
 import type { MinerConstructor } from '../backend/lib/data-mining/Miner'
 import { ProtondbMiner } from '../backend/lib/data-mining/ProtondbMiner'
@@ -13,8 +12,6 @@ import { SharedeckMiner } from '../backend/lib/data-mining/SharedeckMiner'
 import { runJob } from '../backend/lib/job-runner'
 import { FirecrawlService } from '../backend/services/firecrawl'
 import type { AppDependencies } from '../backend/types/dependencies'
-
-dotenv.config()
 
 export const SEARCH_LIMIT = 10
 const STATIC_SOURCES: { source: SCRAPE_SOURCES; miner: MinerConstructor }[] = [
@@ -24,8 +21,9 @@ const STATIC_SOURCES: { source: SCRAPE_SOURCES; miner: MinerConstructor }[] = [
 const STRICT_CASE_GAMES = ['REPLACED']
 
 export async function searchGameSources(job: Job, { repositories }: AppDependencies) {
-  if (!FIRECRAWL_API_KEY) {
-    throw new Error('FIRECRAWL_API_KEY environment variable is required for search-sources job.')
+  const { firecrawlApiKey } = useRuntimeConfig()
+  if (!firecrawlApiKey) {
+    throw new Error('firecrawlApiKey runtime config is required for search-sources job.')
   }
 
   const gameId = job.game_id
@@ -43,7 +41,7 @@ export async function searchGameSources(job: Job, { repositories }: AppDependenc
   const query = `"${gameName}" game steam deck best settings`
   logger.debug(`FirecrawlMiner searching with query: ${query}`)
 
-  const firecrawl = new FirecrawlService(FIRECRAWL_API_KEY)
+  const firecrawl = new FirecrawlService(firecrawlApiKey)
   const searchResults = await firecrawl.search({
     query,
     limit: SEARCH_LIMIT,
