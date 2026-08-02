@@ -1,7 +1,7 @@
 import type { Express } from 'express'
 import { fromNodeMiddleware } from 'h3'
 import { createApp } from '../backend/app'
-import { bootstrapDependencies, createDBIndexes } from '../backend/config/bootstrap'
+import { bootstrapDependencies, createDBIndexes } from '../backend/lib/bootstrap'
 
 let appPromise: Promise<Express> | undefined
 
