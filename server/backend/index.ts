@@ -1,12 +1,12 @@
-import { useRuntimeConfig } from '#imports'
 import { createApp } from './app'
+import { getBackendConfig } from './config'
 import { bootstrapDependencies, createDBIndexes } from './config/bootstrap'
 import logger from './config/logger'
 
 // Start server
 const startServer = async () => {
   try {
-    const { backendPort, nodeEnv } = useRuntimeConfig()
+    const { backendPort, nodeEnv } = getBackendConfig()
     const { databaseClient, dependencies } = await bootstrapDependencies()
     await createDBIndexes(dependencies)
 
@@ -26,7 +26,7 @@ const startServer = async () => {
       process.exit(0)
     })
 
-    app.listen(Number.parseInt(backendPort, 10), () => {
+    app.listen(backendPort, () => {
       logger.info(`Server is running on port ${backendPort}`)
     })
   } catch (error) {

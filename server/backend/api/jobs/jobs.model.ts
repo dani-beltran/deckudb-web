@@ -8,7 +8,7 @@
 import { randomUUID } from 'node:crypto'
 import type { Db } from 'mongodb'
 import z from 'zod'
-import { useRuntimeConfig } from '#imports'
+import { getBackendConfig } from '../../config'
 import { ConflictError } from '../../errors/ConflictError'
 import type { PaginatedResult, PaginationParams } from '../../lib/pagination'
 import type { Sort } from '../../types/db.types'
@@ -62,7 +62,7 @@ export type CreateJobParams = z.infer<typeof createJobSchema>
 // CONSTANTS
 // ---------------------------------------------------------------------------
 const COLLECTION = 'jobs'
-const jobMaxAttempts = Number.parseInt(useRuntimeConfig().jobMaxAttempts, 10)
+const jobMaxAttempts = getBackendConfig().jobMaxAttempts
 
 export class JobsModel {
   constructor(private readonly db: Db) {}

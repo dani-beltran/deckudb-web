@@ -1,8 +1,8 @@
 import express, { type Express } from 'express'
-import { useRuntimeConfig } from '#imports'
 import { createGamesRouter } from './api/games/games.router'
 import { createJobsRouter } from './api/jobs/jobs.router'
 import { createSteamRouter } from './api/steam/steam.router'
+import { getBackendConfig } from './config'
 import corsMiddleware from './middleware/cors'
 import sessionMiddleware from './middleware/session'
 import type { AppDependencies } from './types/dependencies'
@@ -30,7 +30,7 @@ export const createApp = (
   { apiPrefix = '/api' }: CreateAppOptions = {}
 ): ExpressApp => {
   const app: Express = express()
-  const { nodeEnv } = useRuntimeConfig()
+  const { nodeEnv } = getBackendConfig()
 
   app.locals.dependencies = dependencies;
 

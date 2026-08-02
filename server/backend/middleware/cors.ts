@@ -1,7 +1,7 @@
 import cors from 'cors'
-import { useRuntimeConfig } from '#imports'
+import { getBackendConfig } from '../config'
 
-const { webHost } = useRuntimeConfig()
+const { webHost } = getBackendConfig()
 
 const corsMiddleware = cors({
   origin: [webHost, 'http://localhost:4173', 'http://localhost:5173'],

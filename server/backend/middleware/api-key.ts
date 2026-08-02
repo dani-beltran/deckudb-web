@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from 'express'
-import { useRuntimeConfig } from '#imports'
+import { getBackendConfig } from '../config'
 import logger from '../config/logger'
 
-const runtimeConfig = useRuntimeConfig()
+const runtimeConfig = getBackendConfig()
 
 export const requireApiKey = (req: Request, res: Response, next: NextFunction): void => {
   const apiKey = runtimeConfig.jobApiKey

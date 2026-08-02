@@ -1,10 +1,10 @@
-import { useRuntimeConfig } from '#imports'
 import { getSourceFromUrl } from '../backend/api/game-sources/game-sources.model'
 import {
   type GameSourceCreate,
   SCRAPE_SOURCES,
 } from '../backend/api/game-sources/game-sources.schema'
 import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
+import { getBackendConfig } from '../backend/config'
 import logger from '../backend/config/logger'
 import type { MinerConstructor } from '../backend/lib/data-mining/Miner'
 import { ProtondbMiner } from '../backend/lib/data-mining/ProtondbMiner'
@@ -21,10 +21,7 @@ const STATIC_SOURCES: { source: SCRAPE_SOURCES; miner: MinerConstructor }[] = [
 const STRICT_CASE_GAMES = ['REPLACED']
 
 export async function searchGameSources(job: Job, { repositories }: AppDependencies) {
-  const { firecrawlApiKey } = useRuntimeConfig()
-  if (!firecrawlApiKey) {
-    throw new Error('firecrawlApiKey runtime config is required for search-sources job.')
-  }
+  const { firecrawlApiKey } = getBackendConfig()
 
   const gameId = job.game_id
   const steamApp = await repositories.steamCache.getGameDetails(gameId)

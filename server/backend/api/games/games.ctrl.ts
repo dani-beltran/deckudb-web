@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { useRuntimeConfig } from '#imports'
+import { getBackendConfig } from '../../config'
 import logger from '../../config/logger'
 import { ConflictError } from '../../errors/ConflictError'
 import { createController } from '../../lib/controller-factory'
@@ -31,7 +31,7 @@ export const createGamesControllers = ({ repositories }: AppDependencies) => {
     const { id: gameId } = req.params as GetGameByIdParams
     const game = await repositories.games.fetchGameById(gameId)
     const steamApp = await repositories.steamCache.getGameDetails(gameId)
-    const daysBetweenScrapes = Number.parseInt(useRuntimeConfig().daysBetweenScrapes, 10)
+    const { daysBetweenScrapes } = getBackendConfig()
     const msBetweenScrapes = daysBetweenScrapes * 24 * 60 * 60 * 1000
     // Only re-queue if the last job was more than the configured days ago
     const olderThan = new Date(Date.now() - msBetweenScrapes)

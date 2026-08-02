@@ -1,17 +1,10 @@
 import MongoStore from 'connect-mongo'
 import session from 'express-session'
-import { useRuntimeConfig } from '#imports'
+import { getBackendConfig } from '../config'
 
-const config = useRuntimeConfig()
+const config = getBackendConfig()
 const sessionSecrets = config.sessionSecret
-  .split(',')
-  .map((secret) => secret.trim())
-  .filter(Boolean)
-const sessionMaxAgeMs = Number.parseInt(config.sessionMaxAgeMs, 10)
-
-if (sessionSecrets.length === 0) {
-  throw new Error('sessionSecret runtime config must contain at least one non-empty secret.')
-}
+const sessionMaxAgeMs = config.sessionMaxAgeMs
 
 const sessionMiddleware = session({
   name: 'decku.sid',

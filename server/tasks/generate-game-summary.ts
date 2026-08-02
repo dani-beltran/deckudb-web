@@ -1,6 +1,6 @@
-import { useRuntimeConfig } from '#imports'
 import type { GameReportBody } from '../backend/api/games/game-reports.schema'
 import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
+import { getBackendConfig } from '../backend/config'
 import logger from '../backend/config/logger'
 import { SCRAPE_SOURCES } from '../backend/lib/data-mining/scrapes.schema'
 import { runJob } from '../backend/lib/job-runner'
@@ -84,10 +84,7 @@ Summary:`
 
 async function askClaudeAI(msg: string) {
   if (!msg) return ''
-  const { claudeAiModel, claudeApiKey } = useRuntimeConfig()
-  if (!claudeApiKey) {
-    throw new Error('claudeApiKey runtime config is required for game summary generation.')
-  }
+  const { claudeAiModel, claudeApiKey } = getBackendConfig()
   const claudeService = new ClaudeService({
     apiKey: claudeApiKey,
   })

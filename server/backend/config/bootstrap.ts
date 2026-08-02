@@ -7,6 +7,7 @@ import { ScrapesModel } from '../api/scrapes/scrapes.model'
 import { SteamCacheModel } from '../api/steam/steam-cache.model'
 import type { AppDependencies } from '../types/dependencies'
 import { DatabaseClient } from './DatabaseClient'
+import { getBackendConfig } from './index'
 import logger from './logger'
 
 export type BootstrappedDependencies = {
@@ -21,9 +22,9 @@ type BootstrapOptions = {
 export const bootstrapDependencies = async (
   opts: BootstrapOptions = {}
 ): Promise<BootstrappedDependencies> => {
-  const databaseClient = new DatabaseClient(opts.dbConnectionName)
+  const config = getBackendConfig()
+  const databaseClient = new DatabaseClient({ ...opts, ...config })
   const db = await databaseClient.connect()
-
   const dependencies: AppDependencies = {
     repositories: {
       gameSources: new GameSourcesModel(db),

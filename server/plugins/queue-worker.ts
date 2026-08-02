@@ -1,4 +1,5 @@
 import { JOB_STATUS, JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
+import { getBackendConfig } from '../backend/config'
 import { bootstrapDependencies } from '../backend/config/bootstrap'
 import logger from '../backend/config/logger'
 import type { AppDependencies } from '../backend/types/dependencies'
@@ -11,16 +12,16 @@ import { searchGameSources } from '../tasks/search-sources'
 
 const MIN_POLL_INTERVAL_MS = 100
 const MIN_IDLE_LOG_EVERY = 1
-const config = useRuntimeConfig()
-const jobTimeoutMinutes = Number.parseInt(config.jobTimeoutMinutes, 10)
-const workerPollIntervalMs = Number.parseInt(config.workerPollIntervalMs, 10)
-const workerPollJitterMs = Number.parseInt(config.workerPollJitterMs, 10)
-const workerRequeueSweepMs = Number.parseInt(config.workerRequeueSweepMs, 10)
-const workerIdleLogEvery = Number.parseInt(config.workerIdleLogEvery, 10)
+const config = getBackendConfig()
+const {
+  jobTimeoutMinutes,
+  workerIdleLogEvery,
+  workerPollIntervalMs,
+  workerPollJitterMs,
+  workerRequeueSweepMs,
+} = config
 
 export default defineNitroPlugin((nitroApp) => {
-  const config = useRuntimeConfig()
-
   if (!config.workerEnabled) {
     logger.info('Queue worker is disabled')
     return
