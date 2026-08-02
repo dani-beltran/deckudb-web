@@ -1,10 +1,11 @@
 import type { WithId } from 'mongodb'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { clearTestDB, closeTestDB, connectTestDB, getTestDB } from '../../lib/test-setup/test-db'
+import { createTestDb, flushDB, removeTestDb } from '../../lib/test-setup/test-db'
 import { GameSourcesModel } from './game-sources.model'
 import { type GameSource, SCRAPE_SOURCES } from './game-sources.schema'
 
 let gameSourcesModel: GameSourcesModel
+let testDb: Awaited<ReturnType<typeof createTestDb>>
 
 const makeSources = () => [
   {
@@ -23,17 +24,17 @@ const makeSources = () => [
 
 describe('sources.model', () => {
   beforeAll(async () => {
-    await connectTestDB()
-    gameSourcesModel = new GameSourcesModel(getTestDB())
+    testDb = await createTestDb()
+    gameSourcesModel = new GameSourcesModel(testDb.db)
     await gameSourcesModel.createGameSourceIndexes()
   })
 
   afterAll(async () => {
-    await closeTestDB()
+    if (testDb) await removeTestDb(testDb.db, testDb.mongoServer)
   })
 
   afterEach(async () => {
-    await clearTestDB()
+    await flushDB(testDb.db)
   })
 
   describe('getGameSourcesByGameId', () => {
@@ -97,7 +98,7 @@ describe('sources.model', () => {
         collection: () => ({
           insertMany: () => Promise.resolve({}),
         }),
-      } as unknown as ReturnType<typeof getTestDB>)
+      } as unknown as typeof testDb.db)
 
       await expect(faultyModel.saveGameSources(makeSources())).resolves.toEqual({
         count: 0,

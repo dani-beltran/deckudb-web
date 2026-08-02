@@ -14,7 +14,6 @@ export default defineConfig({
   },
   test: {
     env,
-    fileParallelism: false,
     silent: true,
   },
 })

@@ -5,13 +5,10 @@ import { GamesModel } from '../../api/games/games.model'
 import { JobsModel } from '../../api/jobs/jobs.model'
 import { ScrapesModel } from '../../api/scrapes/scrapes.model'
 import { SteamCacheModel } from '../../api/steam/steam-cache.model'
-import { createApp } from '../../app'
 import type { AppDependencies } from '../../types/dependencies'
-import { getTestDB } from './test-db'
+import type { Db } from 'mongodb'
 
-const createTestDependencies = (): AppDependencies => {
-  const db = getTestDB()
-
+export const createTestDependencies = (db: Db): AppDependencies => {
   return {
     repositories: {
       gameSources: new GameSourcesModel(db),
@@ -25,10 +22,4 @@ const createTestDependencies = (): AppDependencies => {
   }
 }
 
-/**
- * Creates the Express application configured for testing using
- * the test database. The test dependencies are accesible via `app.locals.dependencies`.
- * It does not use any API prefix for the routes, so they can be accessed at the root level.
- * @returns The created Express application for testing.
- */
-export const createTestApp = () => createApp(createTestDependencies(), { apiPrefix: '' })
+

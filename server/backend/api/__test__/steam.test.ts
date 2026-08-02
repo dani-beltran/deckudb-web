@@ -1,11 +1,10 @@
 import request from 'supertest'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { clearTestDB, closeTestDB, connectTestDB } from '../../lib/test-setup/test-db'
-import { createTestApp } from '../../lib/test-setup/test-dependencies'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { mountTestApp, type TestApp, unmountTestApp } from '../../lib/test-setup/test-app'
+import { flushDB } from '../../lib/test-setup/test-db'
 import * as steamService from '../../services/steam/steam.js'
 import type { SteamApp, SteamSearch } from '../../services/steam/steam.types'
 import type { AppDependencies } from '../../types/dependencies'
-import type { ExpressApp } from '../../app.js'
 
 vi.mock('../../services/steam/steam', () => ({
   searchSteamGames: vi.fn(),
@@ -15,28 +14,23 @@ vi.mock('../../services/steam/steam', () => ({
 }))
 
 let dependencies: AppDependencies
+let app: TestApp
 
 describe('steam router', () => {
   const steamCache = () => dependencies.repositories.steamCache
 
   beforeAll(async () => {
-    await connectTestDB()
-  })
-
-  beforeEach(() => {
-    app = createTestApp()
+    app = await mountTestApp()
     dependencies = app.locals.dependencies
   })
 
-  let app: ExpressApp
-
   afterEach(async () => {
     vi.clearAllMocks()
-    await clearTestDB()
+    await flushDB(app.locals.db)
   })
 
   afterAll(async () => {
-    await closeTestDB()
+    if (app) await unmountTestApp(app)
   })
 
   it('returns search results from cache for GET /steam/games', async () => {

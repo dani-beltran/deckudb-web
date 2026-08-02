@@ -1,29 +1,32 @@
 import { type Db, MongoClient } from 'mongodb'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 
-let mongoServer: MongoMemoryServer
-let connection: MongoClient
-let db: Db
-
 /**
- * Connect to the in-memory database
+ * Create an in-memory database, connect to it and return it.
  */
-export const connectTestDB = async (): Promise<Db> => {
-  mongoServer = await MongoMemoryServer.create()
+export const createTestDb = async () => {
+  const mongoServer = await MongoMemoryServer.create()
   const uri = mongoServer.getUri()
 
-  connection = await MongoClient.connect(uri)
-  db = connection.db('test')
+  const connection = await MongoClient.connect(uri)
+  const db = connection.db('test')
 
-  return db
+  return {
+    db,
+    connection,
+    mongoServer
+  }
 }
 
 /**
- * Drop database, close the connection and stop mongod
+ * Remove the test database, close the connection and stop the in-memory server.
+ * @param db 
+ * @param mongoServer 
  */
-export const closeTestDB = async () => {
-  if (connection) {
-    await connection.close()
+export const removeTestDb = async (db: Db, mongoServer: MongoMemoryServer) => {
+  if (db) {
+    await db.dropDatabase()
+    await db.client.close()
   }
   if (mongoServer) {
     await mongoServer.stop()
@@ -33,21 +36,11 @@ export const closeTestDB = async () => {
 /**
  * Remove all data from collections
  */
-export const clearTestDB = async () => {
+export const flushDB = async (db: Db) => {
   if (db) {
     const collections = await db.collections()
     for (const collection of collections) {
       await collection.deleteMany({})
     }
   }
-}
-
-/**
- * Get the database instance
- */
-export const getTestDB = (): Db => {
-  if (!db) {
-    throw new Error('Database not initialized. Call connect first.')
-  }
-  return db
 }

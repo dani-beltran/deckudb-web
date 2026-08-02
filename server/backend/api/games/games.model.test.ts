@@ -1,9 +1,10 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { clearTestDB, closeTestDB, connectTestDB, getTestDB } from '../../lib/test-setup/test-db'
+import { createTestDb, flushDB, removeTestDb } from '../../lib/test-setup/test-db'
 import { GamesModel } from '../games/games.model'
 import { type Game, type GameInput, STEAMDECK_RATING } from '../games/games.schema'
 
 let gamesModel: GamesModel
+let testDb: Awaited<ReturnType<typeof createTestDb>>
 
 const makeGame = (overrides: Partial<Game> = {}): Game => ({
   game_id: 1,
@@ -17,16 +18,16 @@ const makeGame = (overrides: Partial<Game> = {}): Game => ({
 
 describe('games.model', () => {
   beforeAll(async () => {
-    await connectTestDB()
-    gamesModel = new GamesModel(getTestDB())
+    testDb = await createTestDb()
+    gamesModel = new GamesModel(testDb.db)
   })
 
   afterAll(async () => {
-    await closeTestDB()
+    if (testDb) await removeTestDb(testDb.db, testDb.mongoServer)
   })
 
   afterEach(async () => {
-    await clearTestDB()
+    await flushDB(testDb.db)
   })
 
   describe('fetchGameById', () => {
@@ -119,7 +120,7 @@ describe('games.model', () => {
   describe('createGameIndexes', () => {
     it('creates a unique index on game_id', async () => {
       await gamesModel.createGameIndexes()
-      const db = getTestDB()
+      const db = testDb.db
 
       const indexes = await db.collection('games').indexes()
       expect(indexes.some((idx) => idx.name === 'game_id_1' && idx.unique)).toBe(true)

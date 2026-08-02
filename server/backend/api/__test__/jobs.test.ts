@@ -2,9 +2,8 @@ import { randomUUID } from 'node:crypto'
 import request from 'supertest'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useRuntimeConfig } from '#imports'
-import type { ExpressApp } from '../../app'
-import { clearTestDB, closeTestDB, connectTestDB } from '../../lib/test-setup/test-db'
-import { createTestApp } from '../../lib/test-setup/test-dependencies'
+import { mountTestApp, type TestApp, unmountTestApp } from '../../lib/test-setup/test-app'
+import { flushDB } from '../../lib/test-setup/test-db'
 import * as steamService from '../../services/steam/steam.js'
 import type { SteamApp } from '../../services/steam/steam.types'
 import type { AppDependencies } from '../../types/dependencies'
@@ -17,7 +16,7 @@ vi.mock('../../services/steam/steam', () => ({
   getSteamGameDetails: vi.fn(),
 }))
 
-let app: ExpressApp
+let app: TestApp
 let jobModel: AppDependencies['repositories']['jobs']
 
 const makeJob = (overrides: Partial<Job> = {}): Job => ({
@@ -34,23 +33,22 @@ const makeJob = (overrides: Partial<Job> = {}): Job => ({
 
 describe('GET /jobs', () => {
   beforeAll(async () => {
-    await connectTestDB()
+    app = await mountTestApp()
+    jobModel = app.locals.dependencies.repositories.jobs
   })
 
   beforeEach(async () => {
-    app = createTestApp()
-    jobModel = app.locals.dependencies.repositories.jobs
     vi.mocked(steamService.getSteamGameDetails).mockResolvedValue({
       name: 'Mocked Steam Game',
     } as SteamApp)
   })
 
   afterAll(async () => {
-    await closeTestDB()
+    if (app) await unmountTestApp(app)
   })
 
   afterEach(async () => {
-    await clearTestDB()
+    await flushDB(app.locals.db)
   })
 
   describe('Successful scenarios', () => {
@@ -437,23 +435,22 @@ describe('GET /jobs', () => {
 
 describe('POST /jobs/queue', () => {
   beforeAll(async () => {
-    await connectTestDB()
+    app = await mountTestApp()
+    jobModel = app.locals.dependencies.repositories.jobs
   })
 
   beforeEach(async () => {
-    app = createTestApp()
-    jobModel = app.locals.dependencies.repositories.jobs
     vi.mocked(steamService.getSteamGameDetails).mockResolvedValue({
       name: 'Mocked Steam Game',
     } as SteamApp)
   })
 
   afterAll(async () => {
-    await closeTestDB()
+    if (app) await unmountTestApp(app)
   })
 
   afterEach(async () => {
-    await clearTestDB()
+    await flushDB(app.locals.db)
   })
 
   describe('Successful scenarios', () => {
@@ -549,20 +546,19 @@ describe('POST /jobs/queue', () => {
 
 describe('DELETE /jobs/:job_id', () => {
   beforeAll(async () => {
-    await connectTestDB()
-  })
-
-  beforeEach(async () => {
-    app = createTestApp()
+    app = await mountTestApp()
     jobModel = app.locals.dependencies.repositories.jobs
   })
 
+  beforeEach(async () => {
+  })
+
   afterAll(async () => {
-    await closeTestDB()
+    if (app) await unmountTestApp(app)
   })
 
   afterEach(async () => {
-    await clearTestDB()
+    await flushDB(app.locals.db)
   })
 
   describe('Successful scenarios', () => {

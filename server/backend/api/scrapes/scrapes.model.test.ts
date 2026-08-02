@@ -1,10 +1,11 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { clearTestDB, closeTestDB, connectTestDB, getTestDB } from '../../lib/test-setup/test-db'
+import { createTestDb, flushDB, removeTestDb } from '../../lib/test-setup/test-db'
 import { SCRAPE_SOURCES } from '../game-sources/game-sources.schema'
 import { ScrapesModel } from './scrapes.model'
 import type { InputScrape } from './scrapes.schema'
 
 let scrapesModel: ScrapesModel
+let testDb: Awaited<ReturnType<typeof createTestDb>>
 
 const gameId = 1091500
 const makeInputScrape = (overrides: Partial<InputScrape> = {}): InputScrape => ({
@@ -20,16 +21,16 @@ const makeInputScrape = (overrides: Partial<InputScrape> = {}): InputScrape => (
 
 describe('scrapes.model', () => {
   beforeAll(async () => {
-    await connectTestDB()
-    scrapesModel = new ScrapesModel(getTestDB())
+    testDb = await createTestDb()
+    scrapesModel = new ScrapesModel(testDb.db)
   })
 
   afterEach(async () => {
-    await clearTestDB()
+    await flushDB(testDb.db)
   })
 
   afterAll(async () => {
-    await closeTestDB()
+    if (testDb) await removeTestDb(testDb.db, testDb.mongoServer)
   })
 
   describe('saveScrapeData', () => {
@@ -113,7 +114,7 @@ describe('scrapes.model', () => {
     it('creates expected compound indexes', async () => {
       await scrapesModel.createScrapeIndexes()
 
-      const indexes = await getTestDB().collection('scrapes').indexes()
+      const indexes = await testDb.db.collection('scrapes').indexes()
 
       expect(
         indexes.some((index) => index.name === 'game_id_1_source_1_hash_1' && index.unique === true)

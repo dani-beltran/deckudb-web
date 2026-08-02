@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { clearTestDB, closeTestDB, connectTestDB, getTestDB } from '../../lib/test-setup/test-db'
+import { createTestDb, flushDB, removeTestDb } from '../../lib/test-setup/test-db'
 import {
   createJobSchema,
   JOB_STATUS,
@@ -10,6 +10,7 @@ import {
 } from '../jobs/jobs.model'
 
 let jobsModel: JobsModel
+let testDb: Awaited<ReturnType<typeof createTestDb>>
 const queueJob = (...args: Parameters<JobsModel['queueJob']>) => jobsModel.queueJob(...args)
 const getJobById = (...args: Parameters<JobsModel['getJobById']>) => jobsModel.getJobById(...args)
 const getJobsByGameId = (...args: Parameters<JobsModel['getJobsByGameId']>) =>
@@ -57,16 +58,16 @@ const makeJob = (overrides: Partial<Job> = {}): Job => ({
 
 describe('Job Model', () => {
   beforeAll(async () => {
-    await connectTestDB()
-    jobsModel = new JobsModel(getTestDB())
+    testDb = await createTestDb()
+    jobsModel = new JobsModel(testDb.db)
   })
 
   afterAll(async () => {
-    await closeTestDB()
+    if (testDb) await removeTestDb(testDb.db, testDb.mongoServer)
   })
 
   afterEach(async () => {
-    await clearTestDB()
+    await flushDB(testDb.db)
   })
 
   // -------------------------------------------------------------------------

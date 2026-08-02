@@ -1,7 +1,6 @@
 import request from 'supertest'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { clearTestDB, closeTestDB, connectTestDB } from '../../lib/test-setup/test-db'
-import { createTestApp } from '../../lib/test-setup/test-dependencies'
+import { mountTestApp, unmountTestApp } from '../../lib/test-setup/test-app'
 import * as steamService from '../../services/steam/steam.js'
 import { STEAMDECK_VERIFICATION_STATUS, type SteamApp } from '../../services/steam/steam.types'
 import type { AppDependencies } from '../../types/dependencies'
@@ -9,14 +8,15 @@ import { SCRAPE_SOURCES } from '../game-sources/game-sources.schema.js'
 import type { GameReport } from '../games/game-reports.schema'
 import { type Game, STEAMDECK_HARDWARE, STEAMDECK_RATING } from '../games/games.schema'
 import { JOB_STATUS, JOB_TYPE } from '../jobs/jobs.model'
-import type { ExpressApp } from '../../app.js'
+import { TestApp } from '../../lib/test-setup/test-app.js'
+import { flushDB } from '../../lib/test-setup/test-db.js'
 
 // Mock steam service to avoid network calls in tests
 vi.mock('../../services/steam/steam', () => ({
   getSteamGameDetails: vi.fn(),
 }))
 
-let app: ExpressApp
+let app: TestApp
 let jobsModel: AppDependencies['repositories']['jobs']
 let gameModel: AppDependencies['repositories']['games']
 let gameSummaryVotesModel: AppDependencies['repositories']['gameSummaryVotes']
@@ -24,15 +24,14 @@ let insertTestGameReports: AppDependencies['repositories']['gameReports']['inser
 
 describe('GET /games/:id', () => {
   beforeAll(async () => {
-    await connectTestDB()
-  })
-
-  beforeEach(async () => {
-    app = createTestApp()
+    app = await mountTestApp()
     jobsModel = app.locals.dependencies.repositories.jobs
     gameModel = app.locals.dependencies.repositories.games
     gameSummaryVotesModel = app.locals.dependencies.repositories.gameSummaryVotes
     insertTestGameReports = app.locals.dependencies.repositories.gameReports.insertTestGameReports
+  })
+
+  beforeEach(async () => {
     vi.mocked(steamService.getSteamGameDetails).mockResolvedValue({
       name: 'Mocked Steam Game',
       type: 'game',
@@ -40,11 +39,11 @@ describe('GET /games/:id', () => {
   })
 
   afterAll(async () => {
-    await closeTestDB()
+    if (app) await unmountTestApp(app)
   })
 
   afterEach(async () => {
-    await clearTestDB()
+    await flushDB(app.locals.db)
   })
 
   describe('Successful scenarios', () => {
@@ -438,11 +437,7 @@ describe('GET /games/:id', () => {
 
 describe('POST /games/:id/summary-vote', () => {
   beforeAll(async () => {
-    await connectTestDB()
-  })
-
-  beforeEach(async () => {
-    app = createTestApp()
+    app = await mountTestApp()
     jobsModel = app.locals.dependencies.repositories.jobs
     gameModel = app.locals.dependencies.repositories.games
     gameSummaryVotesModel = app.locals.dependencies.repositories.gameSummaryVotes
@@ -450,11 +445,11 @@ describe('POST /games/:id/summary-vote', () => {
   })
 
   afterAll(async () => {
-    await closeTestDB()
+    if (app) await unmountTestApp(app)
   })
 
   afterEach(async () => {
-    await clearTestDB()
+    await flushDB(app.locals.db)
   })
 
   it('should record an up vote and return a success message', async () => {
