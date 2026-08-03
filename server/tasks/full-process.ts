@@ -1,5 +1,5 @@
-import { runJob } from '../backend/lib/job-runner'
 import { JOB_TYPE } from '../models/jobs.model'
+import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 import { generateGameReports } from './generate-game-reports'
 import { generateGameSummary } from './generate-game-summary'

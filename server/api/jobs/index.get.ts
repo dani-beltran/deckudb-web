@@ -1,8 +1,8 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { paginationSchema } from '../../backend/lib/pagination'
 import { JOB_STATUS, JOB_TYPE } from '../../models/jobs.model'
 import { apiHandler, parseQuery, requireJobApiKey, useApiDependencies } from '../../utils/api'
+import { paginationSchema } from '../../utils/pagination'
 
 const jobsQuerySchema = paginationSchema.extend({
   status: z.enum(JOB_STATUS).optional(),

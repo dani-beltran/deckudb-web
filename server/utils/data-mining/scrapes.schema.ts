@@ -1,5 +1,3 @@
-export { GameReportBody, Reporter } from '../../../models/game-reports.schema'
-export { SCRAPE_SOURCES } from '../../../models/game-sources.schema'
 export {
   STEAMDECK_HARDWARE,
   STEAMDECK_RATING,
@@ -11,3 +9,5 @@ export {
   ScrapedContent,
   scrapeSchema,
 } from '../../../models/scrapes.schema'
+export { GameReportBody, Reporter } from '../../models/game-reports.schema'
+export { SCRAPE_SOURCES } from '../../models/game-sources.schema'

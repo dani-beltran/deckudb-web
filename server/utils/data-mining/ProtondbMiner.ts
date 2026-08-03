@@ -1,6 +1,6 @@
 import { type ScrapeStructuredResult, WebScraper } from '@danilidonbeltran/webscrapper'
-import { parseRelativeDate } from '../../../../shared/date'
-import { getDateComparator } from '../../../../shared/sort'
+import { parseRelativeDate } from '../../../shared/date'
+import { getDateComparator } from '../../../shared/sort'
 import {
   parseFrameRate,
   parseRefreshRate,

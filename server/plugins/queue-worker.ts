@@ -1,6 +1,5 @@
 import { sleep, withTimeout } from '../../shared/async'
 import { getTimeBetweenDates } from '../../shared/time'
-import { bootstrapDependencies } from '../backend/lib/bootstrap'
 import type { AppDependencies } from '../backend/types/dependencies'
 import { getBackendConfig } from '../config'
 import { JOB_STATUS, JOB_TYPE, type Job } from '../models/jobs.model'
@@ -8,6 +7,7 @@ import { generateGameReports } from '../tasks/generate-game-reports'
 import { generateGameSummary } from '../tasks/generate-game-summary'
 import { scrapeGameSources } from '../tasks/scrape-game'
 import { searchGameSources } from '../tasks/search-sources'
+import { bootstrapDependencies } from '../utils/bootstrap'
 import logger from '../utils/logger'
 
 const MIN_POLL_INTERVAL_MS = 100

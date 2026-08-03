@@ -9,10 +9,10 @@ import { randomUUID } from 'node:crypto'
 import type { Db } from 'mongodb'
 import z from 'zod'
 import { stripUndefined } from '../../shared/collection'
-import type { PaginatedResult, PaginationParams } from '../backend/lib/pagination'
 import type { Sort } from '../backend/types/db.types'
 import { getBackendConfig } from '../config'
 import { ConflictError } from '../utils/errors/ConflictError'
+import type { PaginatedResult, PaginationParams } from '../utils/pagination'
 import { gameIdSchema } from './games.schema'
 
 //

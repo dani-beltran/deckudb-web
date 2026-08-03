@@ -10,7 +10,7 @@ import {
 } from 'h3'
 import { ZodError, type ZodType } from 'zod'
 import { useRuntimeConfig } from '#imports'
-import { bootstrapDependencies, createDBIndexes } from '../backend/lib/bootstrap'
+import { bootstrapDependencies, createDBIndexes } from './bootstrap'
 import { ConflictError } from './errors/ConflictError'
 import { NotFoundError } from './errors/NotFoundError'
 import { ValidationError } from './errors/ValidationError'

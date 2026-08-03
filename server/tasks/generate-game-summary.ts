@@ -1,10 +1,10 @@
-import { SCRAPE_SOURCES } from '../backend/lib/data-mining/scrapes.schema'
-import { runJob } from '../backend/lib/job-runner'
 import { ClaudeService } from '../backend/services/claude'
 import type { AppDependencies } from '../backend/types/dependencies'
 import { getBackendConfig } from '../config'
 import type { GameReportBody } from '../models/game-reports.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.model'
+import { SCRAPE_SOURCES } from '../utils/data-mining/scrapes.schema'
+import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 
 export async function generateGameSummary(job: Job, { repositories }: AppDependencies) {

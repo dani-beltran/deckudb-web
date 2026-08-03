@@ -1,13 +1,13 @@
-import type { MinerConstructor } from '../backend/lib/data-mining/Miner'
-import { ProtondbMiner } from '../backend/lib/data-mining/ProtondbMiner'
-import { SharedeckMiner } from '../backend/lib/data-mining/SharedeckMiner'
-import { runJob } from '../backend/lib/job-runner'
 import { FirecrawlService } from '../backend/services/firecrawl'
 import type { AppDependencies } from '../backend/types/dependencies'
 import { getBackendConfig } from '../config'
 import { getSourceFromUrl } from '../models/game-sources.model'
 import { type GameSourceCreate, SCRAPE_SOURCES } from '../models/game-sources.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.model'
+import type { MinerConstructor } from '../utils/data-mining/Miner'
+import { ProtondbMiner } from '../utils/data-mining/ProtondbMiner'
+import { SharedeckMiner } from '../utils/data-mining/SharedeckMiner'
+import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 
 export const SEARCH_LIMIT = 10
