@@ -1,4 +1,3 @@
-import type { AppDependencies } from '../backend/types/dependencies'
 import { getBackendConfig } from '../config'
 import { GameReportsModel } from '../models/game-reports.model'
 import { GameSourcesModel } from '../models/game-sources.model'
@@ -9,6 +8,18 @@ import { ScrapesModel } from '../models/scrapes.model'
 import { SteamCacheModel } from '../models/steam-cache.model'
 import { DatabaseClient } from './DatabaseClient'
 import logger from './logger'
+
+export type AppDependencies = {
+  repositories: {
+  gameSources: GameSourcesModel
+  gameReports: GameReportsModel
+  gameSummaryVotes: GameSummaryVotesModel
+  games: GamesModel
+  jobs: JobsModel
+  scrapes: ScrapesModel
+  steamCache: SteamCacheModel
+}
+}
 
 export type BootstrappedDependencies = {
   databaseClient: DatabaseClient
