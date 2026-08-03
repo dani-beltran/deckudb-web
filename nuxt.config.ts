@@ -56,6 +56,8 @@ export default defineNuxtConfig({
     nodeEnv: process.env.NODE_ENV || 'development',
     /** Base URL of the frontend, used to configure API CORS. */
     webHost: process.env.WEB_HOST || 'http://localhost:3001',
+    /** Base URL of the dashboard, used to configure API CORS. */
+    dashboardHost: process.env.DASHBOARD_HOST || 'http://localhost:4173',
     /** MongoDB connection URI. Keep this server-only. */
     mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/steamdeckdb',
     /** MongoDB database name. */

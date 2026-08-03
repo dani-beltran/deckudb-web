@@ -10,7 +10,8 @@ const booleanFromRuntimeConfig = z
 export const configSchema = z.object({
   backendPort: positiveInteger,
   nodeEnv: z.string().trim().min(1),
-  webHost: z.string().trim().url(),
+  webHost: z.url(),
+  dashboardHost: z.url(),
   mongodbUri: z.string().trim().min(1),
   mongodbDatabase: z.string().trim().min(1),
   claudeApiKey: z.string().trim().min(1),
