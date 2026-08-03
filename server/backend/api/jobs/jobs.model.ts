@@ -100,13 +100,14 @@ export class JobsModel {
     }
   }
 
-  getNotFailedJobs = async (game_id: number, jobType?: JOB_TYPE): Promise<Job[]> => {
+  getLastNotFailedJob = async (game_id: number, jobType?: JOB_TYPE): Promise<Job | undefined> => {
     const filter = stripUndefined({
       game_id,
       job_type: jobType,
       status: { $ne: JOB_STATUS.FAILED },
     })
-    return this.db.collection<Job>(COLLECTION).find(filter).toArray()
+    const jobs = await this.db.collection<Job>(COLLECTION).find(filter).sort({ updated_at: -1 }).limit(1).toArray();
+    return jobs[0]
   }
 
   /**
