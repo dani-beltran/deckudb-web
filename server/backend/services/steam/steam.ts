@@ -61,8 +61,8 @@ const extractAppIdsFromProtobufData = (buffer: Uint8Array): number[] => {
         const decoded = new TextDecoder().decode(bytes)
         // find game id
         const match = decoded.match(/steam\/apps\/(\d+)\//)
-        if (match) {
-          const id = match[1]
+        const id = match?.[1]
+        if (id) {
           results.add(id)
         }
         break
@@ -77,6 +77,10 @@ const extractAppIdsFromProtobufData = (buffer: Uint8Array): number[] => {
   return Array.from(results).map((id) => Number(id))
 }
 
+/**
+ * Map steam games to search items which is the format used in the search results.
+ * This will strip down the steam game details to only the necessary fields for search results.
+ */
 export const mapGamesToSearchItems = (games: SteamApp[]): SteamSearch['items'] => {
   return games.map((game) => ({
     ...game,
