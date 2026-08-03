@@ -1,30 +1,30 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { getBackendConfig } from './'
+import { getServerConfig } from './'
 import { vi } from 'vitest'
 
 
-describe('getBackendConfig', () => {
+describe('getServerConfig', () => {
 
   afterEach(() => {
     vi.unstubAllEnvs()
   })
   
   it('throws when a required environment variable is missing', () => {
-    vi.stubEnv('NUXT_CLAUDE_API_KEY', '')
+    vi.stubEnv('CLAUDE_API_KEY', '')
 
-    expect(() => getBackendConfig()).toThrow(
+    expect(() => getServerConfig()).toThrow(
       /claudeApiKey/
     )
   })
 
   it('returns the correct config when all required environment variables are present', () => {
-    expect(() => getBackendConfig()).not.toThrow()
+    expect(() => getServerConfig()).not.toThrow()
   })
 
   it('throws when an environment variable has an invalid value', () => {
-    vi.stubEnv('NUXT_WORKER_ENABLED', 'not-a-boolean')
+    vi.stubEnv('WORKER_ENABLED', 'not-a-boolean')
 
-    expect(() => getBackendConfig()).toThrow(
+    expect(() => getServerConfig()).toThrow(
       /workerEnabled/
     )
   })

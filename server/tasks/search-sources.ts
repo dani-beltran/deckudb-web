@@ -1,6 +1,6 @@
 import { FirecrawlService } from '../services/firecrawl'
 import type { AppDependencies } from '../utils/bootstrap'
-import { getBackendConfig } from '../config'
+import { getServerConfig } from '../config'
 import { getSourceFromUrl } from '../models/game-sources.model'
 import { type GameSourceCreate, SCRAPE_SOURCES } from '../models/game-sources.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.model'
@@ -18,7 +18,7 @@ const STATIC_SOURCES: { source: SCRAPE_SOURCES; miner: MinerConstructor }[] = [
 const STRICT_CASE_GAMES = ['REPLACED']
 
 export async function searchGameSources(job: Job, { repositories }: AppDependencies) {
-  const { firecrawlApiKey } = getBackendConfig()
+  const { firecrawlApiKey } = getServerConfig()
 
   const gameId = job.game_id
   const steamApp = await repositories.steamCache.getGameDetails(gameId)

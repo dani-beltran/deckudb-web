@@ -1,4 +1,4 @@
-import { getBackendConfig } from '../config'
+import { getServerConfig } from '../config/index'
 import { GameReportsModel } from '../models/game-reports.model'
 import { GameSourcesModel } from '../models/game-sources.model'
 import { GameSummaryVotesModel } from '../models/game-summary-votes.model'
@@ -33,7 +33,7 @@ type BootstrapOptions = {
 export const bootstrapDependencies = async (
   opts: BootstrapOptions = {}
 ): Promise<BootstrappedDependencies> => {
-  const config = getBackendConfig()
+  const config = getServerConfig()
   const databaseClient = new DatabaseClient({ ...opts, ...config })
   const db = await databaseClient.connect()
   const dependencies: AppDependencies = {

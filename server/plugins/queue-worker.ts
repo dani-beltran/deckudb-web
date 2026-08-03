@@ -1,18 +1,18 @@
 import { sleep, withTimeout } from '../../shared/async'
 import { getTimeBetweenDates } from '../../shared/time'
-import type { AppDependencies } from '../types//dependencies'
-import { getBackendConfig } from '../config'
+import { getServerConfig } from '../config'
 import { JOB_STATUS, JOB_TYPE, type Job } from '../models/jobs.model'
 import { generateGameReports } from '../tasks/generate-game-reports'
 import { generateGameSummary } from '../tasks/generate-game-summary'
 import { scrapeGameSources } from '../tasks/scrape-game'
 import { searchGameSources } from '../tasks/search-sources'
-import { bootstrapDependencies } from '../utils/bootstrap'
+import { type AppDependencies, bootstrapDependencies } from '../utils/bootstrap'
 import logger from '../utils/logger'
+import type { NitroApp } from 'nitropack'
 
 const MIN_POLL_INTERVAL_MS = 100
 const MIN_IDLE_LOG_EVERY = 1
-const config = getBackendConfig()
+const config = getServerConfig()
 const {
   jobTimeoutMinutes,
   workerIdleLogEvery,
@@ -21,7 +21,7 @@ const {
   workerRequeueSweepMs,
 } = config
 
-export default defineNitroPlugin((nitroApp) => {
+export default defineNitroPlugin((nitroApp: NitroApp) => {
   if (!config.workerEnabled) {
     logger.info('Queue worker is disabled')
     return

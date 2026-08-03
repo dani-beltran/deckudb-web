@@ -1,4 +1,4 @@
-import { getBackendConfig } from '../config'
+import { getServerConfig } from '../config/index'
 import type { JOB_TYPE, Job } from '../models/jobs.model'
 import { bootstrapDependencies } from './bootstrap'
 import type { DatabaseClient } from './DatabaseClient'
@@ -14,7 +14,7 @@ export const runJob = async (
   let job: Job | null = null
   let databaseClient: DatabaseClient | null = null
   let deps: AppDependencies | null = null
-  const { jobTimeoutMinutes } = getBackendConfig()
+  const { jobTimeoutMinutes } = getServerConfig()
 
   process.on('SIGINT', async () => {
     await gracefulShutdown(job, deps, databaseClient)

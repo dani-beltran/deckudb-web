@@ -1,7 +1,7 @@
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 import { defineEventHandler, getCookie, setCookie } from 'h3'
 import { useStorage } from 'nitropack/runtime/internal/storage'
-import { getBackendConfig } from '../config'
+import { getServerConfig } from '../config/index'
 
 const cookieName = 'decku.sid'
 const sessionKeyPrefix = 'session:'
@@ -46,7 +46,7 @@ function getSignedSessionId(event: Parameters<typeof getCookie>[0], secret: stri
 }
 
 function setSignedSessionCookie(event: Parameters<typeof setCookie>[0], sessionId: string) {
-  const { nodeEnv, sessionMaxAgeMs, sessionSecret } = getBackendConfig()
+  const { nodeEnv, sessionMaxAgeMs, sessionSecret } = getServerConfig()
 
   setCookie(event, cookieName, `${sessionId}.${sign(sessionId, sessionSecret)}`, {
     path: '/',
@@ -61,7 +61,7 @@ function setSignedSessionCookie(event: Parameters<typeof setCookie>[0], sessionI
 export default defineEventHandler(async (event) => {
   if (event.method === 'OPTIONS' || !event.path.startsWith('/api/')) return
 
-  const { sessionMaxAgeMs, sessionSecret } = getBackendConfig()
+  const { sessionMaxAgeMs, sessionSecret } = getServerConfig()
   const sessions = useStorage<StoredSession>('mongo')
   const sessionId = getSignedSessionId(event, sessionSecret)
   const key = sessionId ? `${sessionKeyPrefix}${sessionId}` : undefined

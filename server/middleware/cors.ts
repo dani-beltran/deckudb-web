@@ -1,5 +1,5 @@
 import { defineEventHandler, handleCors } from 'h3'
-import { getBackendConfig } from '../config'
+import { getServerConfig } from '../config'
 
 /** 
  * Applies API CORS policy to Nitro routes under /api. 
@@ -7,9 +7,9 @@ import { getBackendConfig } from '../config'
 export default defineEventHandler((event) => {
   if (!event.path.startsWith('/api/')) return
 
-  const { webHost, dashboardHost } = getBackendConfig()
+  const { webHost, dashboardHost } = getServerConfig()
   const allowedOrigins = [webHost, dashboardHost]
-  
+
   handleCors(event, {
     origin: (origin) => allowedOrigins.includes(origin),
     credentials: true,

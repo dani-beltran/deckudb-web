@@ -10,7 +10,7 @@ import type { Db } from 'mongodb'
 import z from 'zod'
 import { stripUndefined } from '../../shared/collection'
 import type { Sort } from '../types/mongo.types'
-import { getBackendConfig } from '../config'
+import { getServerConfig } from '../config/index'
 import { ConflictError } from '../utils/errors/ConflictError'
 import type { PaginatedResult, PaginationParams } from '../utils/pagination'
 import { gameIdSchema } from './games.schema'
@@ -62,7 +62,7 @@ export type CreateJobParams = z.infer<typeof createJobSchema>
 // CONSTANTS
 // ---------------------------------------------------------------------------
 const COLLECTION = 'jobs'
-const jobMaxAttempts = getBackendConfig().jobMaxAttempts
+const jobMaxAttempts = getServerConfig().jobMaxAttempts
 
 export class JobsModel {
   constructor(private readonly db: Db) {}

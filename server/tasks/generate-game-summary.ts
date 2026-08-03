@@ -1,6 +1,6 @@
 import { ClaudeService } from '../services/claude'
 import type { AppDependencies } from '../utils/bootstrap'
-import { getBackendConfig } from '../config'
+import { getServerConfig } from '../config'
 import type { GameReportBody } from '../models/game-reports.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.model'
 import { SCRAPE_SOURCES } from '../utils/data-mining/scrapes.schema'
@@ -84,7 +84,7 @@ Summary:`
 
 async function askClaudeAI(msg: string) {
   if (!msg) return ''
-  const { claudeAiModel, claudeApiKey } = getBackendConfig()
+  const { claudeAiModel, claudeApiKey } = getServerConfig()
   const claudeService = new ClaudeService({
     apiKey: claudeApiKey,
   })
