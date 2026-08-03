@@ -1,7 +1,7 @@
+import { getBackendConfig } from '../../config'
 import type { JOB_TYPE, Job } from '../../models/jobs.model'
 import type { DatabaseClient } from '../../utils/DatabaseClient'
 import logger from '../../utils/logger'
-import { getBackendConfig } from '../config'
 import { bootstrapDependencies } from '../lib/bootstrap'
 import type { AppDependencies } from '../types/dependencies'
 

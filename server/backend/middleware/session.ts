@@ -1,6 +1,6 @@
 import MongoStore from 'connect-mongo'
 import session from 'express-session'
-import { getBackendConfig } from '../config'
+import { getBackendConfig } from '../../config'
 
 const config = getBackendConfig()
 const sessionSecrets = config.sessionSecret

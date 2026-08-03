@@ -1,3 +1,4 @@
+import { getBackendConfig } from '../../config'
 import { GameReportsModel } from '../../models/game-reports.model'
 import { GameSourcesModel } from '../../models/game-sources.model'
 import { GameSummaryVotesModel } from '../../models/game-summary-votes.model'
@@ -7,7 +8,6 @@ import { ScrapesModel } from '../../models/scrapes.model'
 import { SteamCacheModel } from '../../models/steam-cache.model'
 import { DatabaseClient } from '../../utils/DatabaseClient'
 import logger from '../../utils/logger'
-import { getBackendConfig } from '../config'
 import type { AppDependencies } from '../types/dependencies'
 
 export type BootstrappedDependencies = {

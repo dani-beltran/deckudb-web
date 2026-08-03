@@ -1,5 +1,5 @@
 import cors from 'cors'
-import { getBackendConfig } from '../config'
+import { getBackendConfig } from '../../config'
 
 const { webHost } = getBackendConfig()
 
