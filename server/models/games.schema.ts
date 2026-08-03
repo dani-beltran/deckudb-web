@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { STEAMDECK_VERIFICATION_STATUS } from '../backend/services/steam/steam.types'
+import { STEAMDECK_VERIFICATION_STATUS } from '../services/steam/steam.types'
 
 export enum STEAMDECK_RATING {
   SILVER = 'silver',

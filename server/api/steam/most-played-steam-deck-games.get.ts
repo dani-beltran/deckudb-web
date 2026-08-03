@@ -1,5 +1,5 @@
 import { defineEventHandler } from 'h3'
-import { mapGamesToSearchItems } from '../../backend/services/steam/steam'
+import { mapGamesToSearchItems } from '../../services/steam/steam'
 import { apiHandler, parseQuery, useApiDependencies } from '../../utils/api'
 import { paginationSchema } from '../../utils/pagination'
 

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { SteamApp, SteamSearch } from '../backend/services/steam/steam.types'
+import type { SteamApp, SteamSearch } from '../services/steam/steam.types'
 
 export const steamSearchCacheSchema = z.object({
   term: z.string(),

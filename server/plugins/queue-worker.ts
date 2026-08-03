@@ -1,6 +1,6 @@
 import { sleep, withTimeout } from '../../shared/async'
 import { getTimeBetweenDates } from '../../shared/time'
-import type { AppDependencies } from '../backend/types/dependencies'
+import type { AppDependencies } from '../types//dependencies'
 import { getBackendConfig } from '../config'
 import { JOB_STATUS, JOB_TYPE, type Job } from '../models/jobs.model'
 import { generateGameReports } from '../tasks/generate-game-reports'

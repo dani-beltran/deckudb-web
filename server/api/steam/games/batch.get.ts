@@ -1,6 +1,6 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { mapGamesToSearchItems } from '../../../backend/services/steam/steam'
+import { mapGamesToSearchItems } from '../../../services/steam/steam'
 import { gameIdSchema } from '../../../models/games.schema'
 import { apiHandler, parseQuery, useApiDependencies } from '../../../utils/api'
 

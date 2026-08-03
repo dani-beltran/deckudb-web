@@ -1,5 +1,5 @@
-import { FirecrawlService } from '../backend/services/firecrawl'
-import type { AppDependencies } from '../backend/types/dependencies'
+import { FirecrawlService } from '../services/firecrawl'
+import type { AppDependencies } from '../utils/bootstrap'
 import { getBackendConfig } from '../config'
 import { getSourceFromUrl } from '../models/game-sources.model'
 import { type GameSourceCreate, SCRAPE_SOURCES } from '../models/game-sources.schema'

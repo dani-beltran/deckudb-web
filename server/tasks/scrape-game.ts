@@ -4,7 +4,7 @@ import {
   SectionNotFoundError,
   SelectorTimeoutError,
 } from '@danilidonbeltran/webscrapper/src/scraper'
-import type { AppDependencies } from '../backend/types/dependencies'
+import type { AppDependencies } from '../utils/bootstrap'
 import type { GameSource, SCRAPE_SOURCES } from '../models/game-sources.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.model'
 import { buildMiner } from '../utils/data-mining/MinerFactory'

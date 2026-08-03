@@ -1,8 +1,8 @@
-import type { AppDependencies } from '../backend/types/dependencies'
 import { getBackendConfig } from '../config'
 import type { JOB_TYPE, Job } from '../models/jobs.model'
 import { bootstrapDependencies } from './bootstrap'
 import type { DatabaseClient } from './DatabaseClient'
+import type { AppDependencies } from '../utils/bootstrap'
 import logger from './logger'
 
 export const runJob = async (

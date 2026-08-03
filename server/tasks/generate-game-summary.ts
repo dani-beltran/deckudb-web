@@ -1,5 +1,5 @@
-import { ClaudeService } from '../backend/services/claude'
-import type { AppDependencies } from '../backend/types/dependencies'
+import { ClaudeService } from '../services/claude'
+import type { AppDependencies } from '../utils/bootstrap'
 import { getBackendConfig } from '../config'
 import type { GameReportBody } from '../models/game-reports.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.model'
