@@ -1,13 +1,4 @@
-import { randomUUID } from 'node:crypto'
-import {
-  createError,
-  getCookie,
-  getHeader,
-  getQuery,
-  readBody,
-  setCookie,
-  setResponseStatus,
-} from 'h3'
+import { createError, getHeader, getQuery, readBody, setResponseStatus } from 'h3'
 import { ZodError, type ZodType } from 'zod'
 import { useRuntimeConfig } from '#imports'
 import { bootstrapDependencies, createDBIndexes } from './bootstrap'
@@ -85,18 +76,9 @@ export function requireJobApiKey(event: Parameters<typeof getHeader>[0]) {
   }
 }
 
-export function getSessionId(event: Parameters<typeof getCookie>[0]) {
-  const existingSessionId = getCookie(event, 'decku.sid')
-  if (existingSessionId) return existingSessionId
-
-  const sessionId = randomUUID()
-  const { nodeEnv, sessionMaxAgeMs } = useRuntimeConfig()
-  setCookie(event, 'decku.sid', sessionId, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: nodeEnv === 'production',
-    maxAge: Math.floor(Number(sessionMaxAgeMs) / 1000),
-  })
+export function getSessionId(event: Parameters<typeof getHeader>[0]) {
+  const sessionId = event.context.session?.id
+  if (!sessionId) throw new Error('Session middleware is not configured')
   return sessionId
 }
 

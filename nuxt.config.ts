@@ -99,5 +99,13 @@ export default defineNuxtConfig({
     experimental: {
       tasks: true,
     },
+    storage: {
+      mongo: {
+        driver: 'mongodb',
+        connectionString: process.env.MONGODB_URI || process.env.NUXT_MONGODB_URI,
+        databaseName: process.env.MONGODB_DATABASE || process.env.NUXT_MONGODB_DATABASE,
+        collectionName: 'sessions',
+      },
+    },
   },
 })

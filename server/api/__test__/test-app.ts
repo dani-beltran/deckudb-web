@@ -1,7 +1,7 @@
 import { createApp, createRouter, toNodeListener } from 'h3'
 import type { Db } from 'mongodb'
 import type { MongoMemoryServer } from 'mongodb-memory-server'
-import { createTestDb } from './test-db'
+import sessionMiddleware from '../../middleware/session'
 import gameSummaryVoteHandler from '../games/[id]/summary-vote.post'
 import gameByIdHandler from '../games/[id].get'
 import deleteJobHandler from '../jobs/[job_id].delete'
@@ -11,6 +11,7 @@ import steamGameByIdHandler from '../steam/games/[id].get'
 import steamGamesBatchHandler from '../steam/games/batch.get'
 import steamGamesHandler from '../steam/games/index.get'
 import mostPlayedSteamDeckGamesHandler from '../steam/most-played-steam-deck-games.get'
+import { createTestDb } from './test-db'
 
 export type NuxtTestApp = {
   app: ReturnType<typeof toNodeListener>
@@ -39,6 +40,7 @@ export const mountNuxtTestApp = async (): Promise<NuxtTestApp> => {
   router.get('/api/steam/most-played-steam-deck-games', mostPlayedSteamDeckGamesHandler)
 
   const app = createApp()
+  app.use(sessionMiddleware)
   app.use(router.handler)
 
   return { app: toNodeListener(app), db, mongoServer }

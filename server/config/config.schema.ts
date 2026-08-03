@@ -17,18 +17,7 @@ export const configSchema = z.object({
   claudeApiKey: z.string().trim().min(1),
   claudeAiModel: z.string().trim().min(1),
   firecrawlApiKey: z.string().trim().min(1),
-  sessionSecret: z
-    .string()
-    .trim()
-    .refine((value) => value.split(',').some((secret) => secret.trim().length > 0), {
-      message: 'must contain at least one non-empty secret',
-    })
-    .transform((value) =>
-      value
-        .split(',')
-        .map((secret) => secret.trim())
-        .filter(Boolean)
-    ),
+  sessionSecret: z.string().trim().min(10).max(100),
   sessionMaxAgeMs: positiveInteger,
   daysBetweenScrapes: positiveInteger,
   jobApiKey: z.string().trim().min(1),
