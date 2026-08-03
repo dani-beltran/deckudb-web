@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { createTestDb, flushDB, removeTestDb } from '../../lib/test-setup/test-db'
+import { createTestDb, flushDB, removeTestDb } from '../../api/__test__/test-db'
 import {
   createJobSchema,
   JOB_STATUS,
@@ -7,7 +7,7 @@ import {
   type Job,
   JobsModel,
   jobSchema,
-} from '../jobs/jobs.model'
+} from '../jobs.model'
 
 let jobsModel: JobsModel
 let testDb: Awaited<ReturnType<typeof createTestDb>>

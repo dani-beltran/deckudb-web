@@ -14,7 +14,7 @@ import { ConflictError } from '../backend/errors/ConflictError'
 import { NotFoundError } from '../backend/errors/NotFoundError'
 import { ValidationError } from '../backend/errors/ValidationError'
 import { bootstrapDependencies, createDBIndexes } from '../backend/lib/bootstrap'
-import logger from '../backend/lib/logger'
+import logger from './logger'
 
 let dependenciesPromise: ReturnType<typeof bootstrapDependencies> | undefined
 let indexesPromise: Promise<void> | undefined

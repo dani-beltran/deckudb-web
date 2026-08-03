@@ -8,12 +8,12 @@
 import { randomUUID } from 'node:crypto'
 import type { Db } from 'mongodb'
 import z from 'zod'
-import { getBackendConfig } from '../../config'
-import { ConflictError } from '../../errors/ConflictError'
-import type { PaginatedResult, PaginationParams } from '../../lib/pagination'
-import type { Sort } from '../../types/db.types'
-import { stripUndefined } from '../../utils/collection'
-import { gameIdSchema } from '../games/games.schema'
+import { getBackendConfig } from '../backend/config'
+import { ConflictError } from '../backend/errors/ConflictError'
+import type { PaginatedResult, PaginationParams } from '../backend/lib/pagination'
+import type { Sort } from '../backend/types/db.types'
+import { stripUndefined } from '../backend/utils/collection'
+import { gameIdSchema } from './games.schema'
 
 //
 // SCHEMA DEFINITIONS
@@ -106,7 +106,12 @@ export class JobsModel {
       job_type: jobType,
       status: { $ne: JOB_STATUS.FAILED },
     })
-    const jobs = await this.db.collection<Job>(COLLECTION).find(filter).sort({ updated_at: -1 }).limit(1).toArray();
+    const jobs = await this.db
+      .collection<Job>(COLLECTION)
+      .find(filter)
+      .sort({ updated_at: -1 })
+      .limit(1)
+      .toArray()
     return jobs[0]
   }
 

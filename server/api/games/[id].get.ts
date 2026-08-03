@@ -1,11 +1,11 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { gameIdSchema } from '../../backend/api/games/games.schema'
-import { JOB_TYPE } from '../../backend/api/jobs/jobs.model'
 import { getBackendConfig } from '../../backend/config'
 import { ConflictError } from '../../backend/errors/ConflictError'
-import logger from '../../backend/lib/logger'
+import { gameIdSchema } from '../../models/games.schema'
+import { JOB_TYPE } from '../../models/jobs.model'
 import { apiHandler, parseParams, useApiDependencies } from '../../utils/api'
+import logger from '../../utils/logger'
 
 export default defineEventHandler((event) =>
   apiHandler(event, async () => {

@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { createTestDb, flushDB, removeTestDb } from '../../lib/test-setup/test-db'
-import { GamesModel } from '../games/games.model'
-import { type Game, type GameInput, STEAMDECK_RATING } from '../games/games.schema'
+import { createTestDb, flushDB, removeTestDb } from '../../api/__test__/test-db'
+import { GamesModel } from '../games.model'
+import { type Game, type GameInput, STEAMDECK_RATING } from '../games.schema'
 
 let gamesModel: GamesModel
 let testDb: Awaited<ReturnType<typeof createTestDb>>

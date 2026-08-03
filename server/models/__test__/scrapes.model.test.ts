@@ -1,8 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { createTestDb, flushDB, removeTestDb } from '../../lib/test-setup/test-db'
-import { SCRAPE_SOURCES } from '../game-sources/game-sources.schema'
-import { ScrapesModel } from './scrapes.model'
-import type { InputScrape } from './scrapes.schema'
+import { createTestDb, flushDB, removeTestDb } from '../../api/__test__/test-db'
+import { SCRAPE_SOURCES } from '../game-sources.schema'
+import { ScrapesModel } from '../scrapes.model'
+import type { InputScrape } from '../scrapes.schema'
 
 let scrapesModel: ScrapesModel
 let testDb: Awaited<ReturnType<typeof createTestDb>>

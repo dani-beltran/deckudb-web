@@ -1,10 +1,10 @@
-import type { GameSourcesModel } from '../api/game-sources/game-sources.model'
-import type { GameReportsModel } from '../api/games/game-reports.model'
-import type { GameSummaryVotesModel } from '../api/games/game-summary-votes.model'
-import type { GamesModel } from '../api/games/games.model'
-import type { JobsModel } from '../api/jobs/jobs.model'
-import type { ScrapesModel } from '../api/scrapes/scrapes.model'
-import type { SteamCacheModel } from '../api/steam/steam-cache.model'
+import type { GameReportsModel } from '../../models/game-reports.model'
+import type { GameSourcesModel } from '../../models/game-sources.model'
+import type { GameSummaryVotesModel } from '../../models/game-summary-votes.model'
+import type { GamesModel } from '../../models/games.model'
+import type { JobsModel } from '../../models/jobs.model'
+import type { ScrapesModel } from '../../models/scrapes.model'
+import type { SteamCacheModel } from '../../models/steam-cache.model'
 
 export type Repositories = {
   gameSources: GameSourcesModel

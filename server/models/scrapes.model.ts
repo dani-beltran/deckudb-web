@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { type Db, ObjectId, type WithId } from 'mongodb'
-import type { SCRAPE_SOURCES } from '../game-sources/game-sources.schema.js'
+import type { SCRAPE_SOURCES } from './game-sources.schema.js'
 import type { InputScrape, Scrape } from './scrapes.schema'
 
 const collection = 'scrapes'

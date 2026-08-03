@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { VOTE_TYPE } from '../../../backend/api/games/game-summary-votes.schema'
-import { gameIdSchema } from '../../../backend/api/games/games.schema'
+import { VOTE_TYPE } from '../../../models/game-summary-votes.schema'
+import { gameIdSchema } from '../../../models/games.schema'
 import {
   apiHandler,
   getSessionId,

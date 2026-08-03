@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { gameIdSchema } from '../../../backend/api/games/games.schema'
 import { mapGamesToSearchItems } from '../../../backend/services/steam/steam'
+import { gameIdSchema } from '../../../models/games.schema'
 import { apiHandler, parseQuery, useApiDependencies } from '../../../utils/api'
 
 const gameIdsQuerySchema = z.object({

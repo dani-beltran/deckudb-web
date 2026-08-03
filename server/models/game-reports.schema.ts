@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { SCRAPE_SOURCES } from '../game-sources/game-sources.schema'
+import { SCRAPE_SOURCES } from './game-sources.schema'
 import { gameIdSchema, STEAMDECK_HARDWARE } from './games.schema'
 
 export const reporterSchema = z.object({

@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { JOB_STATUS, JOB_TYPE } from '../../backend/api/jobs/jobs.model'
 import { paginationSchema } from '../../backend/lib/pagination'
+import { JOB_STATUS, JOB_TYPE } from '../../models/jobs.model'
 import { apiHandler, parseQuery, requireJobApiKey, useApiDependencies } from '../../utils/api'
 
 const jobsQuerySchema = paginationSchema.extend({

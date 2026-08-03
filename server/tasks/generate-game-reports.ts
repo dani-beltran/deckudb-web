@@ -1,15 +1,15 @@
-import type { GameReportBody } from '../backend/api/games/game-reports.schema'
-import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
 import { buildMiner } from '../backend/lib/data-mining/MinerFactory'
 import { ProtondbMiner } from '../backend/lib/data-mining/ProtondbMiner'
 import { SCRAPE_SOURCES, type Scrape } from '../backend/lib/data-mining/scrapes.schema'
 import { runJob } from '../backend/lib/job-runner'
-import logger from '../backend/lib/logger'
 import { getSteamdeckVerificationStatus } from '../backend/services/steam/steam'
 import { STEAMDECK_VERIFICATION_STATUS } from '../backend/services/steam/steam.types'
 import type { AppDependencies } from '../backend/types/dependencies'
 import { flatMapAsync } from '../backend/utils/async'
 import { getFaviconUrl, getWebsiteApproximatePublishedDate } from '../backend/utils/web'
+import type { GameReportBody } from '../models/game-reports.schema'
+import { JOB_TYPE, type Job } from '../models/jobs.model'
+import logger from '../utils/logger'
 
 export const generateGameReports = async (job: Job, { repositories }: AppDependencies) => {
   const gameId = job.game_id

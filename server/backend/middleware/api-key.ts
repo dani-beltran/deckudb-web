@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
+import logger from '../../utils/logger'
 import { getBackendConfig } from '../config'
-import logger from '../lib/logger'
 
 const runtimeConfig = getBackendConfig()
 

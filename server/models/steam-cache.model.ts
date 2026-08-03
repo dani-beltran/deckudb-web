@@ -3,8 +3,8 @@ import {
   getMostPlayedSteamDeckGameIds,
   getSteamGameDetails,
   searchSteamGames,
-} from '../../services/steam/steam'
-import type { SteamApp, SteamSearch } from '../../services/steam/steam.types'
+} from '../backend/services/steam/steam'
+import type { SteamApp, SteamSearch } from '../backend/services/steam/steam.types'
 import type {
   SteamDeckMostPlayedCache,
   SteamGameDetailsCache,

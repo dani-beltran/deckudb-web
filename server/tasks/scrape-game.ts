@@ -4,12 +4,12 @@ import {
   SectionNotFoundError,
   SelectorTimeoutError,
 } from '@danilidonbeltran/webscrapper/src/scraper'
-import type { GameSource, SCRAPE_SOURCES } from '../backend/api/game-sources/game-sources.schema'
-import { JOB_TYPE, type Job } from '../backend/api/jobs/jobs.model'
 import { buildMiner } from '../backend/lib/data-mining/MinerFactory'
 import { runJob } from '../backend/lib/job-runner'
-import logger from '../backend/lib/logger'
 import type { AppDependencies } from '../backend/types/dependencies'
+import type { GameSource, SCRAPE_SOURCES } from '../models/game-sources.schema'
+import { JOB_TYPE, type Job } from '../models/jobs.model'
+import logger from '../utils/logger'
 
 export async function scrapeGameSources(job: Job, { repositories }: AppDependencies) {
   const warnings: string[] = []

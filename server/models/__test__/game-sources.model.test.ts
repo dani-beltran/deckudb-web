@@ -1,8 +1,8 @@
 import type { WithId } from 'mongodb'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { createTestDb, flushDB, removeTestDb } from '../../lib/test-setup/test-db'
-import { GameSourcesModel } from './game-sources.model'
-import { type GameSource, SCRAPE_SOURCES } from './game-sources.schema'
+import { createTestDb, flushDB, removeTestDb } from '../../api/__test__/test-db'
+import { GameSourcesModel } from '../game-sources.model'
+import { type GameSource, SCRAPE_SOURCES } from '../game-sources.schema'
 
 let gameSourcesModel: GameSourcesModel
 let testDb: Awaited<ReturnType<typeof createTestDb>>

@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express'
 import { ZodError, type ZodType } from 'zod'
-import logger from '../lib/logger'
+import logger from '../../utils/logger'
 
 // Specific validator for params only
 export const validateParams = (schema: ZodType): RequestHandler => {

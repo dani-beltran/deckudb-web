@@ -1,14 +1,14 @@
-import { GameSourcesModel } from '../api/game-sources/game-sources.model'
-import { GameReportsModel } from '../api/games/game-reports.model'
-import { GameSummaryVotesModel } from '../api/games/game-summary-votes.model'
-import { GamesModel } from '../api/games/games.model'
-import { JobsModel } from '../api/jobs/jobs.model'
-import { ScrapesModel } from '../api/scrapes/scrapes.model'
-import { SteamCacheModel } from '../api/steam/steam-cache.model'
+import { GameReportsModel } from '../../models/game-reports.model'
+import { GameSourcesModel } from '../../models/game-sources.model'
+import { GameSummaryVotesModel } from '../../models/game-summary-votes.model'
+import { GamesModel } from '../../models/games.model'
+import { JobsModel } from '../../models/jobs.model'
+import { ScrapesModel } from '../../models/scrapes.model'
+import { SteamCacheModel } from '../../models/steam-cache.model'
+import { DatabaseClient } from '../../utils/DatabaseClient'
+import logger from '../../utils/logger'
 import { getBackendConfig } from '../config'
 import type { AppDependencies } from '../types/dependencies'
-import { DatabaseClient } from './DatabaseClient'
-import logger from './logger'
 
 export type BootstrappedDependencies = {
   databaseClient: DatabaseClient

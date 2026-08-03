@@ -1,6 +1,6 @@
 import z from 'zod'
-import { SCRAPE_SOURCES } from '../game-sources/game-sources.schema'
-import { gameIdSchema } from '../games/games.schema'
+import { SCRAPE_SOURCES } from './game-sources.schema'
+import { gameIdSchema } from './games.schema'
 
 const sectionSchema = z.object({
   id: z.string(),
