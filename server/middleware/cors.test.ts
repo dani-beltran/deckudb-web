@@ -26,6 +26,7 @@ describe('Nuxt API CORS', () => {
     expect(response.headers['access-control-allow-origin']).toBe(allowedOrigin)
     expect(response.headers['access-control-allow-credentials']).toBe('true')
     expect(response.headers.vary).toContain('origin')
+    expect(response.body).toEqual({ status: 'OK' })
   })
 
   it('does not grant CORS access to an unapproved origin', async () => {

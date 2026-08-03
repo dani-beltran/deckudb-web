@@ -9,8 +9,8 @@ export default defineEventHandler((event) => {
 
   const { webHost, dashboardHost } = getBackendConfig()
   const allowedOrigins = [webHost, dashboardHost]
-
-  return handleCors(event, {
+  
+  handleCors(event, {
     origin: (origin) => allowedOrigins.includes(origin),
     credentials: true,
     methods: ['GET', 'POST', 'DELETE'],
