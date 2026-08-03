@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express'
+import { ConflictError } from '../../utils/errors/ConflictError'
+import { NotFoundError } from '../../utils/errors/NotFoundError'
+import { ValidationError } from '../../utils/errors/ValidationError'
 import logger from '../../utils/logger'
-import { ConflictError } from '../errors/ConflictError'
-import { NotFoundError } from '../errors/NotFoundError'
-import { ValidationError } from '../errors/ValidationError'
 
 export const createController = <T>(controllerFn: (req: Request, res: Response) => Promise<T>) => {
   return async (req: Request, res: Response): Promise<void> => {

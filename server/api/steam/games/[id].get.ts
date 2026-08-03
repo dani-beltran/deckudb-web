@@ -1,8 +1,8 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { NotFoundError } from '../../../backend/errors/NotFoundError'
 import { gameIdSchema } from '../../../models/games.schema'
 import { apiHandler, parseParams, useApiDependencies } from '../../../utils/api'
+import { NotFoundError } from '../../../utils/errors/NotFoundError'
 
 export default defineEventHandler((event) =>
   apiHandler(event, async () => {

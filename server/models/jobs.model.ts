@@ -8,11 +8,11 @@
 import { randomUUID } from 'node:crypto'
 import type { Db } from 'mongodb'
 import z from 'zod'
-import { ConflictError } from '../backend/errors/ConflictError'
 import type { PaginatedResult, PaginationParams } from '../backend/lib/pagination'
 import type { Sort } from '../backend/types/db.types'
 import { stripUndefined } from '../backend/utils/collection'
 import { getBackendConfig } from '../config'
+import { ConflictError } from '../utils/errors/ConflictError'
 import { gameIdSchema } from './games.schema'
 
 //

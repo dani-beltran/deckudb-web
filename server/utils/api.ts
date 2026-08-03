@@ -10,10 +10,10 @@ import {
 } from 'h3'
 import { ZodError, type ZodType } from 'zod'
 import { useRuntimeConfig } from '#imports'
-import { ConflictError } from '../backend/errors/ConflictError'
-import { NotFoundError } from '../backend/errors/NotFoundError'
-import { ValidationError } from '../backend/errors/ValidationError'
 import { bootstrapDependencies, createDBIndexes } from '../backend/lib/bootstrap'
+import { ConflictError } from './errors/ConflictError'
+import { NotFoundError } from './errors/NotFoundError'
+import { ValidationError } from './errors/ValidationError'
 import logger from './logger'
 
 let dependenciesPromise: ReturnType<typeof bootstrapDependencies> | undefined

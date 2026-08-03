@@ -1,9 +1,9 @@
 import { defineEventHandler, setResponseStatus } from 'h3'
 import z from 'zod'
-import { NotFoundError } from '../../backend/errors/NotFoundError'
 import { gameIdSchema } from '../../models/games.schema'
 import { JOB_TYPE } from '../../models/jobs.model'
 import { apiHandler, parseBody, requireJobApiKey, useApiDependencies } from '../../utils/api'
+import { NotFoundError } from '../../utils/errors/NotFoundError'
 
 const queueJobBodySchema = z.object({ game_id: gameIdSchema, job_type: z.enum(JOB_TYPE) })
 
