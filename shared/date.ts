@@ -11,8 +11,11 @@ export const parseRelativeDate = (relativeDate: string): Date | null => {
 
   if (!match) return null
 
-  const amount = parseInt(match[1], 10)
-  const unit = match[2].toLowerCase()
+  const [, amountText, unitText] = match
+  if (!amountText || !unitText) return null
+
+  const amount = parseInt(amountText, 10)
+  const unit = unitText.toLowerCase()
 
   switch (unit) {
     case 'second':

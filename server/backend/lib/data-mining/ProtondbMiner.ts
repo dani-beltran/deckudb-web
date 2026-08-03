@@ -1,6 +1,6 @@
 import { type ScrapeStructuredResult, WebScraper } from '@danilidonbeltran/webscrapper'
-import { parseRelativeDate } from '../../utils/date'
-import { createDateComparator } from '../../utils/sort'
+import { parseRelativeDate } from '../../../../shared/date'
+import { getDateComparator } from '../../../../shared/sort'
 import {
   parseFrameRate,
   parseRefreshRate,
@@ -64,7 +64,7 @@ export class ProtondbMiner implements Miner {
     })
     const meaningfulReports = reports.filter((p) => p.notes.trim() || p.title?.trim())
     return {
-      reports: meaningfulReports.sort(createDateComparator('posted_at', 'desc')),
+      reports: meaningfulReports.sort(getDateComparator('posted_at', 'desc')),
     }
   }
 

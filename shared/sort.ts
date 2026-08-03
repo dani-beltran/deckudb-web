@@ -1,11 +1,11 @@
 /**
- * Creates a comparator function for sorting objects by a specific field of type Date.
+ * Returns a comparator function for sorting objects by a specific field of type Date.
  * For null or undefined values, they are considered to be less than any valid Date.
  * @param field - The field name to compare
  * @param order - Sort order: 'asc' for ascending, 'desc' for descending
  * @returns A comparator function that can be used with Array.sort()
  */
-export function createDateComparator<T>(
+export function getDateComparator<T>(
   field: keyof T,
   order: 'asc' | 'desc' = 'desc'
 ): (a: T, b: T) => number {
