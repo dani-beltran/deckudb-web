@@ -9,34 +9,36 @@ import { SteamCacheModel } from '../models/steam-cache.model'
 import { DatabaseClient } from './DatabaseClient'
 import logger from './logger'
 
-export type AppDependencies = {
+export type ApiDependencies = {
+  databaseClient: DatabaseClient,
   repositories: {
-  gameSources: GameSourcesModel
-  gameReports: GameReportsModel
-  gameSummaryVotes: GameSummaryVotesModel
-  games: GamesModel
-  jobs: JobsModel
-  scrapes: ScrapesModel
-  steamCache: SteamCacheModel
-}
-}
-
-export type BootstrappedDependencies = {
-  databaseClient: DatabaseClient
-  dependencies: AppDependencies
+    gameSources: GameSourcesModel
+    gameReports: GameReportsModel
+    gameSummaryVotes: GameSummaryVotesModel
+    games: GamesModel
+    jobs: JobsModel
+    scrapes: ScrapesModel
+    steamCache: SteamCacheModel
+  }
 }
 
 type BootstrapOptions = {
   dbConnectionName?: string
 }
 
+/**
+ * Bootstraps the API dependencies, including database connection and repository instances.
+ * This function is typically called during application startup to ensure that all necessary dependencies are initialized.
+ * @returns Repositories and database client for use in API handlers.
+ */
 export const bootstrapDependencies = async (
   opts: BootstrapOptions = {}
-): Promise<BootstrappedDependencies> => {
+): Promise<ApiDependencies> => {
   const config = getServerConfig()
   const databaseClient = new DatabaseClient({ ...opts, ...config })
   const db = await databaseClient.connect()
-  const dependencies: AppDependencies = {
+  return {
+    databaseClient,
     repositories: {
       gameSources: new GameSourcesModel(db),
       gameReports: new GameReportsModel(db),
@@ -47,16 +49,11 @@ export const bootstrapDependencies = async (
       steamCache: new SteamCacheModel(db),
     },
   }
-
-  return {
-    databaseClient,
-    dependencies,
-  }
 }
 
 export const createDBIndexes = async ({
   repositories,
-}: Awaited<ReturnType<typeof bootstrapDependencies>>['dependencies']) => {
+}: ApiDependencies) => {
   logger.info('Creating cache indexes...')
   await repositories.steamCache.createCacheIndexes()
   logger.info('Cache indexes created successfully')

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ClaudeService } from './claude'
+import ClaudeService from './ClaudeService'
 import type { ClaudeResponse } from './claude.types'
 
 // Mock fetch

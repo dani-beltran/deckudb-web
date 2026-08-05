@@ -1,25 +1,10 @@
 import { createError, getHeader, getQuery, readBody, setResponseStatus } from 'h3'
 import { ZodError, type ZodType } from 'zod'
 import { useRuntimeConfig } from '#imports'
-import { bootstrapDependencies, createDBIndexes } from './bootstrap'
 import { ConflictError } from './errors/ConflictError'
 import { NotFoundError } from './errors/NotFoundError'
 import { ValidationError } from './errors/ValidationError'
 import logger from './logger'
-
-let dependenciesPromise: ReturnType<typeof bootstrapDependencies> | undefined
-let indexesPromise: Promise<void> | undefined
-
-export async function useApiDependencies() {
-  if (!dependenciesPromise) {
-    dependenciesPromise = bootstrapDependencies()
-  }
-
-  const bootstrapped = await dependenciesPromise
-  if (!indexesPromise) indexesPromise = createDBIndexes(bootstrapped.dependencies)
-  await indexesPromise
-  return bootstrapped.dependencies
-}
 
 function invalidRequest(error: ZodError, target: string) {
   return {

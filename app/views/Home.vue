@@ -5,7 +5,7 @@
     </section>
 
     <section aria-label="Game Search" class="search-section">
-      <h2 class="search-title">Search by game</h2>
+      <h2 class="search-title" data-testid="search-title">Search by game</h2>
       <GameSearch 
         v-model="searchTerm"
         @search="onSearch"

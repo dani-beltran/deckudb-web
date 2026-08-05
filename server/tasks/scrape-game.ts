@@ -3,15 +3,15 @@ import {
   type ScrapeStructuredResult,
   SectionNotFoundError,
   SelectorTimeoutError,
-} from '@danilidonbeltran/webscrapper/src/scraper'
-import type { AppDependencies } from '../utils/bootstrap'
+} from '@danilidonbeltran/webscrapper/src/scraper.js'
 import type { GameSource, SCRAPE_SOURCES } from '../models/game-sources.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.model'
 import { buildMiner } from '../utils/data-mining/MinerFactory'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 
-export async function scrapeGameSources(job: Job, { repositories }: AppDependencies) {
+import type { ApiDependencies } from '../utils/bootstrap'
+export async function scrapeGameSources(job: Job, { repositories }: ApiDependencies) {
   const warnings: string[] = []
   const gameId = job.game_id
   const steamApp = await repositories.steamCache.getGameDetails(gameId)

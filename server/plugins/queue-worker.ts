@@ -1,4 +1,4 @@
-import { sleep, withTimeout } from '../../shared/async'
+import type { ApiDependencies } from '../utils/bootstrap'
 import { getTimeBetweenDates } from '../../shared/time'
 import { getServerConfig } from '../config'
 import { JOB_STATUS, JOB_TYPE, type Job } from '../models/jobs.model'
@@ -6,9 +6,10 @@ import { generateGameReports } from '../tasks/generate-game-reports'
 import { generateGameSummary } from '../tasks/generate-game-summary'
 import { scrapeGameSources } from '../tasks/scrape-game'
 import { searchGameSources } from '../tasks/search-sources'
-import { type AppDependencies, bootstrapDependencies } from '../utils/bootstrap'
+import { bootstrapDependencies } from '../utils/bootstrap'
 import logger from '../utils/logger'
 import type { NitroApp } from 'nitropack'
+import { sleep, withTimeout } from '../../shared/async'
 
 const MIN_POLL_INTERVAL_MS = 100
 const MIN_IDLE_LOG_EVERY = 1
@@ -21,6 +22,14 @@ const {
   workerRequeueSweepMs,
 } = config
 
+/**
+ * This plugin starts a background queue worker that processes jobs from the database.
+ * The worker will continue running until the server is stopped or the plugin is disabled via configuration.
+ * It handles job processing, re-queuing of timed-out jobs, and logging of worker activity.
+ 
+ * The worker also implements a polling mechanism with jitter to avoid overwhelming the database with requests.
+ * If the worker is idle for a certain number of polls, it will log the number of queued jobs for monitoring purposes.
+ */
 export default defineNitroPlugin((nitroApp: NitroApp) => {
   if (!config.workerEnabled) {
     logger.info('Queue worker is disabled')
@@ -41,11 +50,10 @@ export default defineNitroPlugin((nitroApp: NitroApp) => {
 })
 
 async function runQueueWorker(signal: AbortSignal) {
-  const boot = await bootstrapDependencies({ dbConnectionName: 'worker' })
-  const deps = boot?.dependencies
-  const databaseClient = boot?.databaseClient
+  const deps = await bootstrapDependencies({ dbConnectionName: 'worker' })
+  const databaseClient = deps.databaseClient
 
-  if (!deps) {
+  if (!deps || !databaseClient) {
     throw new Error('Dependencies not initialized')
   }
 
@@ -93,7 +101,7 @@ async function runQueueWorker(signal: AbortSignal) {
   logger.info('Worker stopped gracefully')
 }
 
-async function processJob(job: Job, deps: AppDependencies) {
+async function processJob(job: Job, deps: ApiDependencies) {
   const attemptCount = job.attempt_count ?? 1
   const maxAttempts = job.max_attempts ?? 3
   logger.info(
@@ -129,7 +137,7 @@ async function processJob(job: Job, deps: AppDependencies) {
   }
 }
 
-async function processJobByType(job: Job, deps: AppDependencies): Promise<string[]> {
+async function processJobByType(job: Job, deps: ApiDependencies): Promise<string[]> {
   switch (job.job_type) {
     case JOB_TYPE.SEARCH:
       return searchGameSources(job, deps)
@@ -156,7 +164,7 @@ async function processJobByType(job: Job, deps: AppDependencies): Promise<string
 /**
  * This function finds jobs that have been in progress for too long (potentially stuck) and re-queues them to be picked up again.
  */
-async function runTimedOutSweep({ repositories }: AppDependencies) {
+async function runTimedOutSweep({ repositories }: ApiDependencies) {
   const result = await repositories.jobs.requeueTimedOutJobs(undefined, jobTimeoutMinutes)
   if (result.modifiedCount > 0) {
     logger.warn(`Re-queued ${result.modifiedCount} timed-out jobs`)

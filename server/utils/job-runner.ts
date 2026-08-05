@@ -2,18 +2,18 @@ import { getServerConfig } from '../config/index'
 import type { JOB_TYPE, Job } from '../models/jobs.model'
 import { bootstrapDependencies } from './bootstrap'
 import type { DatabaseClient } from './DatabaseClient'
-import type { AppDependencies } from '../utils/bootstrap'
+import type { ApiDependencies } from '../utils/bootstrap'
 import logger from './logger'
 
 export const runJob = async (
   jobType: JOB_TYPE,
-  executable: (job: Job, deps: AppDependencies) => Promise<string[]>
+  executable: (job: Job, deps: ApiDependencies) => Promise<string[]>
 ) => {
   logger.info(`Running cron job ${jobType}...`)
   const startTime = Date.now()
   let job: Job | null = null
   let databaseClient: DatabaseClient | null = null
-  let deps: AppDependencies | null = null
+  let deps: ApiDependencies | null = null
   const { jobTimeoutMinutes } = getServerConfig()
 
   process.on('SIGINT', async () => {
@@ -68,7 +68,7 @@ export const runJob = async (
 
 const gracefulShutdown = async (
   job: Job | null,
-  deps: AppDependencies | null,
+  deps: ApiDependencies | null,
   databaseClient: DatabaseClient | null
 ) => {
   logger.info('Received shutdown signal. Gracefully shutting down...')

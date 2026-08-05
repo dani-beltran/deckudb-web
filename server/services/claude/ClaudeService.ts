@@ -18,7 +18,7 @@ const httpsAgent = new https.Agent({
   timeout: 60000, // 60 seconds
 })
 
-export class ClaudeService {
+export default class ClaudeService {
   private apiKey: string
   private defaultModel: string
   private defaultMaxTokens: number

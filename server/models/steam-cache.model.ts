@@ -4,6 +4,7 @@ import {
   getSteamGameDetails,
   searchSteamGames,
 } from '../services/steam/steam'
+import { NotFoundError } from '../utils/errors/NotFoundError'
 import type { SteamApp, SteamSearch } from '../services/steam/steam.types'
 import type {
   SteamDeckMostPlayedCache,
@@ -36,13 +37,16 @@ export class SteamCacheModel {
 
   /**
    * Try to get game details from cache, if not found or expired, fetch from Steam and cache the results
+   * @throws NotFoundError if the game is not found in Steam
    */
   async getGameDetails(gameId: number) {
     const cached = await this.getCachedGameDetails(gameId)
     if (cached) {
       return cached
     }
-    const results = await getSteamGameDetails(gameId)
+    const results = await getSteamGameDetails(gameId).catch((error) => {
+			throw new NotFoundError(`Game with ID ${gameId} not found in Steam: ${error.message}`);
+		});
     await this.cacheGameDetails(gameId, results)
     return results
   }
