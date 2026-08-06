@@ -1,4 +1,4 @@
-import { JOB_TYPE } from '../models/jobs.model'
+import { JOB_TYPE } from '../models/jobs.schema'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 import { generateGameReports } from './generate-game-reports'

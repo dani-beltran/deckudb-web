@@ -2,16 +2,16 @@ import { flatMapAsync } from '../../shared/async'
 import { getFaviconUrl, getWebsiteApproximatePublishedDate } from '../../shared/web'
 import { getSteamdeckVerificationStatus } from '../services/steam/steam'
 import { STEAMDECK_VERIFICATION_STATUS } from '../services/steam/steam.types'
-import type { AppDependencies } from '../utils/bootstrap'
+import type { ServerDependencies } from '../utils/bootstrap'
 import type { GameReportBody } from '../models/game-reports.schema'
-import { JOB_TYPE, type Job } from '../models/jobs.model'
+import { JOB_TYPE, type Job } from '../models/jobs.schema'
 import { buildMiner } from '../utils/data-mining/MinerFactory'
 import { ProtondbMiner } from '../utils/data-mining/ProtondbMiner'
 import { SCRAPE_SOURCES, type Scrape } from '../utils/data-mining/scrapes.schema'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 
-export const generateGameReports = async (job: Job, { repositories }: AppDependencies) => {
+export const generateGameReports = async (job: Job, { repositories }: ServerDependencies) => {
   const gameId = job.game_id
   const steamApp = await repositories.steamCache.getGameDetails(gameId)
   const gameName = steamApp?.name

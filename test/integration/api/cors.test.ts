@@ -1,7 +1,7 @@
 import { createApp, createRouter, toNodeListener } from 'h3'
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
-import corsMiddleware from './cors'
+import corsMiddleware from '@server/middleware/cors'
 
 const allowedOrigin = 'http://localhost:3000'
 

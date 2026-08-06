@@ -1,8 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FirecrawlService } from '.'
 import type { FirecrawlWebResult } from './firecrawl.types'
 
-global.fetch = vi.fn()
 
 const makeMockResult = (overrides: Partial<FirecrawlWebResult> = {}): FirecrawlWebResult => ({
   title: 'Test Page',
@@ -14,8 +13,21 @@ const makeMockResult = (overrides: Partial<FirecrawlWebResult> = {}): FirecrawlW
 describe('FirecrawlService', () => {
   let service: FirecrawlService
 
+  beforeAll(() => {
+    global.fetch = vi.fn()
+
+    vi.mock('@server/utils/logger', () => ({
+      logger: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+      },
+    }))
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
+
     service = new FirecrawlService('test-api-key')
   })
 

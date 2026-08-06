@@ -1,5 +1,3 @@
-import { createApp, createRouter, defineEventHandler, toNodeListener } from 'h3'
-import sessionMiddleware from '@server/middleware/session'
 import gameSummaryVoteHandler from '@server/api/games/[id]/summary-vote.post'
 import gameByIdHandler from '@server/api/games/[id].get'
 import deleteJobHandler from '@server/api/jobs/[job_id].delete'
@@ -9,8 +7,9 @@ import steamGameByIdHandler from '@server/api/steam/games/[id].get'
 import steamGamesBatchHandler from '@server/api/steam/games/batch.get'
 import steamGamesHandler from '@server/api/steam/games/index.get'
 import mostPlayedSteamDeckGamesHandler from '@server/api/steam/most-played-steam-deck-games.get'
+import sessionMiddleware from '@server/middleware/session'
 import type { ServerDependencies } from '@server/utils/bootstrap'
-
+import { createApp, createRouter, defineEventHandler, toNodeListener } from 'h3'
 
 /**
  * Mount Nuxt API handlers on an H3 app.

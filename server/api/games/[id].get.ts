@@ -1,16 +1,16 @@
-import { defineEventHandler, H3Event } from 'h3'
-import z from 'zod'
 import { getServerConfig } from '@server/config/index'
 import { gameIdSchema } from '@server/models/games.schema'
 import { JOB_TYPE } from '@server/models/jobs.schema'
 import { apiHandler, parseParams } from '@server/utils/api'
 import { ConflictError } from '@server/utils/errors/ConflictError'
 import logger from '@server/utils/logger'
+import { defineEventHandler, type H3Event } from 'h3'
+import z from 'zod'
 
 export default defineEventHandler((event) =>
   apiHandler(event, async () => {
     const { id: gameId } = await parseParams(event.context.params, z.object({ id: gameIdSchema }))
-    const { repositories } = event.context;
+    const { repositories } = event.context
     const [game, steamApp] = await Promise.all([
       repositories.games.fetchGameById(gameId),
       repositories.steamCache.getGameDetails(gameId),
@@ -18,9 +18,9 @@ export default defineEventHandler((event) =>
     let status: 'queued' | 'ready' | 'invalid' = 'invalid'
 
     if (steamApp?.type === 'game') {
+      status = 'queued'
       if (await isGameScrapeRequired(gameId, event)) {
         await queueGameScrape(gameId, steamApp.name, event)
-        status = 'queued'
       }
     }
 
@@ -31,7 +31,11 @@ export default defineEventHandler((event) =>
   })
 )
 
-const queueGameScrape = async (gameId: number, gameName: string, event: H3Event<globalThis.EventHandlerRequest> ) => {
+const queueGameScrape = async (
+  gameId: number,
+  gameName: string,
+  event: H3Event<globalThis.EventHandlerRequest>
+) => {
   try {
     await event.context.repositories.jobs.queueJob({
       job_type: JOB_TYPE.FULL,
@@ -43,7 +47,10 @@ const queueGameScrape = async (gameId: number, gameName: string, event: H3Event<
   }
 }
 
-const isGameScrapeRequired = async (gameId: number, event: H3Event<globalThis.EventHandlerRequest>) => {
+const isGameScrapeRequired = async (
+  gameId: number,
+  event: H3Event<globalThis.EventHandlerRequest>
+) => {
   const { repositories } = event.context
   const daysBetweenScrapes = getServerConfig().daysBetweenScrapes
   const olderThan = new Date(Date.now() - daysBetweenScrapes * 24 * 60 * 60 * 1000)

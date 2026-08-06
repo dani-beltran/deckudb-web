@@ -5,7 +5,7 @@ import {
   SelectorTimeoutError,
 } from '@danilidonbeltran/webscrapper/src/scraper.js'
 import type { GameSource, SCRAPE_SOURCES } from '../models/game-sources.schema'
-import { JOB_TYPE, type Job } from '../models/jobs.model'
+import { JOB_TYPE, type Job } from '../models/jobs.schema'
 import { buildMiner } from '../utils/data-mining/MinerFactory'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'

@@ -21,7 +21,6 @@ export default defineConfig({
           environment: 'node',
           include: ['server/**/*.test.ts'],
           exclude: ['server/api/**/*.test.ts'],
-          setupFiles: ['test/server.setup.ts']
         },        
       },
       {
@@ -32,7 +31,7 @@ export default defineConfig({
           name: 'api',
           environment: 'node',
           include: ['test/integration/api/**/*.test.ts'],
-          setupFiles: ['test/server.setup.ts']
+          setupFiles: ['test/server.setup.ts'],
         },        
       },
       await defineVitestProject({

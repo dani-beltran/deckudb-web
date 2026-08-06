@@ -1,9 +1,9 @@
 import { FirecrawlService } from '../services/firecrawl'
-import type { AppDependencies } from '../utils/bootstrap'
+import type { ServerDependencies } from '../utils/bootstrap'
 import { getServerConfig } from '../config'
 import { getSourceFromUrl } from '../models/game-sources.model'
 import { type GameSourceCreate, SCRAPE_SOURCES } from '../models/game-sources.schema'
-import { JOB_TYPE, type Job } from '../models/jobs.model'
+import { JOB_TYPE, type Job } from '../models/jobs.schema'
 import type { MinerConstructor } from '../utils/data-mining/Miner'
 import { ProtondbMiner } from '../utils/data-mining/ProtondbMiner'
 import { SharedeckMiner } from '../utils/data-mining/SharedeckMiner'
@@ -17,7 +17,7 @@ const STATIC_SOURCES: { source: SCRAPE_SOURCES; miner: MinerConstructor }[] = [
 ]
 const STRICT_CASE_GAMES = ['REPLACED']
 
-export async function searchGameSources(job: Job, { repositories }: AppDependencies) {
+export async function searchGameSources(job: Job, { repositories }: ServerDependencies) {
   const { firecrawlApiKey } = getServerConfig()
 
   const gameId = job.game_id

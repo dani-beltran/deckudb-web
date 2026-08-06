@@ -1,7 +1,7 @@
 import { createApp, createRouter, toNodeListener } from 'h3'
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
-import sessionMiddleware from './session'
+import sessionMiddleware from '@server/middleware/session'
 
 const createSessionTestApp = () => {
   const app = createApp()
@@ -64,7 +64,8 @@ describe('Nitro session middleware', () => {
 
     const secondResponse = await request(app2)
       .get('/api/health')
-      .set('Cookie', cookie)
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here because we just asserted cookie is defined
+      .set('Cookie', cookie!)
       .expect(200)
 
     expect(secondResponse.body.sessionId).toBe(sessionId)

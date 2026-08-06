@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { getServerConfig } from './'
+import { getServerConfig } from '@server/config'
 import { vi } from 'vitest'
 
 

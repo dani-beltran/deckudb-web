@@ -1,7 +1,7 @@
 import type { ServerDependencies } from '../utils/bootstrap'
 import { getTimeBetweenDates } from '../../shared/time'
 import { getServerConfig } from '../config'
-import { JOB_STATUS, JOB_TYPE, type Job } from '../models/jobs.model'
+import { JOB_STATUS, JOB_TYPE, type Job } from '../models/jobs.schema'
 import { generateGameReports } from '../tasks/generate-game-reports'
 import { generateGameSummary } from '../tasks/generate-game-summary'
 import { scrapeGameSources } from '../tasks/scrape-game'
