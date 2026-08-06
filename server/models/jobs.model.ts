@@ -1,70 +1,25 @@
-////////////////////////////////////////////////////////////////////////
-// Job Model
-// It defines the structure and database operations for managing
-// background jobs related to game data processing.
-// They are intended as a way to track and manage tasks like scraping
-// game data or generating reports.
-////////////////////////////////////////////////////////////////////////
 import { randomUUID } from 'node:crypto'
 import type { Db } from 'mongodb'
-import z from 'zod'
 import { stripUndefined } from '../../shared/collection'
 import type { Sort } from '../types/mongo.types'
 import { getServerConfig } from '../config/index'
 import { ConflictError } from '../utils/errors/ConflictError'
 import type { PaginatedResult, PaginationParams } from '../utils/pagination'
-import { gameIdSchema } from './games.schema'
+import { type JOB_TYPE, JOB_STATUS, createJobSchema, type Job, type CreateJobParams } from './jobs.schema'
 
-//
-// SCHEMA DEFINITIONS
-// ---------------------------------------------------------------------------
-export enum JOB_TYPE {
-  SCRAPE = 'scrape',
-  REPORTS = 'reports',
-  SUMMARY = 'summary',
-  SEARCH = 'search',
-  FULL = 'full',
-}
 
-export enum JOB_STATUS {
-  QUEUED = 'queued',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-}
 
-export const jobSchema = z.object({
-  job_id: z.string(),
-  job_type: z.enum(JOB_TYPE),
-  game_id: gameIdSchema,
-  game_name: z.string().optional(),
-  status: z.enum(JOB_STATUS),
-  attempt_count: z.number().int().nonnegative().optional(),
-  max_attempts: z.number().int().positive().optional(),
-  started_at: z.date().nullable(),
-  completed_at: z.date().nullable(),
-  status_message: z.string().optional(),
-  created_at: z.date(),
-  updated_at: z.date(),
-})
-
-export const createJobSchema = z.object({
-  job_type: z.enum(JOB_TYPE),
-  game_id: gameIdSchema,
-  game_name: z.string().optional(),
-  max_attempts: z.number().int().positive().optional(),
-})
-
-export type Job = z.infer<typeof jobSchema>
-export type CreateJobParams = z.infer<typeof createJobSchema>
-
-//
-// CONSTANTS
-// ---------------------------------------------------------------------------
 const COLLECTION = 'jobs'
 const jobMaxAttempts = getServerConfig().jobMaxAttempts
 
-export class JobsModel {
+import type { Repository } from '../utils/bootstrap'
+
+/**
+ * The JobsModel class provides methods to manage background jobs in the database.
+ * 
+ * They are intended to track and manage tasks like scraping game data or generating reports.
+ */
+export class JobsModel implements Repository {
   constructor(private readonly db: Db) {}
 
   getJobById = async (job_id: string) => {
@@ -346,7 +301,7 @@ export class JobsModel {
     })
   }
 
-  createJobIndexes = async () => {
+  createIndexes = async () => {
     // Create index on job_id for fast lookups
     await this.db.collection<Job>(COLLECTION).createIndex({ job_id: 1 }, { unique: true })
 

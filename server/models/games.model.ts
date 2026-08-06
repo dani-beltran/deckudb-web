@@ -3,7 +3,12 @@ import { type Game, type GameInput, gameInputSchema } from './games.schema'
 
 const COLLECTION = 'games'
 
-export class GamesModel {
+import type { Repository } from '../utils/bootstrap'
+
+/**
+ * GamesModel is responsible for managing game data in the database. 
+ */
+export class GamesModel implements Repository {
   constructor(private readonly db: Db) {}
 
   fetchGameById = async (id: number) => {
@@ -38,7 +43,7 @@ export class GamesModel {
     await this.db.collection<Game>(COLLECTION).insertMany(games)
   }
 
-  createGameIndexes = async () => {
+  createIndexes = async () => {
     // Create unique index on game_id (primary key)
     await this.db.collection<Game>(COLLECTION).createIndex({ game_id: 1 }, { unique: true })
   }

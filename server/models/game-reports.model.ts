@@ -1,9 +1,10 @@
 import type { Db } from 'mongodb'
 import { type GameReport, type GameReportBody, gameReportBodySchema } from './game-reports.schema'
+import type { Repository } from '../utils/bootstrap'
 
 const collection = 'game-reports'
 
-export class GameReportsModel {
+export class GameReportsModel implements Repository {
   constructor(private readonly db: Db) {}
 
   /**
@@ -56,7 +57,7 @@ export class GameReportsModel {
   }
 
   // Create indexes for the game-reports collection
-  createGameReportIndexes = async () => {
+  createIndexes = async () => {
     // Create index on game_id (primary query field)
     await this.db.collection<GameReport>(collection).createIndex({ game_id: 1 })
 

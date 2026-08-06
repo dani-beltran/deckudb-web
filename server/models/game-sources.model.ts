@@ -1,9 +1,10 @@
 import { type Db, MongoBulkWriteError, type WithId } from 'mongodb'
 import { type GameSource, type GameSourceCreate, SCRAPE_SOURCES } from './game-sources.schema'
+import type { Repository } from '../utils/bootstrap'
 
 const collection = 'game-sources'
 
-export class GameSourcesModel {
+export class GameSourcesModel implements Repository {
   constructor(private readonly db: Db) {}
 
   saveGameSources = async (sources: GameSourceCreate[]): Promise<{ count: number }> => {
@@ -47,7 +48,7 @@ export class GameSourcesModel {
     await this.db.collection<GameSource>(collection).deleteMany({ game_id })
   }
 
-  createGameSourceIndexes = async () => {
+  createIndexes = async () => {
     await this.db.collection(collection).createIndex({ game_id: 1, url: 1 }, { unique: true })
   }
 }

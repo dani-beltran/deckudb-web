@@ -33,6 +33,10 @@ type BootstrapOptions = {
   dbConnectionName?: string
 }
 
+export interface Repository {
+  createIndexes(): Promise<void>
+}
+
 /**
  * Bootstraps the API dependencies, including database connection and repository instances.
  * This function is typically called during application startup to ensure that all necessary dependencies are initialized.
@@ -54,32 +58,14 @@ export const bootstrapDependencies = async (
       jobs: new JobsModel(db),
       scrapes: new ScrapesModel(db),
       steamCache: new SteamCacheModel(db),
-    },
+    } satisfies Record<string, Repository>
   }
 }
 
 export const createDBIndexes = async ({ repositories }: ServerDependencies) => {
-  logger.info('Creating cache indexes...')
-  await repositories.steamCache.createCacheIndexes()
-  logger.info('Cache indexes created successfully')
-
-  logger.info('Creating game indexes...')
-  await repositories.games.createGameIndexes()
-  logger.info('Game indexes created successfully')
-
-  logger.info('Creating game report indexes...')
-  await repositories.gameReports.createGameReportIndexes()
-  logger.info('Game report indexes created successfully')
-
-  logger.info('Creating job indexes...')
-  await repositories.jobs.createJobIndexes()
-  logger.info('Job indexes created successfully')
-
-  logger.info('Creating scrape indexes...')
-  await repositories.scrapes.createScrapeIndexes()
-  logger.info('Scrape indexes created successfully')
-
-  logger.info('Creating game source indexes...')
-  await repositories.gameSources.createGameSourceIndexes()
-  logger.info('Game source indexes created successfully')
+   for (const [name, repository] of Object.entries(repositories)) {
+    logger.info(`Creating indexes for ${name}...`)
+    await repository.createIndexes()
+    logger.info(`Indexes for ${name} created successfully`)
+  }
 }

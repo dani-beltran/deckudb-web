@@ -1,12 +1,24 @@
 import type { Db } from 'mongodb'
 import { type GameSummaryVote, VOTE_TYPE } from './game-summary-votes.schema'
+import type { Repository } from '../utils/bootstrap'
 
 const collection = 'game-summary-votes'
 
-export class GameSummaryVotesModel {
+
+
+/**
+ * This model allows users to upvote or downvote AI summaries, and calculates the overall score based on these votes.
+ * 
+ * The model ensures that each user (identified by session_id) can only vote once per game summary.
+ */
+export class GameSummaryVotesModel implements Repository {
   constructor(private readonly db: Db) {}
 
-  voteGamePerformanceSummary = async (gameId: number, sessionId: string, type: VOTE_TYPE) => {
+  /**
+   * Records a user's vote (upvote or downvote) for a specific game summary.
+   * If the user has already voted, their previous vote will be updated to the new vote type.
+   */
+  voteGameSummary = async (gameId: number, sessionId: string, type: VOTE_TYPE) => {
     return this.db.collection<GameSummaryVote>(collection).updateOne(
       { game_id: gameId, session_id: sessionId },
       {
@@ -24,6 +36,10 @@ export class GameSummaryVotesModel {
     )
   }
 
+  /**
+   * Calculates the total score for a given game summary based on user votes.
+   * The score is computed as the number of upvotes minus the number of downvotes.
+   */
   getGameSummaryVoteScore = async (gameId: number) => {
     return this.db
       .collection<GameSummaryVote>(collection)
@@ -46,5 +62,9 @@ export class GameSummaryVotesModel {
       ])
       .toArray()
       .then((results) => (results[0] ? results[0].score : 0))
+  }
+
+  createIndexes = async () => {
+    await this.db.collection(collection).createIndex({ game_id: 1, session_id: 1 }, { unique: true })
   }
 }

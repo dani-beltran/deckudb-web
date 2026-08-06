@@ -9,7 +9,7 @@ export default defineEventHandler((event) =>
     const { id } = await parseParams(event.context.params, z.object({ id: gameIdSchema }))
     const { vote_type } = await parseBody(event, z.object({ vote_type: z.enum(VOTE_TYPE) }))
     const { repositories } = event.context
-    await repositories.gameSummaryVotes.voteGamePerformanceSummary(
+    await repositories.gameSummaryVotes.voteGameSummary(
       id,
       getSessionId(event),
       vote_type

@@ -2,10 +2,18 @@ import { createHash } from 'node:crypto'
 import { type Db, ObjectId, type WithId } from 'mongodb'
 import type { SCRAPE_SOURCES } from './game-sources.schema.js'
 import type { InputScrape, Scrape } from './scrapes.schema'
+import type { Repository } from '../utils/bootstrap.js'
 
 const collection = 'scrapes'
 
-export class ScrapesModel {
+/**
+ * ScrapesModel is responsible for managing scrape data in the database.
+ * It provides methods to save, retrieve, and manage scrape records.
+ * 
+ * The model ensures that duplicate scrapes for the same game and source are avoided by using a hash of the scraped content.
+ * It will only save a new scrape if the content has changed.
+ */
+export class ScrapesModel implements Repository {
   constructor(private readonly db: Db) {}
 
   saveScrapeData = async (data: InputScrape): Promise<WithId<Scrape>> => {
@@ -72,7 +80,7 @@ export class ScrapesModel {
     return scrapes
   }
 
-  createScrapeIndexes = async () => {
+  createIndexes = async () => {
     // Create compound index for game_id, source, and hash (used in updateOne upsert)
     await this.db
       .collection<Scrape>(collection)
