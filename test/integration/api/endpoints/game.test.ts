@@ -65,87 +65,38 @@ describe('games API', () => {
   })
 
   describe('GET /api/games/:id', () => {
-    beforeEach(async ({ task }) => {
-      const now = new Date()
-
-      if (task.name === 'returns a game and its reports for a valid ID') {
-        const game: Game = {
-          game_id: 1,
-          game_performance_summary: 'Runs smoothly on Steam Deck',
-          steamdeck_rating: STEAMDECK_RATING.GOLD,
-          steamdeck_verified: true,
-          steamdeck_verification_status: STEAMDECK_VERIFICATION_STATUS.VERIFIED,
-          generated_at: now,
-          created_at: now,
-          updated_at: now,
-        }
-        const report: GameReport = {
-          game_id: 1,
-          title: 'Great performance on LCD',
-          game_settings: { graphics: 'High', resolution: '1920x1080' },
-          steamdeck_settings: { tdp_limit: 15, frame_rate_cap: 60 },
-          steamdeck_hardware: STEAMDECK_HARDWARE.LCD,
-          source: SCRAPE_SOURCES.PROTONDB,
-          url: 'https://protondb.com/report/1',
-          reporter: {
-            username: 'testuser',
-            user_profile_url: 'https://protondb.com/user/testuser',
-          },
-          notes: 'Works great with these settings',
-          posted_at: now,
-          created_at: now,
-          updated_at: now,
-        }
-        await dependencies.repositories.games.insertTestGames([game])
-        await dependencies.repositories.gameReports.insertTestGameReports([report])
-      }
-
-      if (task.name === 'returns a game with minimal data and no reports') {
-        await dependencies.repositories.games.insertTestGames([
-          { game_id: 2, created_at: now, updated_at: now },
-        ])
-      }
-
-      if (task.name === 'returns complex report fields unchanged') {
-        await dependencies.repositories.games.insertTestGames([
-          { game_id: 3, created_at: now, updated_at: now },
-        ])
-        await dependencies.repositories.gameReports.insertTestGameReports([makeComplexReport()])
-      }
-
-      if (task.name === 'returns the requested game when several games exist') {
-        await dependencies.repositories.games.insertTestGames(
-          [1, 2, 3].map((game_id) => ({ game_id, created_at: now, updated_at: now }))
-        )
-      }
-
-      const duplicateJobStatus = task.name.includes('recent queued')
-        ? JOB_STATUS.QUEUED
-        : task.name.includes('recent in_progress')
-          ? JOB_STATUS.IN_PROGRESS
-          : undefined
-      if (duplicateJobStatus) {
-        const existingJob: Job = {
-          job_id: `existing-${duplicateJobStatus}`,
-          job_type: JOB_TYPE.FULL,
-          game_id: 999,
-          status: duplicateJobStatus,
-          started_at: duplicateJobStatus === JOB_STATUS.IN_PROGRESS ? now : null,
-          completed_at: null,
-          created_at: now,
-          updated_at: now,
-        }
-        await dependencies.repositories.jobs.insertTestJobs([existingJob])
-      }
-
-      if (task.name === 'handles a maximum signed 32-bit game ID') {
-        await dependencies.repositories.games.insertTestGames([
-          { game_id: 2_147_483_647, created_at: now, updated_at: now },
-        ])
-      }
-    })
-
     it('returns a game and its reports for a valid ID', async () => {
+      const now = new Date()
+      const game: Game = {
+        game_id: 1,
+        game_performance_summary: 'Runs smoothly on Steam Deck',
+        steamdeck_rating: STEAMDECK_RATING.GOLD,
+        steamdeck_verified: true,
+        steamdeck_verification_status: STEAMDECK_VERIFICATION_STATUS.VERIFIED,
+        generated_at: now,
+        created_at: now,
+        updated_at: now,
+      }
+      const report: GameReport = {
+        game_id: 1,
+        title: 'Great performance on LCD',
+        game_settings: { graphics: 'High', resolution: '1920x1080' },
+        steamdeck_settings: { tdp_limit: 15, frame_rate_cap: 60 },
+        steamdeck_hardware: STEAMDECK_HARDWARE.LCD,
+        source: SCRAPE_SOURCES.PROTONDB,
+        url: 'https://protondb.com/report/1',
+        reporter: {
+          username: 'testuser',
+          user_profile_url: 'https://protondb.com/user/testuser',
+        },
+        notes: 'Works great with these settings',
+        posted_at: now,
+        created_at: now,
+        updated_at: now,
+      }
+      await dependencies.repositories.games.insertTestGames([game])
+      await dependencies.repositories.gameReports.insertTestGameReports([report])
+
       const response = await request(testServer).get('/api/games/1').expect(200)
 
       expect(response.body).toMatchObject({
@@ -165,6 +116,11 @@ describe('games API', () => {
     })
 
     it('returns a game with minimal data and no reports', async () => {
+      const now = new Date()
+      await dependencies.repositories.games.insertTestGames([
+        { game_id: 2, created_at: now, updated_at: now },
+      ])
+
       const response = await request(testServer).get('/api/games/2').expect(200)
 
       expect(response.body.status).toBe('ready')
@@ -172,7 +128,12 @@ describe('games API', () => {
     })
 
     it('returns complex report fields unchanged', async () => {
+      const now = new Date()
       const report = makeComplexReport()
+      await dependencies.repositories.games.insertTestGames([
+        { game_id: 3, created_at: now, updated_at: now },
+      ])
+      await dependencies.repositories.gameReports.insertTestGameReports([report])
 
       const response = await request(testServer).get('/api/games/3').expect(200)
 
@@ -187,6 +148,11 @@ describe('games API', () => {
     })
 
     it('returns the requested game when several games exist', async () => {
+      const now = new Date()
+      await dependencies.repositories.games.insertTestGames(
+        [1, 2, 3].map((game_id) => ({ game_id, created_at: now, updated_at: now }))
+      )
+
       const response = await request(testServer).get('/api/games/2').expect(200)
 
       expect(response.body.game.game_id).toBe(2)
@@ -226,7 +192,20 @@ describe('games API', () => {
 
     it.each([JOB_STATUS.QUEUED, JOB_STATUS.IN_PROGRESS])(
       'does not duplicate a recent %s full job',
-      async (_status) => {
+      async (status) => {
+        const now = new Date()
+        const existingJob: Job = {
+          job_id: `existing-${status}`,
+          job_type: JOB_TYPE.FULL,
+          game_id: 999,
+          status,
+          started_at: status === JOB_STATUS.IN_PROGRESS ? now : null,
+          completed_at: null,
+          created_at: now,
+          updated_at: now,
+        }
+        await dependencies.repositories.jobs.insertTestJobs([existingJob])
+
         const queueJob = vi.spyOn(dependencies.repositories.jobs, 'queueJob')
 
         const response = await request(testServer).get('/api/games/999').expect(200)
@@ -252,6 +231,10 @@ describe('games API', () => {
 
     it('handles a maximum signed 32-bit game ID', async () => {
       const gameId = 2_147_483_647
+      const now = new Date()
+      await dependencies.repositories.games.insertTestGames([
+        { game_id: gameId, created_at: now, updated_at: now },
+      ])
 
       const response = await request(testServer).get(`/api/games/${gameId}`).expect(200)
 

@@ -56,100 +56,13 @@ describe('jobs API', () => {
   })
 
   describe('GET /api/jobs', () => {
-    beforeEach(async ({ task }) => {
-      if (task.name === 'returns all jobs with default pagination') {
-        await dependencies.repositories.jobs.insertTestJobs([
-          makeJob({ job_id: 'job-1', game_id: 1 }),
-          makeJob({ job_id: 'job-2', game_id: 2 }),
-          makeJob({ job_id: 'job-3', game_id: 3 }),
-        ])
-      }
-
-      if (task.name.startsWith('filters jobs by')) {
-        await dependencies.repositories.jobs.insertTestJobs([
-          makeJob({
-            job_id: 'match-1',
-            game_id: 100,
-            status: JOB_STATUS.COMPLETED,
-            job_type: JOB_TYPE.REPORTS,
-          }),
-          makeJob({
-            job_id: 'match-2',
-            game_id: 100,
-            status: JOB_STATUS.COMPLETED,
-            job_type: JOB_TYPE.REPORTS,
-          }),
-          makeJob({
-            job_id: 'other',
-            game_id: 200,
-            status: JOB_STATUS.FAILED,
-            job_type: JOB_TYPE.SCRAPE,
-          }),
-        ])
-      }
-
-      if (task.name === 'combines multiple filters') {
-        await dependencies.repositories.jobs.insertTestJobs([
-          makeJob({
-            job_id: 'match',
-            game_id: 1,
-            status: JOB_STATUS.COMPLETED,
-            job_type: JOB_TYPE.SCRAPE,
-          }),
-          makeJob({
-            job_id: 'wrong-status',
-            game_id: 1,
-            status: JOB_STATUS.QUEUED,
-            job_type: JOB_TYPE.SCRAPE,
-          }),
-          makeJob({
-            job_id: 'wrong-game',
-            game_id: 2,
-            status: JOB_STATUS.COMPLETED,
-            job_type: JOB_TYPE.SCRAPE,
-          }),
-          makeJob({
-            job_id: 'wrong-type',
-            game_id: 1,
-            status: JOB_STATUS.COMPLETED,
-            job_type: JOB_TYPE.REPORTS,
-          }),
-        ])
-      }
-
-      if (task.name === 'paginates results and calculates total pages') {
-        await dependencies.repositories.jobs.insertTestJobs(
-          Array.from({ length: 10 }, (_, index) => makeJob({ job_id: `job-${index + 1}` }))
-        )
-      }
-
-      if (task.name.startsWith('sorts created_at')) {
-        const now = Date.now()
-        await dependencies.repositories.jobs.insertTestJobs([
-          makeJob({ job_id: 'job-old', created_at: new Date(now - 2_000) }),
-          makeJob({ job_id: 'job-new', created_at: new Date(now) }),
-        ])
-      }
-
-      if (task.name === 'returns all public job fields') {
-        await dependencies.repositories.jobs.insertTestJobs([
-          makeJob({
-            job_id: 'job-check-fields',
-            job_type: JOB_TYPE.REPORTS,
-            game_id: 42,
-            game_name: 'Test Game',
-            status: JOB_STATUS.IN_PROGRESS,
-            started_at: new Date(),
-          }),
-        ])
-      }
-
-      if (task.name === 'returns an empty item list for a page beyond the result set') {
-        await dependencies.repositories.jobs.insertTestJobs([makeJob()])
-      }
-    })
-
     it('returns all jobs with default pagination', async () => {
+      await dependencies.repositories.jobs.insertTestJobs([
+        makeJob({ job_id: 'job-1', game_id: 1 }),
+        makeJob({ job_id: 'job-2', game_id: 2 }),
+        makeJob({ job_id: 'job-3', game_id: 3 }),
+      ])
+
       const response = await request(testServer)
         .get('/api/jobs')
         .set('x-api-key', TEST_API_KEY)
@@ -173,6 +86,27 @@ describe('jobs API', () => {
       ['job_type', JOB_TYPE.REPORTS],
       ['game_id', '100'],
     ])('filters jobs by %s', async (filter, value) => {
+      await dependencies.repositories.jobs.insertTestJobs([
+        makeJob({
+          job_id: 'match-1',
+          game_id: 100,
+          status: JOB_STATUS.COMPLETED,
+          job_type: JOB_TYPE.REPORTS,
+        }),
+        makeJob({
+          job_id: 'match-2',
+          game_id: 100,
+          status: JOB_STATUS.COMPLETED,
+          job_type: JOB_TYPE.REPORTS,
+        }),
+        makeJob({
+          job_id: 'other',
+          game_id: 200,
+          status: JOB_STATUS.FAILED,
+          job_type: JOB_TYPE.SCRAPE,
+        }),
+      ])
+
       const response = await request(testServer)
         .get(`/api/jobs?${filter}=${value}`)
         .set('x-api-key', TEST_API_KEY)
@@ -183,6 +117,33 @@ describe('jobs API', () => {
     })
 
     it('combines multiple filters', async () => {
+      await dependencies.repositories.jobs.insertTestJobs([
+        makeJob({
+          job_id: 'match',
+          game_id: 1,
+          status: JOB_STATUS.COMPLETED,
+          job_type: JOB_TYPE.SCRAPE,
+        }),
+        makeJob({
+          job_id: 'wrong-status',
+          game_id: 1,
+          status: JOB_STATUS.QUEUED,
+          job_type: JOB_TYPE.SCRAPE,
+        }),
+        makeJob({
+          job_id: 'wrong-game',
+          game_id: 2,
+          status: JOB_STATUS.COMPLETED,
+          job_type: JOB_TYPE.SCRAPE,
+        }),
+        makeJob({
+          job_id: 'wrong-type',
+          game_id: 1,
+          status: JOB_STATUS.COMPLETED,
+          job_type: JOB_TYPE.REPORTS,
+        }),
+      ])
+
       const response = await request(testServer)
         .get('/api/jobs?game_id=1&status=completed&job_type=scrape')
         .set('x-api-key', TEST_API_KEY)
@@ -192,6 +153,10 @@ describe('jobs API', () => {
     })
 
     it('paginates results and calculates total pages', async () => {
+      await dependencies.repositories.jobs.insertTestJobs(
+        Array.from({ length: 10 }, (_, index) => makeJob({ job_id: `job-${index + 1}` }))
+      )
+
       const response = await request(testServer)
         .get('/api/jobs?page=2&page_size=3')
         .set('x-api-key', TEST_API_KEY)
@@ -205,6 +170,12 @@ describe('jobs API', () => {
       ['desc', ['job-new', 'job-old']],
       ['asc', ['job-old', 'job-new']],
     ])('sorts created_at in %s order', async (sortOrder, expected) => {
+      const now = Date.now()
+      await dependencies.repositories.jobs.insertTestJobs([
+        makeJob({ job_id: 'job-old', created_at: new Date(now - 2_000) }),
+        makeJob({ job_id: 'job-new', created_at: new Date(now) }),
+      ])
+
       const response = await request(testServer)
         .get(`/api/jobs?sort_order=${sortOrder}`)
         .set('x-api-key', TEST_API_KEY)
@@ -214,6 +185,17 @@ describe('jobs API', () => {
     })
 
     it('returns all public job fields', async () => {
+      await dependencies.repositories.jobs.insertTestJobs([
+        makeJob({
+          job_id: 'job-check-fields',
+          job_type: JOB_TYPE.REPORTS,
+          game_id: 42,
+          game_name: 'Test Game',
+          status: JOB_STATUS.IN_PROGRESS,
+          started_at: new Date(),
+        }),
+      ])
+
       const response = await request(testServer)
         .get('/api/jobs')
         .set('x-api-key', TEST_API_KEY)
@@ -266,6 +248,8 @@ describe('jobs API', () => {
     })
 
     it('returns an empty item list for a page beyond the result set', async () => {
+      await dependencies.repositories.jobs.insertTestJobs([makeJob()])
+
       const response = await request(testServer)
         .get('/api/jobs?page=999')
         .set('x-api-key', TEST_API_KEY)
@@ -366,16 +350,9 @@ describe('jobs API', () => {
     const missingJobId = randomUUID()
     const inProgressJob = makeJob({ status: JOB_STATUS.IN_PROGRESS })
 
-    beforeEach(async ({ task }) => {
-      if (task.name === 'deletes an existing queued job') {
-        await dependencies.repositories.jobs.insertTestJobs([queuedJob])
-      }
-      if (task.name === 'returns 409 when deleting an in-progress job') {
-        await dependencies.repositories.jobs.insertTestJobs([inProgressJob])
-      }
-    })
-
     it('deletes an existing queued job', async () => {
+      await dependencies.repositories.jobs.insertTestJobs([queuedJob])
+
       await request(testServer)
         .delete(`/api/jobs/${queuedJob.job_id}`)
         .set('x-api-key', TEST_API_KEY)
@@ -394,6 +371,8 @@ describe('jobs API', () => {
     })
 
     it('returns 409 when deleting an in-progress job', async () => {
+      await dependencies.repositories.jobs.insertTestJobs([inProgressJob])
+
       const response = await request(testServer)
         .delete(`/api/jobs/${inProgressJob.job_id}`)
         .set('x-api-key', TEST_API_KEY)
