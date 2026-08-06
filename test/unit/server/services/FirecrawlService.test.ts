@@ -1,7 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { FirecrawlService } from '.'
-import type { FirecrawlWebResult } from './firecrawl.types'
-
+import { FirecrawlService, type FirecrawlWebResult } from '@server/services/firecrawl'
 
 const makeMockResult = (overrides: Partial<FirecrawlWebResult> = {}): FirecrawlWebResult => ({
   title: 'Test Page',
@@ -54,7 +52,8 @@ describe('FirecrawlService', () => {
 
       await service.search({ query: 'test' })
 
-      const [, options] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const [, options] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!
       expect(options.headers).toMatchObject({
         Authorization: 'Bearer test-api-key',
         'Content-Type': 'application/json',
@@ -75,7 +74,8 @@ describe('FirecrawlService', () => {
       }
       await service.search(params)
 
-      const [, options] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const [, options] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!
       expect(JSON.parse(options.body)).toEqual(params)
     })
 

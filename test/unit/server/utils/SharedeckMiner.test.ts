@@ -1,6 +1,6 @@
+import { SharedeckMiner } from '@server/utils/data-mining/SharedeckMiner'
+import { type ScrapedContent, STEAMDECK_HARDWARE } from '@server/utils/data-mining/scrapes.schema'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { SharedeckMiner } from './SharedeckMiner'
-import { type ScrapedContent, STEAMDECK_HARDWARE } from './scrapes.schema'
 
 // Helper to create a section with required fields
 const createSection = (overrides: Record<string, unknown> = {}) => ({
@@ -123,11 +123,13 @@ describe('SharedeckMiner', () => {
       const polished = miner.polish(result)
 
       expect(polished.reports).toHaveLength(1)
-      expect(polished.reports[0].title).toBe('High - 1280x800')
-      expect(polished.reports[0].source).toBe('sharedeck')
-      expect(polished.reports[0].url).toBe('https://sharedeck.games/apps/1091500#report-1')
-      expect(polished.reports[0].notes).toBe('Game runs great!')
-      expect(polished.reports[0].posted_at).toBeNull()
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const report = polished.reports[0]!
+      expect(report.title).toBe('High - 1280x800')
+      expect(report.source).toBe('sharedeck')
+      expect(report.url).toBe('https://sharedeck.games/apps/1091500#report-1')
+      expect(report.notes).toBe('Game runs great!')
+      expect(report.posted_at).toBeNull()
     })
 
     it('should extract reporter information', () => {
@@ -151,13 +153,11 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].reporter.username).toBe('john_doe')
-      expect(polished.reports[0].reporter.user_profile_url).toBe(
-        'https://sharedeck.games/users/john_doe'
-      )
-      expect(polished.reports[0].reporter.user_profile_avatar_url).toBe(
-        'https://example.com/avatar.jpg'
-      )
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const report = polished.reports[0]!
+      expect(report.reporter.username).toBe('john_doe')
+      expect(report.reporter.user_profile_url).toBe('https://sharedeck.games/users/john_doe')
+      expect(report.reporter.user_profile_avatar_url).toBe('https://example.com/avatar.jpg')
     })
 
     it("should use 'Anonymous' as username when not found", () => {
@@ -171,7 +171,8 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].reporter.username).toBe('Anonymous')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.reporter.username).toBe('Anonymous')
     })
 
     it('should extract battery performance', () => {
@@ -191,10 +192,10 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].battery_performance?.life_span).toBe(
-        'Battery Life4 hours 30 minutes'
-      )
-      expect(polished.reports[0].battery_performance?.consumption).toBe('11W - 14W')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const report = polished.reports[0]!
+      expect(report.battery_performance?.life_span).toBe('Battery Life4 hours 30 minutes')
+      expect(report.battery_performance?.consumption).toBe('11W - 14W')
     })
 
     it('should detect LCD hardware', () => {
@@ -208,7 +209,8 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_hardware).toBe(STEAMDECK_HARDWARE.LCD)
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_hardware).toBe(STEAMDECK_HARDWARE.LCD)
     })
 
     it('should detect OLED hardware', () => {
@@ -222,7 +224,8 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_hardware).toBe(STEAMDECK_HARDWARE.OLED)
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_hardware).toBe(STEAMDECK_HARDWARE.OLED)
     })
 
     it('should return undefined for unknown hardware', () => {
@@ -236,7 +239,8 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_hardware).toBeUndefined()
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_hardware).toBeUndefined()
     })
 
     it('should extract steamdeck settings', () => {
@@ -266,11 +270,13 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_settings?.screen_refresh_rate).toBe(60)
-      expect(polished.reports[0].steamdeck_settings?.tdp_limit).toBe(12)
-      expect(polished.reports[0].steamdeck_settings?.proton_version).toBe('Proton 8.0-5')
-      expect(polished.reports[0].steamdeck_settings?.steamos_version).toBe('3.5.7')
-      expect(polished.reports[0].steamdeck_settings?.frame_rate_cap).toBe(60)
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const report = polished.reports[0]!
+      expect(report.steamdeck_settings?.screen_refresh_rate).toBe(60)
+      expect(report.steamdeck_settings?.tdp_limit).toBe(12)
+      expect(report.steamdeck_settings?.proton_version).toBe('Proton 8.0-5')
+      expect(report.steamdeck_settings?.steamos_version).toBe('3.5.7')
+      expect(report.steamdeck_settings?.frame_rate_cap).toBe(60)
     })
 
     it('should clean values by removing units and unwanted text', () => {
@@ -297,9 +303,11 @@ describe('SharedeckMiner', () => {
       const polished = miner.polish(result)
 
       // cleanValue removes 'w' and 'fps' but not 'Hz'
-      expect(polished.reports[0].steamdeck_settings?.screen_refresh_rate).toBe(60)
-      expect(polished.reports[0].steamdeck_settings?.tdp_limit).toBe(12)
-      expect(polished.reports[0].steamdeck_settings?.frame_rate_cap).toBe(60)
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const report = polished.reports[0]!
+      expect(report.steamdeck_settings?.screen_refresh_rate).toBe(60)
+      expect(report.steamdeck_settings?.tdp_limit).toBe(12)
+      expect(report.steamdeck_settings?.frame_rate_cap).toBe(60)
     })
 
     it('should remove N/A values', () => {
@@ -323,8 +331,10 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_settings?.tdp_limit).toBeUndefined()
-      expect(polished.reports[0].steamdeck_settings?.proton_version).toBe('')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const report = polished.reports[0]!
+      expect(report.steamdeck_settings?.tdp_limit).toBeUndefined()
+      expect(report.steamdeck_settings?.proton_version).toBe('')
     })
 
     it('should extract game settings', () => {
@@ -350,9 +360,11 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].game_settings?.graphics_preset).toBe('High')
-      expect(polished.reports[0].game_settings?.frame_rate_limit).toBe('60')
-      expect(polished.reports[0].game_settings?.resolution).toBe('1280x800')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const report = polished.reports[0]!
+      expect(report.game_settings?.graphics_preset).toBe('High')
+      expect(report.game_settings?.frame_rate_limit).toBe('60')
+      expect(report.game_settings?.resolution).toBe('1280x800')
     })
 
     it('should extract steamdeck experience', () => {
@@ -366,7 +378,8 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_experience?.average_frame_rate).toBe(60)
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_experience?.average_frame_rate).toBe(60)
     })
 
     it('should extract notes correctly', () => {
@@ -390,7 +403,8 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].notes).toBe('Game runs smoothly. No issues encountered.')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.notes).toBe('Game runs smoothly. No issues encountered.')
     })
 
     it('should return empty notes when Note is not found', () => {
@@ -404,7 +418,8 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].notes).toBe('')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.notes).toBe('')
     })
 
     it('should handle notes without Sign in delimiter', () => {
@@ -426,7 +441,8 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].notes).toBe('')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.notes).toBe('')
     })
 
     it('should handle multiple reports', () => {
@@ -446,8 +462,10 @@ describe('SharedeckMiner', () => {
       const polished = miner.polish(result)
 
       expect(polished.reports).toHaveLength(2)
-      expect(polished.reports[0].url).toBe('https://sharedeck.games/apps/1091500#report-1')
-      expect(polished.reports[1].url).toBe('https://sharedeck.games/apps/1091500#report-2')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.url).toBe('https://sharedeck.games/apps/1091500#report-1')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[1]!.url).toBe('https://sharedeck.games/apps/1091500#report-2')
     })
 
     it('should handle resolution with newlines', () => {
@@ -469,7 +487,8 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].game_settings?.resolution).toBe('1280x800')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.game_settings?.resolution).toBe('1280x800')
     })
 
     it('should handle case-insensitive hardware detection', () => {
@@ -483,7 +502,8 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_hardware).toBe(STEAMDECK_HARDWARE.OLED)
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_hardware).toBe(STEAMDECK_HARDWARE.OLED)
     })
 
     it('should handle empty images and links arrays', () => {
@@ -499,8 +519,10 @@ describe('SharedeckMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].reporter.user_profile_url).toBe('')
-      expect(polished.reports[0].reporter.user_profile_avatar_url).toBeUndefined()
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const report = polished.reports[0]!
+      expect(report.reporter.user_profile_url).toBe('')
+      expect(report.reporter.user_profile_avatar_url).toBeUndefined()
     })
   })
 })

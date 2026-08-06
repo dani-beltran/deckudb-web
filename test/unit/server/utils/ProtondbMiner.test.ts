@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ProtondbMiner } from './ProtondbMiner'
-import { type ScrapedContent, STEAMDECK_HARDWARE, STEAMDECK_RATING } from './scrapes.schema'
+import { ProtondbMiner } from '@server/utils/data-mining/ProtondbMiner'
+import { type ScrapedContent, STEAMDECK_HARDWARE, STEAMDECK_RATING } from '@server/utils/data-mining/scrapes.schema'
 
 // Mock fetch
 global.fetch = vi.fn()
@@ -226,16 +226,14 @@ describe('ProtondbMiner', () => {
       const polished = miner.polish(result)
 
       expect(polished.reports).toHaveLength(1)
-      expect(polished.reports[0].title).toBe('Great performance!')
-      expect(polished.reports[0].notes).toBe('Game runs smoothly\n\nNo issues found')
-      expect(polished.reports[0].reporter.username).toBe('john_doe')
-      expect(polished.reports[0].reporter.user_profile_url).toBe(
-        'https://protondb.com/users/john_doe'
-      )
-      expect(polished.reports[0].reporter.user_profile_avatar_url).toBe(
-        'https://example.com/avatar.jpg'
-      )
-      expect(polished.reports[0].url).toBe('https://protondb.com/report/1')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const report = polished.reports[0]!
+      expect(report.title).toBe('Great performance!')
+      expect(report.notes).toBe('Game runs smoothly\n\nNo issues found')
+      expect(report.reporter.username).toBe('john_doe')
+      expect(report.reporter.user_profile_url).toBe('https://protondb.com/users/john_doe')
+      expect(report.reporter.user_profile_avatar_url).toBe('https://example.com/avatar.jpg')
+      expect(report.url).toBe('https://protondb.com/report/1')
     })
 
     it('should filter out reports with empty notes and title', () => {
@@ -250,8 +248,10 @@ describe('ProtondbMiner', () => {
       const polished = miner.polish(result)
 
       expect(polished.reports).toHaveLength(2)
-      expect(polished.reports[0].title).toBe('Valid report')
-      expect(polished.reports[1].title).toBe('Still valid report')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.title).toBe('Valid report')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[1]!.title).toBe('Still valid report')
     })
 
     it('should detect LCD hardware from notes', () => {
@@ -261,7 +261,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_hardware).toBe(STEAMDECK_HARDWARE.LCD)
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_hardware).toBe(STEAMDECK_HARDWARE.LCD)
     })
 
     it('should detect OLED hardware from notes', () => {
@@ -271,7 +274,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_hardware).toBe(STEAMDECK_HARDWARE.OLED)
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_hardware).toBe(STEAMDECK_HARDWARE.OLED)
     })
 
     it('should detect frame rate from notes', () => {
@@ -280,8 +286,11 @@ describe('ProtondbMiner', () => {
       })
 
       const polished = miner.polish(result)
+      
+      expect(polished.reports).toHaveLength(1)
 
-      expect(polished.reports[0].steamdeck_settings?.frame_rate_cap).toBe(60)
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_settings?.frame_rate_cap).toBe(60)
     })
 
     it('should detect TDP limit from notes', () => {
@@ -291,7 +300,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_settings?.tdp_limit).toBe(10)
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_settings?.tdp_limit).toBe(10)
     })
 
     it('should detect refresh rate from notes', () => {
@@ -301,7 +313,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_settings?.screen_refresh_rate).toBe(90)
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_settings?.screen_refresh_rate).toBe(90)
     })
 
     it('should parse posted date from relative time', () => {
@@ -321,7 +336,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].posted_at).toBeInstanceOf(Date)
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.posted_at).toBeInstanceOf(Date)
     })
 
     it('should handle missing posted date', () => {
@@ -331,7 +349,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].posted_at).toBeNull()
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.posted_at).toBeNull()
     })
 
     it('should sort reports by posted date in descending order', () => {
@@ -365,9 +386,12 @@ describe('ProtondbMiner', () => {
       const polished = miner.polish(result)
 
       expect(polished.reports).toHaveLength(2)
+
       // Most recent should be first
-      expect(polished.reports[0].title).toBe('New report')
-      expect(polished.reports[1].title).toBe('Old report')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.title).toBe('New report')
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[1]!.title).toBe('Old report')
     })
 
     it('should use result URL when report URL is missing', () => {
@@ -378,7 +402,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].url).toBe('https://www.protondb.com/app/1091500')
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.url).toBe('https://www.protondb.com/app/1091500')
     })
 
     it('should handle complex TDP patterns', () => {
@@ -388,7 +415,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_settings?.tdp_limit).toBe(15)
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_settings?.tdp_limit).toBe(15)
     })
 
     it('should handle multiple settings in one report', () => {
@@ -402,10 +432,15 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_hardware).toBe(STEAMDECK_HARDWARE.LCD)
-      expect(polished.reports[0].steamdeck_settings?.frame_rate_cap).toBe(60)
-      expect(polished.reports[0].steamdeck_settings?.screen_refresh_rate).toBe(90)
-      expect(polished.reports[0].steamdeck_settings?.tdp_limit).toBe(12)
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      const report = polished.reports[0]!
+
+      expect(report.steamdeck_hardware).toBe(STEAMDECK_HARDWARE.LCD)
+      expect(report.steamdeck_settings?.frame_rate_cap).toBe(60)
+      expect(report.steamdeck_settings?.screen_refresh_rate).toBe(90)
+      expect(report.steamdeck_settings?.tdp_limit).toBe(12)
     })
 
     it('should handle alternative fps pattern (fps at start)', () => {
@@ -415,7 +450,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_settings?.frame_rate_cap).toBe(40)
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_settings?.frame_rate_cap).toBe(40)
     })
 
     it('should handle alternative TDP pattern (watts at start)', () => {
@@ -425,7 +463,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_settings?.tdp_limit).toBe(8)
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_settings?.tdp_limit).toBe(8)
     })
 
     it('should handle alternative refresh rate pattern', () => {
@@ -435,7 +476,10 @@ describe('ProtondbMiner', () => {
 
       const polished = miner.polish(result)
 
-      expect(polished.reports[0].steamdeck_settings?.screen_refresh_rate).toBe(40)
+      expect(polished.reports).toHaveLength(1)
+
+      // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here
+      expect(polished.reports[0]!.steamdeck_settings?.screen_refresh_rate).toBe(40)
     })
 
     it('should handle whitespace trimming in notes and title', () => {

@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import ClaudeService from './ClaudeService'
-import type { ClaudeResponse } from './claude.types'
+import { ClaudeService, type ClaudeResponse } from '@server/services/claude'
 
 // Mock fetch
 global.fetch = vi.fn()
@@ -97,7 +96,7 @@ describe('ClaudeService', () => {
       })
 
       const callArgs = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
-      const body = JSON.parse(callArgs[1].body)
+      const body = JSON.parse(callArgs?.[1].body)
 
       expect(body.model).toBe('claude-3-opus-20240229')
       expect(body.max_tokens).toBe(500)
@@ -134,7 +133,7 @@ describe('ClaudeService', () => {
       expect(response).toBe('Sure, I can help!')
 
       const callArgs = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
-      const body = JSON.parse(callArgs[1].body)
+      const body = JSON.parse(callArgs?.[1].body)
 
       expect(body.messages).toHaveLength(3)
       expect(body.messages[0].role).toBe('user')
