@@ -1,5 +1,5 @@
-import z from "zod/v4"
-import { gameIdSchema } from "./games.schema"
+import z from 'zod/v4'
+import { gameIdSchema } from './games.schema'
 
 export enum JOB_TYPE {
   SCRAPE = 'scrape',

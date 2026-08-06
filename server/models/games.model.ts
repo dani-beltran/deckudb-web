@@ -6,7 +6,7 @@ const COLLECTION = 'games'
 import type { Repository } from '../utils/bootstrap'
 
 /**
- * GamesModel is responsible for managing game data in the database. 
+ * GamesModel is responsible for managing game data in the database.
  */
 export class GamesModel implements Repository {
   constructor(private readonly db: Db) {}

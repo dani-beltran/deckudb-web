@@ -1,8 +1,8 @@
 import { getServerConfig } from '../config/index'
-import type { JOB_TYPE, Job } from '../models/jobs.model'
+import type { JOB_TYPE, Job } from '../models/jobs.schema'
+import type { ServerDependencies } from '../utils/bootstrap'
 import { bootstrapDependencies } from './bootstrap'
 import type { DatabaseClient } from './DatabaseClient'
-import type { ServerDependencies } from '../utils/bootstrap'
 import logger from './logger'
 
 export const runJob = async (
@@ -65,10 +65,7 @@ export const runJob = async (
   }
 }
 
-const gracefulShutdown = async (
-  job: Job | null,
-  deps: ServerDependencies | null,
-) => {
+const gracefulShutdown = async (job: Job | null, deps: ServerDependencies | null) => {
   logger.info('Received shutdown signal. Gracefully shutting down...')
 
   if (job && deps) {

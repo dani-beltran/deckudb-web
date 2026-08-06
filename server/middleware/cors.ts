@@ -1,8 +1,8 @@
 import { defineEventHandler, handleCors } from 'h3'
 import { getServerConfig } from '../config'
 
-/** 
- * Applies API CORS policy to Nitro routes under /api. 
+/**
+ * Applies API CORS policy to Nitro routes under /api.
  */
 export default defineEventHandler((event) => {
   if (!event.path.startsWith('/api/')) return

@@ -58,12 +58,12 @@ export const bootstrapDependencies = async (
       jobs: new JobsModel(db),
       scrapes: new ScrapesModel(db),
       steamCache: new SteamCacheModel(db),
-    } satisfies Record<string, Repository>
+    } satisfies Record<string, Repository>,
   }
 }
 
 export const createDBIndexes = async ({ repositories }: ServerDependencies) => {
-   for (const [name, repository] of Object.entries(repositories)) {
+  for (const [name, repository] of Object.entries(repositories)) {
     logger.info(`Creating indexes for ${name}...`)
     await repository.createIndexes()
     logger.info(`Indexes for ${name} created successfully`)

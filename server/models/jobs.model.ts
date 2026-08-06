@@ -1,13 +1,17 @@
 import { randomUUID } from 'node:crypto'
 import type { Db } from 'mongodb'
 import { stripUndefined } from '../../shared/collection'
-import type { Sort } from '../types/mongo.types'
 import { getServerConfig } from '../config/index'
+import type { Sort } from '../types/mongo.types'
 import { ConflictError } from '../utils/errors/ConflictError'
 import type { PaginatedResult, PaginationParams } from '../utils/pagination'
-import { type JOB_TYPE, JOB_STATUS, createJobSchema, type Job, type CreateJobParams } from './jobs.schema'
-
-
+import {
+  type CreateJobParams,
+  createJobSchema,
+  JOB_STATUS,
+  type JOB_TYPE,
+  type Job,
+} from './jobs.schema'
 
 const COLLECTION = 'jobs'
 const jobMaxAttempts = getServerConfig().jobMaxAttempts
@@ -16,7 +20,7 @@ import type { Repository } from '../utils/bootstrap'
 
 /**
  * The JobsModel class provides methods to manage background jobs in the database.
- * 
+ *
  * They are intended to track and manage tasks like scraping game data or generating reports.
  */
 export class JobsModel implements Repository {

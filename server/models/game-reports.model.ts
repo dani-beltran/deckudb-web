@@ -1,6 +1,6 @@
 import type { Db } from 'mongodb'
-import { type GameReport, type GameReportBody, gameReportBodySchema } from './game-reports.schema'
 import type { Repository } from '../utils/bootstrap'
+import { type GameReport, type GameReportBody, gameReportBodySchema } from './game-reports.schema'
 
 const collection = 'game-reports'
 

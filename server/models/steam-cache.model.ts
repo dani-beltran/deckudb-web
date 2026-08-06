@@ -4,14 +4,14 @@ import {
   getSteamGameDetails,
   searchSteamGames,
 } from '../services/steam/steam'
-import { NotFoundError } from '../utils/errors/NotFoundError'
 import type { SteamApp, SteamSearch } from '../services/steam/steam.types'
+import type { Repository } from '../utils/bootstrap'
+import { NotFoundError } from '../utils/errors/NotFoundError'
 import type {
   SteamDeckMostPlayedCache,
   SteamGameDetailsCache,
   SteamSearchCache,
 } from './steam-cache.schema'
-import type { Repository } from '../utils/bootstrap'
 
 const SEARCH_CACHE_COLLECTION = 'steam_search_cache'
 const DETAILS_CACHE_COLLECTION = 'steam_details_cache'
@@ -22,15 +22,15 @@ export const CACHE_DURATION_MS = 24 * 60 * 60 * 1000
 
 /**
  * Repository for caching Steam search results and game details.
- * 
+ *
  * It's important to cache since Steam has rate limits and can block requests if too many are made in a short period of time.
  * It can even block the server's IP address for a period of time, which can cause issues for users trying to access the application.
- * 
+ *
  * There are three collections in the database for caching:
  * 1. `steam_search_cache`: Caches search results for Steam games based on search term and limit.
  * 2. `steam_details_cache`: Caches detailed information about specific Steam games based on game ID.
  * 3. `steam_deck_most_played_cache`: Caches the most played games on Steam Deck.
- * 
+ *
  * Each collection has a TTL index to automatically remove expired documents.
  */
 export class SteamCacheModel implements Repository {
@@ -59,8 +59,8 @@ export class SteamCacheModel implements Repository {
       return cached
     }
     const results = await getSteamGameDetails(gameId).catch((error) => {
-			throw new NotFoundError(`Game with ID ${gameId} not found in Steam: ${error.message}`);
-		});
+      throw new NotFoundError(`Game with ID ${gameId} not found in Steam: ${error.message}`)
+    })
     await this.cacheGameDetails(gameId, results)
     return results
   }

@@ -8,7 +8,7 @@ const booleanFromRuntimeConfig = z
 
 /** Validated, server-only values declared in Nuxt's runtimeConfig. */
 export const configSchema = z.object({
-  // Runtime environment 
+  // Runtime environment
   nodeEnv: z.string().trim().min(1),
   // Domain hosting the app
   webHost: z.url(),

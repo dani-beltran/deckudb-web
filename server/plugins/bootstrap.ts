@@ -9,13 +9,15 @@ import logger from '../utils/logger'
  */
 export default defineNitroPlugin((nitroApp: NitroApp) => {
   // Bootstrap the database dependencies and create indexes on startup.
-   const dependenciesPromise = bootstrapDependencies().then(async (dependencies) => {
-    await createDBIndexes(dependencies)
-    logger.info('Database initialized and indexes verified')
-    return dependencies
-  }).catch((error) => {
-    logger.error('Database initialization failed:', error)
-  })
+  const dependenciesPromise = bootstrapDependencies()
+    .then(async (dependencies) => {
+      await createDBIndexes(dependencies)
+      logger.info('Database initialized and indexes verified')
+      return dependencies
+    })
+    .catch((error) => {
+      logger.error('Database initialization failed:', error)
+    })
 
   // Ensure that the database connection is closed when the application shuts down.
   nitroApp.hooks.hook('close', async () => {

@@ -1,6 +1,6 @@
 import { type Db, MongoBulkWriteError, type WithId } from 'mongodb'
-import { type GameSource, type GameSourceCreate, SCRAPE_SOURCES } from './game-sources.schema'
 import type { Repository } from '../utils/bootstrap'
+import { type GameSource, type GameSourceCreate, SCRAPE_SOURCES } from './game-sources.schema'
 
 const collection = 'game-sources'
 
