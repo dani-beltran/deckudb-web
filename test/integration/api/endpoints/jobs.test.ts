@@ -6,7 +6,7 @@ import { bootstrapDependencies, type ServerDependencies } from '@server/utils/bo
 import type { NodeListener } from 'h3'
 import request from 'supertest'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createNuxtTestServer } from './test-server'
+import { createNuxtTestServer } from '../test-server'
 
 const TEST_API_KEY = process.env.JOB_API_KEY ?? 'your_job_api_key_here'
 

@@ -9,7 +9,7 @@ import { bootstrapDependencies, type ServerDependencies } from '@server/utils/bo
 import type { NodeListener } from 'h3'
 import request from 'supertest'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createNuxtTestServer } from './test-server'
+import { createNuxtTestServer } from '../test-server'
 
 const makeComplexReport = (): GameReport => {
   const now = new Date()
