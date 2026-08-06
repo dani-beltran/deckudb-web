@@ -1,6 +1,6 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { apiHandler, parseQuery, useApiDependencies } from '../../../utils/api'
+import { apiHandler, parseQuery } from '../../../utils/api'
 
 const steamSearchQuerySchema = z.object({
   term: z.string().min(1, 'Search term is required'),
@@ -10,7 +10,7 @@ const steamSearchQuerySchema = z.object({
 export default defineEventHandler((event) =>
   apiHandler(event, async () => {
     const { term, limit } = await parseQuery(event, steamSearchQuerySchema)
-    const { repositories } = await useApiDependencies()
+    const { repositories } = event.context
     return repositories.steamCache.getSearchResults(term, limit)
   })
 )

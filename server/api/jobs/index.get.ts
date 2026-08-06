@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
 import { JOB_STATUS, JOB_TYPE } from '../../models/jobs.model'
-import { apiHandler, parseQuery, requireJobApiKey, useApiDependencies } from '../../utils/api'
+import { apiHandler, parseQuery, requireJobApiKey } from '../../utils/api'
 import { paginationSchema } from '../../utils/pagination'
 
 const jobsQuerySchema = paginationSchema.extend({
@@ -19,7 +19,7 @@ export default defineEventHandler((event) =>
       event,
       jobsQuerySchema
     )
-    const { repositories } = await useApiDependencies()
+    const { repositories } = event.context
     return repositories.jobs.getJobs(
       { status, job_type, game_id },
       { [sort_by]: sort_order === 'asc' ? 1 : -1 },

@@ -10,8 +10,8 @@ import { buildMiner } from '../utils/data-mining/MinerFactory'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 
-import type { ApiDependencies } from '../utils/bootstrap'
-export async function scrapeGameSources(job: Job, { repositories }: ApiDependencies) {
+import type { ServerDependencies } from '../utils/bootstrap'
+export async function scrapeGameSources(job: Job, { repositories }: ServerDependencies) {
   const warnings: string[] = []
   const gameId = job.game_id
   const steamApp = await repositories.steamCache.getGameDetails(gameId)

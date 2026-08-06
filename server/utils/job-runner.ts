@@ -2,34 +2,33 @@ import { getServerConfig } from '../config/index'
 import type { JOB_TYPE, Job } from '../models/jobs.model'
 import { bootstrapDependencies } from './bootstrap'
 import type { DatabaseClient } from './DatabaseClient'
-import type { ApiDependencies } from '../utils/bootstrap'
+import type { ServerDependencies } from '../utils/bootstrap'
 import logger from './logger'
 
 export const runJob = async (
   jobType: JOB_TYPE,
-  executable: (job: Job, deps: ApiDependencies) => Promise<string[]>
+  executable: (job: Job, deps: ServerDependencies) => Promise<string[]>
 ) => {
   logger.info(`Running cron job ${jobType}...`)
   const startTime = Date.now()
   let job: Job | null = null
   let databaseClient: DatabaseClient | null = null
-  let deps: ApiDependencies | null = null
+  let deps: ServerDependencies | null = null
   const { jobTimeoutMinutes } = getServerConfig()
 
   process.on('SIGINT', async () => {
-    await gracefulShutdown(job, deps, databaseClient)
+    await gracefulShutdown(job, deps)
   })
 
   process.on('SIGTERM', async () => {
-    await gracefulShutdown(job, deps, databaseClient)
+    await gracefulShutdown(job, deps)
   })
 
   try {
-    const boot = await bootstrapDependencies({
+    deps = await bootstrapDependencies({
       dbConnectionName: `job-runner-${jobType}`,
     })
-    deps = boot.dependencies
-    databaseClient = boot.databaseClient
+    databaseClient = deps.databaseClient
 
     // Re-queue any timed-out jobs before attempting to start a new one
     await deps.repositories.jobs.requeueTimedOutJobs(jobType, jobTimeoutMinutes)
@@ -68,8 +67,7 @@ export const runJob = async (
 
 const gracefulShutdown = async (
   job: Job | null,
-  deps: ApiDependencies | null,
-  databaseClient: DatabaseClient | null
+  deps: ServerDependencies | null,
 ) => {
   logger.info('Received shutdown signal. Gracefully shutting down...')
 
@@ -78,6 +76,6 @@ const gracefulShutdown = async (
     logger.info(`Marked job ${job.job_id} as failed due to interruption.`)
   }
 
-  await databaseClient?.disconnect()
+  await deps?.databaseClient?.disconnect()
   process.exit(0)
 }

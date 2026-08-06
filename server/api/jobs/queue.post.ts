@@ -2,7 +2,7 @@ import { defineEventHandler, setResponseStatus } from 'h3'
 import z from 'zod'
 import { gameIdSchema } from '../../models/games.schema'
 import { JOB_TYPE } from '../../models/jobs.model'
-import { apiHandler, parseBody, requireJobApiKey, useApiDependencies } from '../../utils/api'
+import { apiHandler, parseBody, requireJobApiKey } from '../../utils/api'
 import { NotFoundError } from '../../utils/errors/NotFoundError'
 
 const queueJobBodySchema = z.object({ game_id: gameIdSchema, job_type: z.enum(JOB_TYPE) })
@@ -13,7 +13,7 @@ export default defineEventHandler((event) =>
     requireJobApiKey(event)
 
     const { game_id, job_type } = await parseBody(event, queueJobBodySchema)
-    const { repositories } = await useApiDependencies()
+    const { repositories } = event.context
     const steamApp = await repositories.steamCache.getGameDetails(game_id).catch(() => {
       throw new NotFoundError('Game not found on Steam')
     })

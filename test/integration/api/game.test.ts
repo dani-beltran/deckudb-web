@@ -2,7 +2,7 @@ import type { NodeListener } from 'h3'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createNuxtTestServer } from './test-server';
 import request from 'supertest'
-import type { ApiDependencies } from '@server/utils/bootstrap';
+import type { ServerDependencies } from '@server/utils/bootstrap';
 import { bootstrapDependencies } from '@server/utils/bootstrap';
 import type { Game } from '@server/models/games.schema';
 import type { SteamApp } from '@server/services/steam/steam.types';
@@ -10,7 +10,7 @@ import * as steamService from '@server/services/steam/steam';
 
 describe('GET /api/games/:id', async () => {
     let testServer: NodeListener;
-    let dependencies: ApiDependencies;
+    let dependencies: ServerDependencies;
 
     beforeAll(async () => {
         dependencies = await bootstrapDependencies({ dbConnectionName: 'test' })

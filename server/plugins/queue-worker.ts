@@ -1,4 +1,4 @@
-import type { ApiDependencies } from '../utils/bootstrap'
+import type { ServerDependencies } from '../utils/bootstrap'
 import { getTimeBetweenDates } from '../../shared/time'
 import { getServerConfig } from '../config'
 import { JOB_STATUS, JOB_TYPE, type Job } from '../models/jobs.model'
@@ -101,7 +101,7 @@ async function runQueueWorker(signal: AbortSignal) {
   logger.info('Worker stopped gracefully')
 }
 
-async function processJob(job: Job, deps: ApiDependencies) {
+async function processJob(job: Job, deps: ServerDependencies) {
   const attemptCount = job.attempt_count ?? 1
   const maxAttempts = job.max_attempts ?? 3
   logger.info(
@@ -137,7 +137,7 @@ async function processJob(job: Job, deps: ApiDependencies) {
   }
 }
 
-async function processJobByType(job: Job, deps: ApiDependencies): Promise<string[]> {
+async function processJobByType(job: Job, deps: ServerDependencies): Promise<string[]> {
   switch (job.job_type) {
     case JOB_TYPE.SEARCH:
       return searchGameSources(job, deps)
@@ -164,7 +164,7 @@ async function processJobByType(job: Job, deps: ApiDependencies): Promise<string
 /**
  * This function finds jobs that have been in progress for too long (potentially stuck) and re-queues them to be picked up again.
  */
-async function runTimedOutSweep({ repositories }: ApiDependencies) {
+async function runTimedOutSweep({ repositories }: ServerDependencies) {
   const result = await repositories.jobs.requeueTimedOutJobs(undefined, jobTimeoutMinutes)
   if (result.modifiedCount > 0) {
     logger.warn(`Re-queued ${result.modifiedCount} timed-out jobs`)

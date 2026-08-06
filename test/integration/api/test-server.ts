@@ -9,7 +9,7 @@ import steamGameByIdHandler from '@server/api/steam/games/[id].get'
 import steamGamesBatchHandler from '@server/api/steam/games/batch.get'
 import steamGamesHandler from '@server/api/steam/games/index.get'
 import mostPlayedSteamDeckGamesHandler from '@server/api/steam/most-played-steam-deck-games.get'
-import type { ApiDependencies } from '@server/utils/bootstrap'
+import type { ServerDependencies } from '@server/utils/bootstrap'
 
 
 /**
@@ -19,7 +19,7 @@ import type { ApiDependencies } from '@server/utils/bootstrap'
  * - Session middleware for handling user sessions.
  * @returns An H3 NodeListener that can be used with Supertest for integration testing.
  */
-export const createNuxtTestServer = (dependencies: ApiDependencies) => {
+export const createNuxtTestServer = (dependencies: ServerDependencies) => {
   const router = createRouter()
   router.get('/api/games/:id', gameByIdHandler)
   router.post('/api/games/:id/summary-vote', gameSummaryVoteHandler)
@@ -45,4 +45,3 @@ export const createNuxtTestServer = (dependencies: ApiDependencies) => {
 
   return toNodeListener(app)
 }
-

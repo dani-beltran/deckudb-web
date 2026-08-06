@@ -1,5 +1,5 @@
 import { ClaudeService } from '../services/claude'
-import type { ApiDependencies } from '../utils/bootstrap'
+import type { ServerDependencies } from '../utils/bootstrap'
 import { getServerConfig } from '../config'
 import type { GameReportBody } from '../models/game-reports.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.model'
@@ -7,7 +7,7 @@ import { SCRAPE_SOURCES } from '../utils/data-mining/scrapes.schema'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 
-export async function generateGameSummary(job: Job, { repositories }: ApiDependencies) {
+export async function generateGameSummary(job: Job, { repositories }: ServerDependencies) {
   const warnings: string[] = []
   const gameId = job.game_id
   const steamApp = await repositories.steamCache.getGameDetails(gameId)

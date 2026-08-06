@@ -9,8 +9,8 @@ import { SteamCacheModel } from '../models/steam-cache.model'
 import { DatabaseClient } from './DatabaseClient'
 import logger from './logger'
 
-export type ApiDependencies = {
-  databaseClient: DatabaseClient,
+export type ServerDependencies = {
+  databaseClient: DatabaseClient
   repositories: {
     gameSources: GameSourcesModel
     gameReports: GameReportsModel
@@ -19,6 +19,13 @@ export type ApiDependencies = {
     jobs: JobsModel
     scrapes: ScrapesModel
     steamCache: SteamCacheModel
+  }
+}
+
+declare module 'h3' {
+  interface H3EventContext {
+    databaseClient: ServerDependencies['databaseClient']
+    repositories: ServerDependencies['repositories']
   }
 }
 
@@ -33,7 +40,7 @@ type BootstrapOptions = {
  */
 export const bootstrapDependencies = async (
   opts: BootstrapOptions = {}
-): Promise<ApiDependencies> => {
+): Promise<ServerDependencies> => {
   const config = getServerConfig()
   const databaseClient = new DatabaseClient({ ...opts, ...config })
   const db = await databaseClient.connect()
@@ -51,9 +58,7 @@ export const bootstrapDependencies = async (
   }
 }
 
-export const createDBIndexes = async ({
-  repositories,
-}: ApiDependencies) => {
+export const createDBIndexes = async ({ repositories }: ServerDependencies) => {
   logger.info('Creating cache indexes...')
   await repositories.steamCache.createCacheIndexes()
   logger.info('Cache indexes created successfully')

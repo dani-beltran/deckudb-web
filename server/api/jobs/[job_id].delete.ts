@@ -1,6 +1,6 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { apiHandler, parseParams, requireJobApiKey, useApiDependencies } from '../../utils/api'
+import { apiHandler, parseParams, requireJobApiKey } from '../../utils/api'
 
 export default defineEventHandler((event) =>
   apiHandler(event, async () => {
@@ -9,7 +9,7 @@ export default defineEventHandler((event) =>
       event.context.params,
       z.object({ job_id: z.uuid({ version: 'v4' }) })
     )
-    const { repositories } = await useApiDependencies()
+    const { repositories } = event.context
     await repositories.jobs.deleteJob(job_id)
   })
 )
