@@ -32,8 +32,8 @@ export class YoutubeMiner implements Miner {
       return { reports: [] }
     }
 
-    const channelName = result.sections[0]?.links?.[0].text || ''
-    const channelUrl = result.sections[0]?.links?.[0].href || ''
+    const channelName = result.sections[0]?.links?.[0]?.text || ''
+    const channelUrl = result.sections[0]?.links?.[0]?.href || ''
     const avatar = result.sections[0]?.images?.[0]?.src || ''
     const postedAt = this.findDate(result)
 

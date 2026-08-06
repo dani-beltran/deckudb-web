@@ -56,8 +56,9 @@ export default class ClaudeService {
 
     const response = await this.makeRequest<ClaudeResponse>('/messages', request)
 
-    if (response.content && response.content.length > 0) {
-      return response.content[0].text
+    const firstContent = response.content?.[0]
+    if (firstContent) {
+      return firstContent.text
     }
 
     throw new Error('No content in Claude response')

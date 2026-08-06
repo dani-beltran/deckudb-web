@@ -51,8 +51,8 @@ export class ProtondbMiner implements Miner {
         title: section.title,
         source: SCRAPE_SOURCES.PROTONDB,
         reporter: {
-          username: section.otherText[0],
-          user_profile_url: section.links[0]?.href,
+          username: section.otherText[0] || 'Anonymous',
+          user_profile_url: section.links[0]?.href || '',
           user_profile_avatar_url: section.images[0]?.src,
         },
         url: section.links[2]?.href || result.url,

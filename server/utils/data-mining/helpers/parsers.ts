@@ -32,7 +32,8 @@ export const parseTdpLimit = (text: string): number | undefined => {
   const tdpRegex =
     /~?(\d+)\s*(w(?![a-z])|\bwatts?\b)|(\bwatts\b|\btdp\b)\s*(?:\blimit\b\s*)?(?:\bof\b|\bto\b|\bat\b|:|\s)\s*~?(\d+)/i
   const tdpMatch = text.match(tdpRegex)
-  return tdpMatch ? parseInt(tdpMatch[1] || tdpMatch[4], 10) : undefined
+  const value = tdpMatch?.[1] ?? tdpMatch?.[4]
+  return value ? parseInt(value, 10) : undefined
 }
 
 /**
@@ -51,7 +52,8 @@ export const parseFrameRate = (text: string): number | undefined => {
   const frameRateRegex =
     /~?(\d+)\s*fps(?![a-z])|\bfps\b\s*(?:\blimit\b\s*)?(?:\bof\b|\bto\b|\bat\b|:|\s)\s*~?(\d+)/i
   const match = text.match(frameRateRegex)
-  return match ? parseInt(match[1] || match[2], 10) : undefined
+  const value = match?.[1] ?? match?.[2]
+  return value ? parseInt(value, 10) : undefined
 }
 
 /**
@@ -71,5 +73,6 @@ export const parseRefreshRate = (text: string): number | undefined => {
   const refreshScreenRegex =
     /~?(\d+)\s*hz(?![a-z])|\bhz\b\s*(?:\blimit\b\s*)?(?:\bof\b|\bto\b|\bat\b|:|\s)\s*~?(\d+)/i
   const match = text.match(refreshScreenRegex)
-  return match ? parseInt(match[1] || match[2], 10) : undefined
+  const value = match?.[1] ?? match?.[2]
+  return value ? parseInt(value, 10) : undefined
 }

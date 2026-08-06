@@ -56,10 +56,10 @@ export class SharedeckMiner implements Miner {
         user_profile_avatar_url: section.images[0]?.src,
       },
       battery_performance: {
-        life_span: items[0].replace(/[\n]/g, '').trim(),
+        life_span: (items[0] || '').replace(/[\n]/g, '').trim(),
         consumption: items[1],
       },
-      steamdeck_hardware: parseSteamdeckHardware(items[4]),
+      steamdeck_hardware: parseSteamdeckHardware(items[4] || ''),
       steamdeck_settings: {
         screen_refresh_rate: this.extractInteger(this.findValue(items, /screen refresh rate/i)),
         tdp_limit: this.extractInteger(this.findValue(items, /tdp limit/i)),
@@ -81,9 +81,13 @@ export class SharedeckMiner implements Miner {
     }
   }
 
-  private extractInteger(value: string): number | undefined {
+  private extractInteger(value: string | undefined): number | undefined {
+    if (!value) {
+      return undefined
+    }
     const match = value.match(/(\d+)/)
-    return match ? parseInt(match[1], 10) : undefined
+    const integer = match?.[1]
+    return integer ? parseInt(integer, 10) : undefined
   }
 
   /**
@@ -99,7 +103,7 @@ export class SharedeckMiner implements Miner {
 
   private findValue(texts: string[], match: RegExp): string {
     for (let i = 0; i < texts.length; i++) {
-      const matchResult = texts[i].match(match)
+      const matchResult = texts[i]?.match(match)
       if (matchResult) {
         return texts[i + 1] || ''
       }
