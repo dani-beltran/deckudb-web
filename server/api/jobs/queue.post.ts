@@ -1,7 +1,7 @@
 import { defineEventHandler, setResponseStatus } from 'h3'
 import z from 'zod'
 import { gameIdSchema } from '../../models/games.schema'
-import { JOB_TYPE } from '../../models/jobs.model'
+import { JOB_TYPE } from '../../models/jobs.schema'
 import { apiHandler, parseBody, requireJobApiKey } from '../../utils/api'
 import { NotFoundError } from '../../utils/errors/NotFoundError'
 

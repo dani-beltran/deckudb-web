@@ -1,6 +1,6 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { JOB_STATUS, JOB_TYPE } from '../../models/jobs.model'
+import { JOB_STATUS, JOB_TYPE } from '../../models/jobs.schema'
 import { apiHandler, parseQuery, requireJobApiKey } from '../../utils/api'
 import { paginationSchema } from '../../utils/pagination'
 
