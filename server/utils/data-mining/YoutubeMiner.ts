@@ -19,7 +19,17 @@ export class YoutubeMiner implements Miner {
       browser: 'chromium',
       headless: true,
       timeout: 30_000,
-      interactionSteps: [{ event: 'click', target: '#expand', wait: 1000 }],
+      plugin: async (page) => {
+        const consent = page.locator('ytd-consent-bump-v2-lightbox');
+        await consent.waitFor({ state: 'visible' });
+        const rejectBtn = consent.getByRole('button').nth(1);
+        await rejectBtn.click();
+        const expandButton = page.locator('#expand');
+        await expandButton.waitFor({ state: 'visible' });
+        await page.click('#expand');
+        const description = page.locator('#expanded');
+        await description.waitFor({ state: 'visible' });
+      }
     })
   }
 
