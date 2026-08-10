@@ -1,4 +1,5 @@
 import type { NitroApp } from 'nitropack'
+import { defineNitroPlugin } from 'nitropack/runtime'
 import { bootstrapDependencies, createDBIndexes } from '../utils/bootstrap'
 import logger from '../utils/logger'
 
