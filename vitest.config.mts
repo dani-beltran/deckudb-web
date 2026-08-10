@@ -19,8 +19,8 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
-          include: ['server/**/*.test.ts'],
-          exclude: ['server/api/**/*.test.ts'],
+          include: ['test/**/*.test.ts'],
+          exclude: ['test/integration/**/*.test.ts', 'test/e2e/**/*.test.ts'],
         },        
       },
       {
