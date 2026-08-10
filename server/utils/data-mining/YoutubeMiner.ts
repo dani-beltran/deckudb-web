@@ -20,11 +20,13 @@ export class YoutubeMiner implements Miner {
       headless: true,
       timeout: 30_000,
       plugin: async (page) => {
+        // Handle YouTube consent popup if it appears
         const consent = page.locator('ytd-consent-bump-v2-lightbox');
         const rejectBtn = consent.getByRole('button').nth(1);
         if (await rejectBtn.isVisible({ timeout: 2_000 })) {
           await rejectBtn.click();
         }
+        // Expand the video description to ensure all content can be scraped
         const expandButton = page.locator('#primary #expand');
         await expandButton.waitFor({ state: 'visible' });
         await expandButton.click();
