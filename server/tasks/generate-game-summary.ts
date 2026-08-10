@@ -1,3 +1,4 @@
+import { defineTask } from 'nitropack/runtime'
 import { getServerConfig } from '../config'
 import type { GameReportBody } from '../models/game-reports.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.schema'

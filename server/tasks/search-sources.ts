@@ -1,3 +1,4 @@
+import { defineTask } from 'nitropack/runtime'
 import { getServerConfig } from '../config'
 import { getSourceFromUrl } from '../models/game-sources.model'
 import { type GameSourceCreate, SCRAPE_SOURCES } from '../models/game-sources.schema'

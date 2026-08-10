@@ -16,6 +16,9 @@ export default defineNuxtConfig({
       include: ['../test/**/*'],
     },
   },
+  imports: {
+    autoImport: false,
+  },
   app: {
     head: {
       htmlAttrs: { lang: 'en' },

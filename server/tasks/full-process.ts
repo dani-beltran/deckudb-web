@@ -1,3 +1,4 @@
+import { defineTask } from 'nitropack/runtime'
 import { JOB_TYPE } from '../models/jobs.schema'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'

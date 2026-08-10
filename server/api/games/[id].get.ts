@@ -4,7 +4,7 @@ import { JOB_TYPE } from '@server/models/jobs.schema'
 import { apiHandler, parseParams } from '@server/utils/api'
 import { ConflictError } from '@server/utils/errors/ConflictError'
 import logger from '@server/utils/logger'
-import { defineEventHandler, type H3Event } from 'h3'
+import { defineEventHandler, type EventHandlerRequest, type H3Event } from 'h3'
 import z from 'zod'
 
 export default defineEventHandler((event) =>
@@ -34,7 +34,7 @@ export default defineEventHandler((event) =>
 const queueGameScrape = async (
   gameId: number,
   gameName: string,
-  event: H3Event<globalThis.EventHandlerRequest>
+  event: H3Event<EventHandlerRequest>
 ) => {
   try {
     await event.context.repositories.jobs.queueJob({
@@ -47,10 +47,7 @@ const queueGameScrape = async (
   }
 }
 
-const isGameScrapeRequired = async (
-  gameId: number,
-  event: H3Event<globalThis.EventHandlerRequest>
-) => {
+const isGameScrapeRequired = async (gameId: number, event: H3Event<EventHandlerRequest>) => {
   const { repositories } = event.context
   const daysBetweenScrapes = getServerConfig().daysBetweenScrapes
   const olderThan = new Date(Date.now() - daysBetweenScrapes * 24 * 60 * 60 * 1000)

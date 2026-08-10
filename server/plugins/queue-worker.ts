@@ -1,4 +1,5 @@
 import type { NitroApp } from 'nitropack'
+import { defineNitroPlugin } from 'nitropack/runtime'
 import { sleep, withTimeout } from '../../shared/async'
 import { getTimeBetweenDates } from '../../shared/time'
 import { getServerConfig } from '../config'

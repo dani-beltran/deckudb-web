@@ -1,3 +1,4 @@
+import { defineTask } from 'nitropack/runtime'
 import { flatMapAsync } from '../../shared/async'
 import { getFaviconUrl, getWebsiteApproximatePublishedDate } from '../../shared/web'
 import type { GameReportBody } from '../models/game-reports.schema'
