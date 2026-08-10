@@ -21,13 +21,14 @@ export class YoutubeMiner implements Miner {
       timeout: 30_000,
       plugin: async (page) => {
         const consent = page.locator('ytd-consent-bump-v2-lightbox');
-        await consent.waitFor({ state: 'visible' });
         const rejectBtn = consent.getByRole('button').nth(1);
-        await rejectBtn.click();
-        const expandButton = page.locator('#expand');
+        if (await rejectBtn.isVisible({ timeout: 2_000 })) {
+          await rejectBtn.click();
+        }
+        const expandButton = page.locator('#primary #expand');
         await expandButton.waitFor({ state: 'visible' });
-        await page.click('#expand');
-        const description = page.locator('#expanded');
+        await expandButton.click();
+        const description = page.locator('#primary #expanded');
         await description.waitFor({ state: 'visible' });
       }
     })
