@@ -52,9 +52,15 @@ export default defineNuxtConfig({
           id: 'Cookiebot',
           src: 'https://consent.cookiebot.com/uc.js',
           'data-cbid': '682f333a-218a-4fbd-9668-8586a8031083',
-          'data-blockingmode': 'auto',
+          type: 'text/javascript',
+          async: true,
         },
-        { async: true, src: 'https://www.googletagmanager.com/gtag/js?id=G-DRQ2PH2JHN' },
+        {
+          src: 'https://www.googletagmanager.com/gtag/js?id=G-DRQ2PH2JHN',
+          type: 'text/plain',
+          'data-cookieconsent': 'statistics',
+          async: true,
+        },
       ],
     },
   },
@@ -63,23 +69,10 @@ export default defineNuxtConfig({
     experimental: {
       tasks: true,
     },
-    storage: {
-      mongo: {
-        driver: 'mongodb',
-        connectionString: process.env.MONGODB_URI || process.env.NUXT_MONGODB_URI,
-        databaseName: process.env.MONGODB_DATABASE || process.env.NUXT_MONGODB_DATABASE,
-        collectionName: 'sessions',
-      },
-    },
   },
   vite: {
     optimizeDeps: {
-      include: [
-        '@vue/devtools-core',
-        '@vue/devtools-kit',
-        'lucide-vue-next',
-        'hls.js',
-      ]
-    }
-  }
+      include: ['@vue/devtools-core', '@vue/devtools-kit', 'lucide-vue-next', 'hls.js'],
+    },
+  },
 })
