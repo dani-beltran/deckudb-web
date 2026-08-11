@@ -146,7 +146,34 @@ For production, run the generated Nitro entry point after building:
 node .output/server/index.mjs
 ```
 
+### Docker
+
+Copy and fill in the application environment before starting the stack:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Compose starts the application and MongoDB on the shared `decku` network. Compose overrides the local
+development database settings with:
+
+```dotenv
+NUXT_MONGODB_URI=mongodb://mongodb:27017/deckudb
+NUXT_MONGODB_DATABASE=deckudb
+```
+
+The `mongodb` hostname is the MongoDB service name resolved by Docker's internal DNS. MongoDB's
+port does not need to be published to the host for the application to reach it. Database data is
+kept in the named `mongodb-data` volume, and Compose waits for MongoDB's health check before
+starting the application.
+
+The application is available at [http://localhost:3000](http://localhost:3000). Stop the stack
+with `docker compose down`; this preserves the MongoDB volume. The application image runs as a
+non-root user and includes Chromium for the background scraping worker. Pushing a semantic version
+tag such as `v1.2.3` publishes the image to `ghcr.io/<owner>/<repository>` with `1.2.3`, `1.2`, `1`,
+and `latest` tags.
+
 ## Disclaimer
 
 Community recommendations may not suit every system configuration. Use them at your own discretion.
-

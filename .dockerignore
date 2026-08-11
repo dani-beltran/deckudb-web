@@ -1,0 +1,44 @@
+# CI/CD files
+.github
+
+# Build output
+.nuxt
+.output
+node_modules
+
+# Environment files
+.env
+.env.*
+
+# Logs and coverage
+coverage
+logs
+*.log
+npm-debug.log*
+
+# Git 
+.gitignore
+.git
+
+# Tests and quality tooling
+test
+vitest.config.mts
+biome.json
+.nuxtrc
+
+# Local orchestration
+compose.yaml
+
+# IDE files
+.vscode
+
+# OS generated files
+.DS_Store
+.idea
+
+# Prevent copying Docker metadata into the build stage
+Dockerfile
+.dockerignore
+
+# Others
+todo.md
