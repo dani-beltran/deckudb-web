@@ -3,8 +3,8 @@
 </template>
 
 <script setup lang="ts">
-import Home from '../views/Home.vue'
 import { definePageMeta } from '#imports'
+import Home from '../views/Home.vue'
 
 definePageMeta({ name: 'Home' })
 </script>

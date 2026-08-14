@@ -3,8 +3,8 @@
 </template>
 
 <script setup lang="ts">
-import SearchResults from '../views/SearchResults.vue'
 import { definePageMeta } from '#imports'
+import SearchResults from '../views/SearchResults.vue'
 
 definePageMeta({ name: 'SearchResults' })
 </script>

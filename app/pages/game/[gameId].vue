@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta, useRoute } from '#imports';
+import { definePageMeta, useRoute } from '#imports'
 import GamePage from '../../views/GamePage.vue'
 
 definePageMeta({ name: 'Game' })
