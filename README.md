@@ -132,8 +132,6 @@ At startup, `server/plugins/bootstrap.ts` connects to MongoDB, constructs the re
 npm run dev          # Start the development server
 npm run typecheck    # Run Nuxt/Vue TypeScript checks
 npm run lint         # Lint source files with Biome
-npm run format       # Check source formatting with Biome
-npm run check        # Run all Biome checks
 npm test             # Run the Vitest projects
 npm run build        # Create a production build
 npm run generate     # Generate a static build
