@@ -13,7 +13,10 @@ export function getEnvConfig(): Record<string, string | undefined> {
   const config: Record<string, string | undefined> = {}
 
   for (const key of configKeys) {
-    config[key] = process.env[`${camelCaseToSnakeCase(key).toUpperCase()}`]
+    const envVarName = camelCaseToSnakeCase(key).toUpperCase()
+    // Nuxt prefixed environment variables take precedence over unprefixed ones.
+    // This is the same behavior as Nuxt's useRuntimeConfig.
+    config[key] = process.env[`NUXT_${envVarName}`] ?? process.env[envVarName]
   }
 
   return config

@@ -20,6 +20,10 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
+          env: {
+            NUXT_NODE_ENV: 'test',
+          },
+          setupFiles: ['test/server.setup.ts'],
           include: ['test/**/*.test.ts'],
           exclude: ['test/integration/**/*.test.ts', 'test/e2e/**/*.test.ts'],
         },        
@@ -32,8 +36,8 @@ export default defineConfig({
           name: 'api',
           environment: 'node',
           env: {
-            MONGODB_DATABASE: 'deckudb-api',
             NUXT_MONGODB_DATABASE: 'deckudb-api',
+            NUXT_NODE_ENV: 'test',
           },
           include: ['test/integration/api/**/*.test.ts'],
           setupFiles: ['test/server.setup.ts'],
@@ -44,7 +48,6 @@ export default defineConfig({
           name: 'e2e',
           environment: 'nuxt',
           env: {
-            MONGODB_DATABASE: 'deckudb-e2e',
             NUXT_MONGODB_DATABASE: 'deckudb-e2e',
             NUXT_NODE_ENV: 'test',
           },
