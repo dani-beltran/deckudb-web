@@ -32,6 +32,7 @@ jobs:
     name: Quality
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: ci/cd
 
     steps:
       - name: Check out repository
@@ -64,6 +65,7 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    environment: ci/cd
 
     steps:
       - name: Check out repository
@@ -106,6 +108,7 @@ jobs:
       - tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: ci/cd
     permissions:
       contents: read
       packages: write
