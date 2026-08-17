@@ -46,6 +46,7 @@ export default defineConfig({
           env: {
             MONGODB_DATABASE: 'deckudb-e2e',
             NUXT_MONGODB_DATABASE: 'deckudb-e2e',
+            NUXT_NODE_ENV: 'test',
           },
           include: ['test/e2e/**/*.test.ts'],
         },
