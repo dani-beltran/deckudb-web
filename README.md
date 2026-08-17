@@ -128,6 +128,38 @@ test/                 Unit, API integration, and Nuxt end-to-end tests
 
 At startup, `server/plugins/bootstrap.ts` connects to MongoDB, constructs the repositories, verifies their indexes, and exposes them through each request's event context.
 
+## Frontend component structure
+
+The browser application is organized in layers, with page-specific composition at the top and small reusable components at the bottom:
+
+```text
+app/App.vue                 Global application shell
+app/pages/                  Nuxt route entry points
+app/views/                  Page-level layouts and data orchestration
+app/components/ui/          DeckuDB feature and domain components
+app/components/common/      Reusable composed widgets
+app/components/base/        Small, generic UI primitives
+app/components/icons/       Standalone icon components
+```
+
+- `App.vue` owns the shared page frame, including the main content container, dark-mode initialization, scroll-to-top control, and footer. Nuxt renders the active route inside its `<NuxtPage />` element.
+- `pages/` maps URLs to Vue components. These files stay intentionally small: they define route metadata, read route parameters when necessary, and render the matching component from `views/`.
+- `views/` represents complete screens. A view assembles feature components and owns page-level concerns such as loading data, handling errors, and coordinating state. For example, `GamePage.vue` loads a game and composes its navigation, description, reports, processing state, and AI summary.
+- `components/ui/` contains components tied to DeckuDB features or game data, such as `GameSearch`, `PopularGames`, `GameReportsSection`, and `GameDescription`. These components may call browser services or stores and may compose other UI, common, and base components.
+- `components/common/` contains reusable widgets that combine behavior and presentation but are not tied to one screen, such as `SearchBar`, `Carousel`, `AskAICard`, and `SourceBadge`.
+- `components/base/` contains the lowest-level, domain-independent building blocks, such as `Button`, `Card`, `Spinner`, and `Tooltip`. Keep these components small and avoid coupling them to application services or game-specific data.
+- `components/icons/` contains reusable SVG-based brand and source icons.
+
+Dependencies should generally flow downward through these layers:
+
+```text
+App -> pages -> views -> ui -> common -> base
+                                  |
+                                icons
+```
+
+Components do not have to use every intermediate layer: views can use common or base components directly, and UI or common components can render icons. Shared browser behavior lives next to the component tree in `composables/`, state containers in `stores/`, API and analytics integrations in `services/`, and framework-independent helpers in `utils/`.
+
 ## Logging
 
 Server and worker logs are written to the console and to rotating files under `logs/`:
