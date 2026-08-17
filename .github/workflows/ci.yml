@@ -2,12 +2,14 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*.*.*'
       - '[0-9]*.[0-9]*.[0-9]*'
-  pull_request: # Triggers the workflow on any pull request
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 8 * * *' # Runs every day at 8 AM UTC
   workflow_dispatch: # Enables manual triggering of the workflow from the Actions tab
 
 concurrency:
