@@ -10,6 +10,8 @@ const booleanFromRuntimeConfig = z
 export const configSchema = z.object({
   // Runtime environment
   nodeEnv: z.string().trim().min(1),
+  // Port to listen on for HTTP requests
+  port: positiveInteger,
   // Domain hosting the app
   webHost: z.url(),
   // Domain hosting the dashboard
