@@ -31,6 +31,7 @@ declare module 'h3' {
 
 type BootstrapOptions = {
   dbConnectionName?: string
+  mongodbDatabase?: string
 }
 
 export interface Repository {
@@ -46,7 +47,11 @@ export const bootstrapDependencies = async (
   opts: BootstrapOptions = {}
 ): Promise<ServerDependencies> => {
   const config = getServerConfig()
-  const databaseClient = new DatabaseClient({ ...opts, ...config })
+  const databaseClient = new DatabaseClient({
+    ...config,
+    connectionName: opts.dbConnectionName,
+    mongodbDatabase: opts.mongodbDatabase ?? config.mongodbDatabase,
+  })
   const db = await databaseClient.connect()
   return {
     databaseClient,

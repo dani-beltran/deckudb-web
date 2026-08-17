@@ -40,7 +40,10 @@ describe('games API', () => {
   let dependencies: ServerDependencies
 
   beforeAll(async () => {
-    dependencies = await bootstrapDependencies({ dbConnectionName: 'test-games-api' })
+    dependencies = await bootstrapDependencies({
+      dbConnectionName: 'test-games-api',
+      mongodbDatabase: 'deckudb-api-games',
+    })
     testServer = createNuxtTestServer(dependencies)
   })
 

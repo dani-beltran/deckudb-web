@@ -11,6 +11,7 @@ export default defineConfig({
     alias: serverAlias,
   },
   test: {
+    globalSetup: ['test/mongodb.global-setup.ts'],
     projects: [
       {
         resolve: {
@@ -30,6 +31,10 @@ export default defineConfig({
         test: {
           name: 'api',
           environment: 'node',
+          env: {
+            MONGODB_DATABASE: 'deckudb-api',
+            NUXT_MONGODB_DATABASE: 'deckudb-api',
+          },
           include: ['test/integration/api/**/*.test.ts'],
           setupFiles: ['test/server.setup.ts'],
         },        
@@ -38,7 +43,11 @@ export default defineConfig({
         test: {
           name: 'e2e',
           environment: 'nuxt',
-          include: ['test/e2e/**/*.test.ts'],          
+          env: {
+            MONGODB_DATABASE: 'deckudb-e2e',
+            NUXT_MONGODB_DATABASE: 'deckudb-e2e',
+          },
+          include: ['test/e2e/**/*.test.ts'],
         },
       }),
     ],

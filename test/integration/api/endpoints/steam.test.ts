@@ -11,7 +11,10 @@ describe('Steam API', () => {
   let dependencies: ServerDependencies
 
   beforeAll(async () => {
-    dependencies = await bootstrapDependencies({ dbConnectionName: 'test-steam-api' })
+    dependencies = await bootstrapDependencies({
+      dbConnectionName: 'test-steam-api',
+      mongodbDatabase: 'deckudb-api-steam',
+    })
     testServer = createNuxtTestServer(dependencies)
   })
 

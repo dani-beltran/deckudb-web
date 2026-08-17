@@ -146,12 +146,14 @@ The test suite is configured in `vitest.config.mts` as three named Vitest projec
 | Project | Location | How it works |
 | --- | --- | --- |
 | `unit` | `test/unit/**/*.test.ts` | Runs in Node and tests services and utilities in isolation. Tests mock dependencies such as `fetch` as needed. |
-| `api` | `test/integration/api/**/*.test.ts` | Runs the real H3 route handlers and middleware through Supertest. `test/server.setup.ts` supplies an in-memory session store, a temporary MongoDB instance, and mocks for external services like Steam, Firecrawl, and Claude. |
-| `e2e` | `test/e2e/**/*.test.ts` | Uses the Nuxt Test Utils environment, which builds and starts the full Nuxt application for requests and Playwright-based browser tests. The app connects to the MongoDB configured in `.env.test`. |
+| `api` | `test/integration/api/**/*.test.ts` | Runs the real H3 route handlers, middleware, repositories, and database client through Supertest. `test/server.setup.ts` supplies an in-memory session store and mocks external services like Steam, Firecrawl, and Claude. |
+| `e2e` | `test/e2e/**/*.test.ts` | Uses the Nuxt Test Utils environment, which builds and starts the full Nuxt application for requests and Playwright-based browser tests. |
 
-Vitest runs in `test` mode and loads the placeholder configuration from `.env.test`. Unit and API projects do not need working third-party API keys. The API project also does not need a local database: it uses `mongodb-memory-server` and mocks the external services. On its first run, `mongodb-memory-server` may need to download a MongoDB binary.
+Vitest runs in `test` mode and loads the placeholder configuration from `.env.test`. Unit and API projects do not need working third-party API keys. The root `test/mongodb.global-setup.ts` starts one `mongodb-memory-server` process for the API and e2e projects, passes its URI to both, and stops it after the suite. A local MongoDB installation is therefore not required, although the first run may need to download a MongoDB binary.
 
-The e2e project starts the actual Nuxt/Nitro application, so MongoDB must be available at the test URI before running it or the complete suite. Its external integrations are not replaced by `test/server.setup.ts`; mock them in an e2e test before exercising code that calls them. Install Playwright explicitly with `npm exec -- playwright install chromium` before running browser-based tests.
+Vitest runs test files and projects in parallel. Tests that write to MongoDB must use a separate database when another concurrently running test can write to or clear the database. Sharing a database is unsafe when cleanup calls such as `flushDB()` delete all collections, because one test can erase another test's fixtures.
+
+The e2e project starts the actual Nuxt/Nitro application. Its external integrations are not replaced by `test/server.setup.ts`; mock them in an e2e test before exercising code that calls them. Install Playwright explicitly with `npm exec -- playwright install chromium` before running browser-based tests.
 
 Run the complete suite with:
 
@@ -168,7 +170,7 @@ npx vitest run --project e2e
 npx vitest run test/integration/api/endpoints/game.test.ts
 ```
 
-Use `npx vitest` instead of `npx vitest run` for watch mode. Add new `*.test.ts` files under the matching `test/unit`, `test/integration/api`, or `test/e2e` directory so Vitest assigns them to the intended project. API integration tests should create the in-process server with `createNuxtTestServer`, seed data through the bootstrapped repositories, and clear the temporary database between tests.
+Use `npx vitest` instead of `npx vitest run` for watch mode. Add new `*.test.ts` files under the matching `test/unit`, `test/integration/api`, or `test/e2e` directory so Vitest assigns them to the intended project. API integration tests should create the in-process server with `createNuxtTestServer`, bootstrap a uniquely named database, seed data through its repositories, and clear that database between tests.
 
 ## Development commands
 
