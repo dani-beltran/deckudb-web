@@ -23,7 +23,6 @@ export default defineConfig({
           env: {
             NUXT_NODE_ENV: 'test',
           },
-          setupFiles: ['test/server.setup.ts'],
           include: ['test/**/*.test.ts'],
           exclude: ['test/integration/**/*.test.ts', 'test/e2e/**/*.test.ts'],
         },        
