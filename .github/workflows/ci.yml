@@ -151,3 +151,17 @@ jobs:
           cache-to: type=gha,mode=max,scope=production-image
           provenance: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
           sbom: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+
+      - name: Trigger cloud deployment
+        if: github.event_name == 'push' && github.ref_type == 'tag' && github.event.created == true
+        env:
+          DEPLOYMENT_WEBHOOK_URL: ${{ secrets.DEPLOYMENT_WEBHOOK_URL }}
+        run: |
+          if [[ -z "$DEPLOYMENT_WEBHOOK_URL" ]]; then
+            echo '::error::The DEPLOYMENT_WEBHOOK_URL secret is not configured.'
+            exit 1
+          fi
+
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --url "$DEPLOYMENT_WEBHOOK_URL"
