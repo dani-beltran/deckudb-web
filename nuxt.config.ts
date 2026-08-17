@@ -1,12 +1,13 @@
 import { fileURLToPath } from 'node:url'
 import { getEnvConfig } from './server/config/env'
+import { defineNuxtConfig } from 'nuxt/config'
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-30',
   devtools: { enabled: true },
   srcDir: 'app/',
   ssr: false,
-  css: ['~/styles/global.css'],
+  css: ['normalize.css', '~/styles/global.css'],
   alias: {
     '@server': fileURLToPath(new URL('./server', import.meta.url)),
     '@assets': fileURLToPath(new URL('./app/assets', import.meta.url)),
