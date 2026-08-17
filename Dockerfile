@@ -44,7 +44,9 @@ ENV NODE_ENV=production \
 RUN --mount=type=cache,target=/root/.npm \
     apt-get update \
     && apt-get install --yes --no-install-recommends dumb-init \
-    && npx --yes playwright@${PLAYWRIGHT_VERSION} install --with-deps chromium \
+    && npm install --global playwright@${PLAYWRIGHT_VERSION} \
+    && playwright install --with-deps chromium \
+    && npm uninstall --global playwright \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
