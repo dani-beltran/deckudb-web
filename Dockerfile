@@ -36,7 +36,7 @@ ARG PLAYWRIGHT_VERSION=1.62.0
 
 ENV NODE_ENV=production \
     NITRO_HOST=0.0.0.0 \
-    NITRO_PORT=3000 \
+    NITRO_PORT=8080 \
     PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # The worker uses Playwright for source scraping. Keep its browser version in
@@ -57,7 +57,7 @@ COPY --from=build --chown=node:node /app/.output ./.output
 
 USER node
 
-EXPOSE 3000
+EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD ["node", "-e", "fetch('http://127.0.0.1:3000/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
