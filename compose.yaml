@@ -1,0 +1,35 @@
+services:
+  mongodb:
+    image: mongo:8
+    restart: unless-stopped
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - decku
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NUXT_MONGODB_URI: mongodb://mongodb:27017/deckudb
+      NUXT_MONGODB_DATABASE: deckudb
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - decku
+
+networks:
+  decku:
+
+volumes:
+  mongodb-data:

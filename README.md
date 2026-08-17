@@ -1,91 +1,223 @@
-# Steam Deck Settings Database
+# DeckuDB
 
-A comprehensive web application that allows users to query a database with collected information about optimal game settings for Steam Deck hardware.
+DeckuDB is a full-stack Nuxt application that collects community reports about how games run on Steam Deck. It combines Steam metadata with community reports from ProtonDB, ShareDeck, YouTube, and other web sources, then uses Claude to turn those sources into performance summaries.
 
-## 🎮 Features
+The browser app, API, database bootstrap, and the job worker all live in this repository and are served from one Nuxt/Nitro process.
 
-- **Game Search**: Search for Steam games by name with real-time results
-- **Community Game Reports**: Access a curated database of community-reported optimal settings for thousands of games
-- **AI-Generated Summaries**: Get concise summaries of game performance and settings recommendations
-- **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
-- **Accessibility**: Full WCAG compliance with keyboard navigation and screen reader support
+## Features
 
-## 🚀 Live Demo
+- Search the Steam catalog and browse the most-played Steam Deck games.
+- View community-reported graphics settings, performance, compatibility, and source links.
+- Generate concise AI summaries from collected reports.
+- Vote on the usefulness of a game summary with an anonymous session.
 
-Visit the live application: [DeckuDB](https://deckudb.com)
+## Tech stack
 
-## 🛠 Technical Stack
+- Nuxt 4, Vue 3, and Vue Router
+- Nitro file-based API routes
+- MongoDB with repository-style data models
+- Anthropic Claude, Firecrawl, and Steam integrations
+- Vitest, Nuxt Test Utils, and Playwright
+- Biome for linting and formatting
 
-- **Frontend**: Vue.js 3
-- **Routing**: Vue Router 4
-- **Build Tool**: Vite
-- **Icons**: Lucide Vue Next
-- **HTTP Client**: Axios
-- **Styling**: CSS3 with CSS Grid and Flexbox
-- **API Integration**: Steam Web API and custom backend services
+Nuxt is currently configured as a client-rendered application (`ssr: false`). The frontend calls the same-origin API under `/api`.
 
-## 📱 Application Structure
+## Getting started
 
-### Routes
-- `/` - Home page with game search functionality
-- `/game/:gameId` - Individual game page
-- `/search` - Search results page
+### Requirements
 
-## 🏗 Development
+- Node.js 20 or newer
+- npm 11.10 or newer
+- A running MongoDB instance
+- Claude and Firecrawl API keys for the data-processing pipeline
 
-### Prerequisites
-- Node.js 16+ 
-- npm or yarn
+### Setup
 
-### Installation
-Download the repository and install dependencies:
 ```bash
+cp .env.example .env
 npm install
-```
-
-### Development Server
-```bash
+npm exec -- nuxt prepare
+npm exec -- playwright install chromium
 npm run dev
 ```
 
-Optionally, you can run the development server available in your local network (useful for testing on devices):
-```bash
-npm run dev -- --host
+Fill in the copied `.env` before starting the server. For local development, also set:
+
+```dotenv
+NUXT_WORKER_ENABLED=true
 ```
 
-### Build for Production
-```bash
-npm run build
+This will enable the background job worker in the same process as the web/API server. This worker is responsible for scraping sources, generating reports, and creating summaries.
+Set it to `false` when the web/API process should accept and queue work without processing jobs itself.
+
+The application is available at [http://localhost:3000](http://localhost:3000). The API uses the same process and origin, so no separate API server is required.
+
+> npm lifecycle scripts are disabled by `.npmrc`, so Nuxt preparation and the Playwright browser installation must be run explicitly as shown above.
+
+## Configuration
+
+Server configuration is validated at startup. Nuxt runtime overrides use the `NUXT_`-prefixed variables in `.env.example`.
+
+| Area | Variables |
+| --- | --- |
+| Database | `NUXT_MONGODB_URI`, `NUXT_MONGODB_DATABASE` |
+| AI and scraping | `NUXT_CLAUDE_API_KEY`, `NUXT_CLAUDE_AI_MODEL`, `NUXT_FIRECRAWL_API_KEY`, `NUXT_DAYS_BETWEEN_SCRAPES` |
+| Sessions and hosts | `NUXT_SESSION_SECRET`, `NUXT_SESSION_MAX_AGE_MS`, `NUXT_WEB_HOST`, `NUXT_DASHBOARD_HOST` |
+| Protected job API | `NUXT_JOB_API_KEY` |
+| Job execution | `NUXT_JOB_TIMEOUT_MINUTES`, `NUXT_JOB_MAX_ATTEMPTS`, `NUXT_WORKER_ENABLED` |
+| Worker polling | `NUXT_WORKER_POLL_INTERVAL_MS`, `NUXT_WORKER_POLL_JITTER_MS`, `NUXT_WORKER_REQUEUE_SWEEP_MS`, `NUXT_WORKER_IDLE_LOG_EVERY` |
+
+Keep all API keys and the session secret out of version control.
+
+## Application routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Home page and popular games |
+| `/search?q=...` | Steam catalog search |
+| `/game/:gameId` | Game reports, settings, and summary |
+
+Unknown routes render the application's not-found view.
+
+## API
+
+Nitro maps files in `server/api` directly to `/api` endpoints.
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/health` | Health check |
+| `GET` | `/api/games/:id` | Return a game and its reports; queue stale or missing data |
+| `POST` | `/api/games/:id/summary-vote` | Record an anonymous `up` or `down` summary vote |
+| `GET` | `/api/steam/games?term=...&limit=...` | Search Steam games |
+| `GET` | `/api/steam/games/:id` | Fetch one Steam app |
+| `GET` | `/api/steam/games/batch?ids=...` | Fetch multiple Steam apps |
+| `GET` | `/api/steam/most-played-steam-deck-games` | Return a paginated popular-games list |
+| `GET` | `/api/jobs` | List and filter jobs |
+| `POST` | `/api/jobs/queue` | Queue a processing job |
+| `DELETE` | `/api/jobs/:job_id` | Delete a job |
+
+The job endpoints require the configured job API key in the `X-API-Key` request header. Job types are `search`, `scrape`, `reports`, `summary`, and `full`.
+
+## Background processing
+
+The queue worker is a Nitro plugin in `server/plugins/queue-worker.ts`. When `NUXT_WORKER_ENABLED=true`, it starts with the server, uses its own MongoDB connection, processes queued jobs, retries failures up to the configured limit, and requeues timed-out work. It stops gracefully with the Nitro process.
+
+A `full` job runs the pipeline in this order:
+
+1. Discover report sources.
+2. Scrape source content.
+3. Generate structured game reports.
+4. Generate the game summary.
+
+## Project structure
+
+```text
+app/                 Vue pages, views, components, stores, and browser services
+public/              Static site assets and metadata
+server/api/          Nitro API route handlers
+server/config/       Runtime configuration schema and validation
+server/middleware/   CORS and anonymous-session middleware
+server/models/       MongoDB repositories and schemas
+server/plugins/      Database bootstrap and queue worker lifecycle
+server/services/     Claude, Firecrawl, and Steam clients
+server/tasks/        Background processing pipeline
+server/utils/        Database, mining, logging, and API utilities
+shared/              Utilities shared by browser and server code
+test/                 Unit, API integration, and Nuxt end-to-end tests
 ```
 
-### Preview Production Build
+At startup, `server/plugins/bootstrap.ts` connects to MongoDB, constructs the repositories, verifies their indexes, and exposes them through each request's event context.
+
+## Logging
+
+Server and worker logs are written to the console and to rotating files under `logs/`:
+
+- `logs/combined-YYYY-MM-DD.log` contains every message enabled for the current environment.
+- `logs/error-YYYY-MM-DD.log` contains only error messages.
+
+Development enables `debug` and higher-priority messages; other non-test environments enable `info`, `warn`, and `error` messages. Logging is silenced when the application runs in the test environment.
+
+Each log file rotates daily or when it reaches 20 MB. Archives are compressed and retained for 14 days. The `logs/` directory and `*.log` files are ignored by Git, so local log output is not committed to the repository.
+
+## Testing
+
+The test suite is configured in `vitest.config.mts` as three named Vitest projects:
+
+| Project | Location | How it works |
+| --- | --- | --- |
+| `unit` | `test/unit/**/*.test.ts` | Runs in Node and tests services and utilities in isolation. Tests mock dependencies such as `fetch` as needed. |
+| `api` | `test/integration/api/**/*.test.ts` | Runs the real H3 route handlers, middleware, repositories, and database client through Supertest. `test/server.setup.ts` supplies an in-memory session store and mocks external services like Steam, Firecrawl, and Claude. |
+| `e2e` | `test/e2e/**/*.test.ts` | Uses the Nuxt Test Utils environment, which builds and starts the full Nuxt application for requests and Playwright-based browser tests. |
+
+Vitest runs in `test` mode and loads the placeholder configuration from `.env.test`. Unit and API projects do not need working third-party API keys. The root `test/mongodb.global-setup.ts` starts one `mongodb-memory-server` process for the API and e2e projects, passes its URI to both, and stops it after the suite. A local MongoDB installation is therefore not required, although the first run may need to download a MongoDB binary.
+
+Vitest runs test files and projects in parallel. Tests that write to MongoDB must use a separate database when another concurrently running test can write to or clear the database. Sharing a database is unsafe when cleanup calls such as `flushDB()` delete all collections, because one test can erase another test's fixtures.
+
+The e2e project starts the actual Nuxt/Nitro application. Its external integrations are not replaced by `test/server.setup.ts`; mock them in an e2e test before exercising code that calls them. Install Playwright explicitly with `npm exec -- playwright install chromium` before running browser-based tests.
+
+Run the complete suite with:
+
 ```bash
-npm run preview
+npm test
 ```
 
-## 📊 Data Sources
+Run one project or one test file while developing with:
 
-Game Reports are aggregated from various community sources, including:
-- Community forums and guides, such as Reddit and Steam Community.
-- Dedicated Steam Deck optimization websites, like ProtonDB, Deck Verified, ShareDeck, etc.
-- YouTube tutorials and gameplay analysis
-- Media articles
+```bash
+npx vitest run --project unit
+npx vitest run --project api
+npx vitest run --project e2e
+npx vitest run test/integration/api/endpoints/game.test.ts
+```
 
-> **Disclaimer**: Recommendations are community-sourced and may not be suitable for every system configuration. Users assume all risks when applying settings.
+Use `npx vitest` instead of `npx vitest run` for watch mode. Add new `*.test.ts` files under the matching `test/unit`, `test/integration/api`, or `test/e2e` directory so Vitest assigns them to the intended project. API integration tests should create the in-process server with `createNuxtTestServer`, bootstrap a uniquely named database, seed data through its repositories, and clear that database between tests.
 
-## 🤝 Contributing
+## Development commands
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```bash
+npm run dev          # Start the development server
+npm run typecheck    # Run Nuxt/Vue TypeScript checks
+npm run lint         # Lint source files with Biome
+npm test             # Run the Vitest projects
+npm run build        # Create a production build
+npm run generate     # Generate a static build
+npm run preview      # Preview the production build
+```
 
-## 📄 License
+For production, run the generated Nitro entry point after building:
 
-This project is open source and available under the [MIT License](LICENSE).
+```bash
+node .output/server/index.mjs
+```
 
-## 🎮 Community
+### Docker
 
-Join the conversation and share your experiences:
-- [Discord Server](https://discord.gg/e5q4QqfVQx)
+Copy and fill in the application environment before starting the stack:
 
----
+```bash
+cp .env.example .env
+docker compose up --build
+```
 
-*Built with ❤️ for the Steam Deck gaming community*
+Compose starts the application and MongoDB on the shared `decku` network. Compose overrides the local
+development database settings with:
+
+```dotenv
+NUXT_MONGODB_URI=mongodb://mongodb:27017/deckudb
+NUXT_MONGODB_DATABASE=deckudb
+```
+
+The `mongodb` hostname is the MongoDB service name resolved by Docker's internal DNS. MongoDB's
+port does not need to be published to the host for the application to reach it. Database data is
+kept in the named `mongodb-data` volume, and Compose waits for MongoDB's health check before
+starting the application.
+
+The application is available at [http://localhost:3000](http://localhost:3000). Stop the stack
+with `docker compose down`; this preserves the MongoDB volume. The application image runs as a
+non-root user and includes Chromium for the background scraping worker. Pushing a semantic version
+tag such as `v1.2.3` publishes the image to `ghcr.io/<owner>/<repository>` with `1.2.3`, `1.2`, `1`,
+and `latest` tags.
+
+## Disclaimer
+
+Community recommendations may not suit every system configuration. Use them at your own discretion.
