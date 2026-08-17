@@ -36,6 +36,8 @@ Nuxt is currently configured as a client-rendered application (`ssr: false`). Th
 ```bash
 cp .env.example .env
 npm install
+npm exec -- nuxt prepare
+npm exec -- playwright install chromium
 npm run dev
 ```
 
@@ -50,7 +52,7 @@ Set it to `false` when the web/API process should accept and queue work without 
 
 The application is available at [http://localhost:3000](http://localhost:3000). The API uses the same process and origin, so no separate API server is required.
 
-> `npm install` runs Nuxt preparation and installs the Playwright browser used by the end-to-end tests.
+> npm lifecycle scripts are disabled by `.npmrc`, so Nuxt preparation and the Playwright browser installation must be run explicitly as shown above.
 
 ## Configuration
 
@@ -149,7 +151,7 @@ The test suite is configured in `vitest.config.mts` as three named Vitest projec
 
 Vitest runs in `test` mode and loads the placeholder configuration from `.env.test`. Unit and API projects do not need working third-party API keys. The API project also does not need a local database: it uses `mongodb-memory-server` and mocks the external services. On its first run, `mongodb-memory-server` may need to download a MongoDB binary.
 
-The e2e project starts the actual Nuxt/Nitro application, so MongoDB must be available at the test URI before running it or the complete suite. Its external integrations are not replaced by `test/server.setup.ts`; mock them in an e2e test before exercising code that calls them. Playwright is installed by the `postinstall` script during `npm install`.
+The e2e project starts the actual Nuxt/Nitro application, so MongoDB must be available at the test URI before running it or the complete suite. Its external integrations are not replaced by `test/server.setup.ts`; mock them in an e2e test before exercising code that calls them. Install Playwright explicitly with `npm exec -- playwright install chromium` before running browser-based tests.
 
 Run the complete suite with:
 
