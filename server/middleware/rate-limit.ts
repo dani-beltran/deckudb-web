@@ -1,12 +1,7 @@
 import { createHash } from 'node:crypto'
-import {
-  createError,
-  defineEventHandler,
-  getRequestHeader,
-  getRequestURL,
-  setResponseHeader,
-} from 'h3'
+import { createError, defineEventHandler, getRequestURL, setResponseHeader } from 'h3'
 import { getServerConfig, type ServerConfig } from '../config'
+import { loadSession } from '../utils/session'
 
 type RateLimitConfig = Pick<
   ServerConfig,
@@ -14,7 +9,6 @@ type RateLimitConfig = Pick<
   | 'loginRateLimitWindowMs'
   | 'rateLimitEnabled'
   | 'rateLimitMaxRequests'
-  | 'rateLimitTrustedProxyHops'
   | 'rateLimitWindowMs'
 >
 
@@ -43,31 +37,8 @@ function getPolicy(pathname: string, config: RateLimitConfig): RateLimitPolicy {
   }
 }
 
-function getSocketAddress(event: Parameters<typeof getRequestURL>[0]) {
-  return event.node.req.socket.remoteAddress ?? 'unknown'
-}
-
-/** Returns a client address without trusting spoofable forwarding headers by default. */
-export function getRateLimitClientAddress(
-  event: Parameters<typeof getRequestURL>[0],
-  trustedProxyHops: number
-) {
-  if (trustedProxyHops === 0) return getSocketAddress(event)
-
-  const forwardedAddresses = getRequestHeader(event, 'x-forwarded-for')
-    ?.split(',')
-    .map((address) => address.trim())
-    .filter(Boolean)
-
-  if (!forwardedAddresses || forwardedAddresses.length < trustedProxyHops) {
-    return getSocketAddress(event)
-  }
-
-  return forwardedAddresses[forwardedAddresses.length - trustedProxyHops] ?? getSocketAddress(event)
-}
-
-function getPartitionKey(policyName: string, clientAddress: string) {
-  return createHash('sha256').update(`${policyName}:${clientAddress}`).digest('hex')
+function getPartitionKey(policyName: string, sessionId: string) {
+  return createHash('sha256').update(`${policyName}:${sessionId}`).digest('hex')
 }
 
 function setRateLimitHeaders(
@@ -97,9 +68,11 @@ export function createRateLimitMiddleware(getConfig: () => RateLimitConfig = get
     if (!config.rateLimitEnabled) return
 
     const policy = getPolicy(pathname, config)
-    const clientAddress = getRateLimitClientAddress(event, config.rateLimitTrustedProxyHops)
+    const session = await loadSession(event)
+    if (!session) throw new Error('Session middleware did not initialize an API session')
+
     const result = await event.context.repositories.rateLimits.consume(
-      getPartitionKey(policy.name, clientAddress),
+      getPartitionKey(policy.name, session.id),
       policy
     )
 

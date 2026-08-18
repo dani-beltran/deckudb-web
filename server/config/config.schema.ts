@@ -5,6 +5,13 @@ const nonNegativeInteger = z.coerce.number().int().nonnegative()
 const booleanFromRuntimeConfig = z
   .union([z.boolean(), z.enum(['true', 'false'])])
   .transform((value) => (typeof value === 'boolean' ? value : value === 'true'))
+const defaultedPositiveInteger = (defaultValue: number) =>
+  z.preprocess((value) => (value === '' ? undefined : value), positiveInteger.default(defaultValue))
+const defaultedBoolean = (defaultValue: boolean) =>
+  z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    booleanFromRuntimeConfig.default(defaultValue)
+  )
 
 /** Validated, server-only values declared in Nuxt's runtimeConfig. */
 export const configSchema = z.object({
@@ -27,17 +34,15 @@ export const configSchema = z.object({
   // Session max age in milliseconds
   sessionMaxAgeMs: positiveInteger,
   // Whether API rate limiting is enabled
-  rateLimitEnabled: booleanFromRuntimeConfig.default(true),
-  // Maximum requests per client in the general API sliding window
-  rateLimitMaxRequests: positiveInteger.default(100),
+  rateLimitEnabled: defaultedBoolean(true),
+  // Maximum requests per session in the general API sliding window
+  rateLimitMaxRequests: defaultedPositiveInteger(100),
   // General API sliding-window duration in milliseconds
-  rateLimitWindowMs: positiveInteger.default(60_000),
-  // Number of trusted reverse proxies that append to X-Forwarded-For
-  rateLimitTrustedProxyHops: nonNegativeInteger.max(10).default(0),
-  // Maximum login attempts per client in the stricter login sliding window
-  loginRateLimitMaxRequests: positiveInteger.default(5),
+  rateLimitWindowMs: defaultedPositiveInteger(60_000),
+  // Maximum login attempts per session in the stricter login sliding window
+  loginRateLimitMaxRequests: defaultedPositiveInteger(5),
   // Login sliding-window duration in milliseconds
-  loginRateLimitWindowMs: positiveInteger.default(15 * 60_000),
+  loginRateLimitWindowMs: defaultedPositiveInteger(15 * 60_000),
   // Single-user dashboard credentials (server-only)
   adminUsername: z.string().trim().min(1).max(128),
   adminPassword: z.string().min(12).max(1024),

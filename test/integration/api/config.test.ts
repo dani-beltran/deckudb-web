@@ -24,7 +24,6 @@ describe('getServerConfig', () => {
 
   it.each([
     ['RATE_LIMIT_MAX_REQUESTS', '0', /rateLimitMaxRequests/],
-    ['RATE_LIMIT_TRUSTED_PROXY_HOPS', '11', /rateLimitTrustedProxyHops/],
     ['LOGIN_RATE_LIMIT_WINDOW_MS', '-1', /loginRateLimitWindowMs/],
   ])('rejects invalid rate-limit config in %s', (name, value, expectedError) => {
     vi.stubEnv(name, value)
@@ -32,12 +31,11 @@ describe('getServerConfig', () => {
     expect(() => getServerConfig()).toThrow(expectedError as RegExp)
   })
 
-    it('applies rate-limit defaults when Nitro serializes unset runtime config as empty strings', () => {
+  it('applies rate-limit defaults when Nitro serializes unset runtime config as empty strings', () => {
     for (const name of [
       'RATE_LIMIT_ENABLED',
       'RATE_LIMIT_MAX_REQUESTS',
       'RATE_LIMIT_WINDOW_MS',
-      'RATE_LIMIT_TRUSTED_PROXY_HOPS',
       'LOGIN_RATE_LIMIT_MAX_REQUESTS',
       'LOGIN_RATE_LIMIT_WINDOW_MS',
     ]) {
@@ -48,7 +46,6 @@ describe('getServerConfig', () => {
       rateLimitEnabled: true,
       rateLimitMaxRequests: 100,
       rateLimitWindowMs: 60_000,
-      rateLimitTrustedProxyHops: 0,
       loginRateLimitMaxRequests: 5,
       loginRateLimitWindowMs: 15 * 60_000,
     })
