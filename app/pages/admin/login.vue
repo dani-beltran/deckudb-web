@@ -4,7 +4,7 @@
       <div class="login-heading">
         <span class="login-eyebrow">DeckuDB backoffice</span>
         <h1 id="admin-login-title">Sign in</h1>
-        <p>Use the administrator credentials configured for this deployment.</p>
+        <p>Use the administrator credentials.</p>
       </div>
 
       <div class="form-field">
