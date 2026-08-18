@@ -37,8 +37,6 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.3",
     "@nuxt/test-utils": "3.23.0",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
     "@types/node": "^20.10.6",
     "@types/supertest": "7.2.1",
     "@vue/test-utils": "2.4.11",
