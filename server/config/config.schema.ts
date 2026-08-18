@@ -5,6 +5,17 @@ const nonNegativeInteger = z.coerce.number().int().nonnegative()
 const booleanFromRuntimeConfig = z
   .union([z.boolean(), z.enum(['true', 'false'])])
   .transform((value) => (typeof value === 'boolean' ? value : value === 'true'))
+const defaultedPositiveInteger = (defaultValue: number) =>
+  z.preprocess((value) => (value === '' ? undefined : value), positiveInteger.default(defaultValue))
+const defaultedBoolean = (defaultValue: boolean) =>
+  z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    booleanFromRuntimeConfig.default(defaultValue)
+  )
+const defaultedTrustedProxyHops = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  nonNegativeInteger.max(10).default(0)
+)
 
 /** Validated, server-only values declared in Nuxt's runtimeConfig. */
 export const configSchema = z.object({
@@ -26,6 +37,14 @@ export const configSchema = z.object({
   sessionSecret: z.string().trim().min(10).max(100),
   // Session max age in milliseconds
   sessionMaxAgeMs: positiveInteger,
+  // Whether IP-based admin login rate limiting is enabled
+  loginRateLimitEnabled: defaultedBoolean(true),
+  // Maximum login attempts per IP in the login sliding window
+  loginRateLimitMaxRequests: defaultedPositiveInteger(5),
+  // IP-based login sliding-window duration in milliseconds
+  loginRateLimitWindowMs: defaultedPositiveInteger(15 * 60_000),
+  // Number of trusted reverse proxies that append to X-Forwarded-For for login requests
+  loginRateLimitTrustedProxyHops: defaultedTrustedProxyHops,
   // Single-user dashboard credentials (server-only)
   adminUsername: z.string().trim().min(1).max(128),
   adminPassword: z.string().min(12).max(1024),
