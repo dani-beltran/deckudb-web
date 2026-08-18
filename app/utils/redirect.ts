@@ -1,7 +1,7 @@
-import { useRuntimeConfig } from '#imports'
-
 const DEFAULT_ADMIN_ROUTE = '/admin'
 const ADMIN_PATH_PATTERN = /^\/admin(?:\/|$)/
+// Parser-only base using the reserved .invalid TLD; it is never requested or included in the returned relative URL.
+const REDIRECT_BASE = new URL('http://deckudb.invalid')
 
 /**
  * Sanitizes a redirect URL for the admin panel.
@@ -13,10 +13,8 @@ export function sanitizeAdminRedirect(value: unknown): string {
   }
 
   try {
-    const config = useRuntimeConfig()
-    const base = new URL(config.public.webHost)
-    const redirect = new URL(value, base)
-    if (redirect.origin !== base.origin || !ADMIN_PATH_PATTERN.test(redirect.pathname)) {
+    const redirect = new URL(value, REDIRECT_BASE)
+    if (redirect.origin !== REDIRECT_BASE.origin || !ADMIN_PATH_PATTERN.test(redirect.pathname)) {
       return DEFAULT_ADMIN_ROUTE
     }
     if (redirect.pathname === '/admin/login') return DEFAULT_ADMIN_ROUTE
