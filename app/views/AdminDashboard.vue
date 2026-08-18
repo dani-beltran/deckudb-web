@@ -93,18 +93,13 @@
 <script setup lang="ts">
 import { CircleAlert, LoaderCircle, LogOut, Play, RefreshCw } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { navigateTo } from '#imports'
+import { navigateTo, useNuxtApp } from '#imports'
 import AdminJobTable from '../components/admin/AdminJobTable.vue'
 import AdminRunJobDialog from '../components/admin/AdminRunJobDialog.vue'
-import {
-  deleteJob,
-  fetchAllJobs,
-  getApiErrorMessage,
-  isUnauthorizedError,
-  logoutAdmin,
-} from '../services/admin/api'
-import type { Job, JobStatus } from '../services/admin/types'
+import { getApiErrorMessage, isUnauthorizedError } from '../plugins/api/errorHelpers'
+import type { Job, JobStatus } from '../plugins/api/types'
 
+const { $adminApi } = useNuxtApp()
 const jobs = ref<Job[]>([])
 const loading = ref(true)
 const refreshing = ref(false)
@@ -141,7 +136,7 @@ async function loadJobs() {
   else loading.value = true
 
   try {
-    jobs.value = await fetchAllJobs(controller.signal)
+    jobs.value = await $adminApi.fetchAllJobs(controller.signal)
     loadedOnce.value = true
   } catch (loadFailure) {
     if (loadFailure instanceof Error && loadFailure.name === 'AbortError') return
@@ -164,7 +159,7 @@ async function handleDeleteJob(job: Job) {
   deletingJobIds.value = [...deletingJobIds.value, job.job_id]
 
   try {
-    await deleteJob(job.job_id)
+    await $adminApi.deleteJob(job.job_id)
     jobs.value = jobs.value.filter((candidate) => candidate.job_id !== job.job_id)
   } catch (deleteFailure) {
     if (isUnauthorizedError(deleteFailure)) {
@@ -188,7 +183,7 @@ async function handleLogout() {
   actionError.value = null
 
   try {
-    await logoutAdmin()
+    await $adminApi.logoutAdmin()
     await navigateTo('/admin/login')
   } catch (logoutFailure) {
     if (isUnauthorizedError(logoutFailure)) {

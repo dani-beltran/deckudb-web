@@ -39,3 +39,23 @@ export interface AdminSession {
   authenticated: boolean
   username?: string
 }
+
+export type ApiErrorBody = {
+  error?: unknown
+  message?: unknown
+  statusMessage?: unknown
+  data?: { error?: unknown; message?: unknown }
+}
+
+export type ApiFetchError = Error & {
+  cause?: unknown
+  data?: unknown
+  response?: {
+    status?: number
+    statusText?: string
+    _data?: unknown
+  }
+  status?: number
+  statusCode?: number
+  statusText?: string
+}

@@ -47,8 +47,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { definePageMeta, navigateTo, useHead, useRoute } from '#imports'
-import { getApiErrorMessage, isUnauthorizedError, loginAdmin } from '../../services/admin/api'
+import { definePageMeta, navigateTo, useHead, useNuxtApp, useRoute } from '#imports'
+import { getApiErrorMessage, isUnauthorizedError } from '../../plugins/api/errorHelpers'
 import { sanitizeAdminRedirect } from '../../services/admin/redirect'
 
 definePageMeta({ layout: 'admin', name: 'AdminLogin' })
@@ -58,6 +58,7 @@ useHead({
 })
 
 const route = useRoute()
+const { $adminApi } = useNuxtApp()
 const username = ref('')
 const password = ref('')
 const submitting = ref(false)
@@ -69,7 +70,7 @@ async function submitLogin() {
   error.value = null
 
   try {
-    const session = await loginAdmin(username.value, password.value)
+    const session = await $adminApi.loginAdmin(username.value, password.value)
     if (!session.authenticated) throw new Error('Invalid username or password')
     await navigateTo(sanitizeAdminRedirect(route.query.redirect))
   } catch (loginError) {

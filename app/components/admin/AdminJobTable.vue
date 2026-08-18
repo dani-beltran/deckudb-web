@@ -133,7 +133,7 @@
 <script setup lang="ts">
 import { ArrowDown, ArrowUp, CircleAlert, Trash2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
-import type { Job, JobStatus, JobType } from '../../services/admin/types'
+import type { Job, JobStatus, JobType } from '../../plugins/api/types'
 import AdminPagination from './AdminPagination.vue'
 
 type FilterStatus = JobStatus | 'all'

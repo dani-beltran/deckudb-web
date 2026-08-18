@@ -10,6 +10,7 @@ export default defineNuxtConfig({
   css: ['normalize.css', '~/styles/global.css'],
   alias: {
     '@server': fileURLToPath(new URL('./server', import.meta.url)),
+    '@app': fileURLToPath(new URL('./app', import.meta.url)),
     '@assets': fileURLToPath(new URL('./app/assets', import.meta.url)),
   },
   typescript: {

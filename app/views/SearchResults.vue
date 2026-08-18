@@ -34,7 +34,6 @@
 import Spinner from '../components/base/Spinner.vue'
 import GameSearchResults from '../components/ui/GameSearchResults.vue'
 import NavigationHeader from '../components/ui/NavigationHeader.vue'
-import apiService from '../services/backend/apiService.js'
 
 export default {
   name: 'SearchResults',
@@ -93,7 +92,7 @@ export default {
       this.searchResults = []
 
       try {
-        const results = await apiService.searchSteamGamesByName(term.trim())
+        const results = await this.$backendApi.searchSteamGamesByName(term.trim())
         this.searchResults = results.items || []
         if (this.searchResults.length === 0) {
           this.searchError = {

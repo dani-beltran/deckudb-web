@@ -27,11 +27,11 @@ export default {
     }
   },
   async mounted() {
-    this.user = await userStore.fetchUser()
+    this.user = await userStore.fetchUser(this.$backendApi)
   },
   methods: {
     login() {
-      userStore.signIn()
+      userStore.signIn(this.$backendApi)
     },
     goToSteamProfile() {
       if (!this.user?.steamProfile) return
@@ -42,7 +42,7 @@ export default {
       }
     },
     logout() {
-      userStore.signOut()
+      userStore.signOut(this.$backendApi)
     },
   },
 }

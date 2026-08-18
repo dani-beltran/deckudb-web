@@ -28,7 +28,6 @@
 
 <script>
 import { trackSearch, trackSearchInput, trackSuggestionSelect } from '../../services/analytics'
-import apiService from '../../services/backend/apiService.js'
 import recentGamesStore from '../../stores/recentGamesStore.js'
 import { isMobile } from '../../utils/deviceUtils.js'
 import Button from '../base/Button.vue'
@@ -103,7 +102,7 @@ export default {
       }
 
       try {
-        const result = await apiService.fetchSteamGamesByIds(recentIds)
+        const result = await this.$backendApi.fetchSteamGamesByIds(recentIds)
         return result.items || []
       } catch (e) {
         console.warn('Error fetching recent games by IDs:', e)
@@ -182,7 +181,7 @@ export default {
       this.suggestionsLoading = true
 
       try {
-        const suggestions = await apiService.searchSteamGamesByName(this.modelValue.trim(), 7)
+        const suggestions = await this.$backendApi.searchSteamGamesByName(this.modelValue.trim(), 7)
         // Only show suggestions if the search hasn't been submitted
         this.suggestions = this.gameSearchSubmitted ? [] : suggestions.items || []
         this.showSuggestions = this.suggestions.length > 0

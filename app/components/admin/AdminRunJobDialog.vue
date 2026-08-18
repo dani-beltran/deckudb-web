@@ -133,14 +133,11 @@
 <script setup lang="ts">
 import { LoaderCircle, Search, X } from 'lucide-vue-next'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import {
-  getApiErrorMessage,
-  isUnauthorizedError,
-  queueJob,
-  searchGames,
-} from '../../services/admin/api'
-import type { GameSearchResult, Job, JobType } from '../../services/admin/types'
+import { useNuxtApp } from '#imports'
+import { getApiErrorMessage, isUnauthorizedError } from '../../plugins/api/errorHelpers'
+import type { GameSearchResult, Job, JobType } from '../../plugins/api/types'
 
+const { $adminApi } = useNuxtApp()
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
   close: []
@@ -233,7 +230,7 @@ async function runSearch(term: string) {
   loadingGames.value = true
 
   try {
-    const response = await searchGames(term, controller.signal)
+    const response = await $adminApi.searchGames(term, controller.signal)
     if (query.value === term) games.value = response.items ?? []
   } catch (searchFailure) {
     if (searchFailure instanceof Error && searchFailure.name === 'AbortError') return
@@ -327,7 +324,7 @@ async function submitJob() {
   error.value = null
 
   try {
-    const job = await queueJob(selectedGame.value.id, jobType.value)
+    const job = await $adminApi.queueJob(selectedGame.value.id, jobType.value)
     emit('job-queued', job)
     emit('close')
   } catch (queueFailure) {
