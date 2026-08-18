@@ -64,6 +64,7 @@ Server configuration is validated at startup. Nuxt runtime overrides use the `NU
 | Database | `NUXT_MONGODB_URI`, `NUXT_MONGODB_DATABASE` |
 | AI and scraping | `NUXT_CLAUDE_API_KEY`, `NUXT_CLAUDE_AI_MODEL`, `NUXT_FIRECRAWL_API_KEY`, `NUXT_DAYS_BETWEEN_SCRAPES` |
 | Sessions | `NUXT_SESSION_SECRET`, `NUXT_SESSION_MAX_AGE_MS` |
+| API rate limiting | `NUXT_RATE_LIMIT_ENABLED`, `NUXT_RATE_LIMIT_MAX_REQUESTS`, `NUXT_RATE_LIMIT_WINDOW_MS`, `NUXT_LOGIN_RATE_LIMIT_MAX_REQUESTS`, `NUXT_LOGIN_RATE_LIMIT_WINDOW_MS`, `NUXT_RATE_LIMIT_TRUSTED_PROXY_HOPS` |
 | Admin dashboard | `NUXT_ADMIN_USERNAME`, `NUXT_ADMIN_PASSWORD` |
 | Job execution | `NUXT_JOB_TIMEOUT_MINUTES`, `NUXT_JOB_MAX_ATTEMPTS`, `NUXT_WORKER_ENABLED` |
 | Worker polling | `NUXT_WORKER_POLL_INTERVAL_MS`, `NUXT_WORKER_POLL_JITTER_MS`, `NUXT_WORKER_REQUEUE_SWEEP_MS`, `NUXT_WORKER_IDLE_LOG_EVERY` |
@@ -121,6 +122,20 @@ Nitro maps files in `server/api` directly to `/api` endpoints.
 | `DELETE` | `/api/jobs/:job_id` | Delete a job |
 
 The job endpoints accept the authenticated admin session used by the integrated dashboard. Job types are `search`, `scrape`, `reports`, `summary`, and `full`.
+
+### Rate limiting
+
+API requests are limited per client with a MongoDB-backed sliding window, so limits are shared
+across application instances. The default policy allows 100 requests per minute; admin login uses
+a stricter policy of 5 attempts per 15 minutes. CORS preflight requests and `/api/health` do not
+consume quota. Rejected requests return `429 Too Many Requests`, `Retry-After`, and rate-limit
+policy headers.
+
+Client addresses come from the direct socket by default. If the application runs behind reverse
+proxies that overwrite or append a trustworthy `X-Forwarded-For` header, set
+`NUXT_RATE_LIMIT_TRUSTED_PROXY_HOPS` to the exact number of proxies between the client and the app.
+Do not enable trusted proxy hops when clients can connect to the app directly or supply the header
+unchanged.
 
 ## Background processing
 

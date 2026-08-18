@@ -10,6 +10,7 @@ import steamGameByIdHandler from '@server/api/steam/games/[id].get'
 import steamGamesBatchHandler from '@server/api/steam/games/batch.get'
 import steamGamesHandler from '@server/api/steam/games/index.get'
 import mostPlayedSteamDeckGamesHandler from '@server/api/steam/most-played-steam-deck-games.get'
+import rateLimitMiddleware from '@server/middleware/rate-limit'
 import sessionMiddleware from '@server/middleware/session'
 import type { ServerDependencies } from '@server/utils/bootstrap'
 import { createApp, createRouter, defineEventHandler, toNodeListener } from 'h3'
@@ -18,6 +19,7 @@ import { createApp, createRouter, defineEventHandler, toNodeListener } from 'h3'
  * Mount Nuxt API handlers on an H3 app.
  * Similar to production, the following middleware is applied:
  * - Database connection and dependency injection for API handlers.
+ * - API rate limiting.
  * - Session middleware for handling user sessions.
  * @returns An H3 NodeListener that can be used with Supertest for integration testing.
  */
@@ -45,6 +47,7 @@ export const createNuxtTestServer = (dependencies: ServerDependencies) => {
       }
     })
   )
+  app.use(rateLimitMiddleware)
   app.use(sessionMiddleware)
   app.use(router.handler)
 

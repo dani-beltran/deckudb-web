@@ -4,6 +4,7 @@ import { GameSourcesModel } from '../models/game-sources.model'
 import { GameSummaryVotesModel } from '../models/game-summary-votes.model'
 import { GamesModel } from '../models/games.model'
 import { JobsModel } from '../models/jobs.model'
+import { RateLimitModel } from '../models/rate-limit.model'
 import { ScrapesModel } from '../models/scrapes.model'
 import { SteamCacheModel } from '../models/steam-cache.model'
 import { DatabaseClient } from './DatabaseClient'
@@ -17,6 +18,7 @@ export type ServerDependencies = {
     gameSummaryVotes: GameSummaryVotesModel
     games: GamesModel
     jobs: JobsModel
+    rateLimits: RateLimitModel
     scrapes: ScrapesModel
     steamCache: SteamCacheModel
   }
@@ -61,6 +63,7 @@ export const bootstrapDependencies = async (
       gameSummaryVotes: new GameSummaryVotesModel(db),
       games: new GamesModel(db),
       jobs: new JobsModel(db),
+      rateLimits: new RateLimitModel(db),
       scrapes: new ScrapesModel(db),
       steamCache: new SteamCacheModel(db),
     } satisfies Record<string, Repository>,

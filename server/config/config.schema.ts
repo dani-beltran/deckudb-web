@@ -26,6 +26,18 @@ export const configSchema = z.object({
   sessionSecret: z.string().trim().min(10).max(100),
   // Session max age in milliseconds
   sessionMaxAgeMs: positiveInteger,
+  // Whether API rate limiting is enabled
+  rateLimitEnabled: booleanFromRuntimeConfig.default(true),
+  // Maximum requests per client in the general API sliding window
+  rateLimitMaxRequests: positiveInteger.default(100),
+  // General API sliding-window duration in milliseconds
+  rateLimitWindowMs: positiveInteger.default(60_000),
+  // Number of trusted reverse proxies that append to X-Forwarded-For
+  rateLimitTrustedProxyHops: nonNegativeInteger.max(10).default(0),
+  // Maximum login attempts per client in the stricter login sliding window
+  loginRateLimitMaxRequests: positiveInteger.default(5),
+  // Login sliding-window duration in milliseconds
+  loginRateLimitWindowMs: positiveInteger.default(15 * 60_000),
   // Single-user dashboard credentials (server-only)
   adminUsername: z.string().trim().min(1).max(128),
   adminPassword: z.string().min(12).max(1024),
