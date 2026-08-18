@@ -9,34 +9,34 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'LoadingDots',
-  props: {
-    message: {
-      type: String,
-      default: '',
-    },
-    size: {
-      type: [Number, String],
-      default: 8,
-    },
-    color: {
-      type: String,
-      default: '',
-    },
+<script setup lang="ts">
+import { type CSSProperties, computed, type PropType } from 'vue'
+
+defineOptions({ name: 'LoadingDots' })
+
+const props = defineProps({
+  message: {
+    type: String,
+    default: '',
   },
-  computed: {
-    dotStyle() {
-      const sizeValue = typeof this.size === 'number' ? `${this.size}px` : this.size
-      return {
-        width: sizeValue,
-        height: sizeValue,
-        backgroundColor: this.color || 'var(--primary-color)',
-      }
-    },
+  size: {
+    type: [Number, String] as PropType<number | string>,
+    default: 8,
   },
-}
+  color: {
+    type: String,
+    default: '',
+  },
+})
+
+const dotStyle = computed<CSSProperties>(() => {
+  const sizeValue = typeof props.size === 'number' ? `${props.size}px` : props.size
+  return {
+    width: sizeValue,
+    height: sizeValue,
+    backgroundColor: props.color || 'var(--primary-color)',
+  }
+})
 </script>
 
 <style scoped>

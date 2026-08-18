@@ -8,62 +8,68 @@
   </Button>
 </template>
 
-<script>
+<script setup lang="ts">
 import { RotateCw } from 'lucide-vue-next'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Button from '@/components/base/Button.vue'
-export default {
-  components: { Button, RotateCw },
-  name: 'RefreshButton',
-  emits: ['refresh'],
-  props: {
-    countdownStart: {
-      type: Number,
-      default: 10,
-    },
-  },
-  data() {
-    return {
-      countdown: this.countdownStart,
-      isDisabled: true,
-      timer: null,
-      loading: false,
+
+defineOptions({ name: 'RefreshButton' })
+
+const props = withDefaults(
+  defineProps<{
+    countdownStart?: number
+  }>(),
+  {
+    countdownStart: 10,
+  }
+)
+
+defineEmits<{
+  refresh: []
+}>()
+
+const countdown = ref(props.countdownStart)
+const isDisabled = ref(true)
+const loading = ref(false)
+let timer: ReturnType<typeof setInterval> | null = null
+
+const startCountdown = (): void => {
+  isDisabled.value = true
+  countdown.value = props.countdownStart
+  const countdownTimer = setInterval(() => {
+    if (countdown.value > 1) {
+      countdown.value--
+    } else {
+      isDisabled.value = false
+      clearInterval(countdownTimer)
     }
-  },
-  mounted() {
-    this.startCountdown()
-  },
-  beforeUnmount() {
-    clearInterval(this.timer)
-  },
-  methods: {
-    startCountdown() {
-      this.isDisabled = true
-      this.countdown = this.countdownStart
-      this.timer = setInterval(() => {
-        if (this.countdown > 1) {
-          this.countdown--
-        } else {
-          this.isDisabled = false
-          clearInterval(this.timer)
-        }
-      }, 1000)
-    },
-    reset() {
-      clearInterval(this.timer)
-      this.startCountdown()
-    },
-    handleClick() {
-      if (this.isDisabled) {
-        return
-      }
-      // delay to show loading spinner
-      this.loading = true
-      setTimeout(() => {
-        window.location.reload()
-      }, 1000)
-    },
-  },
+  }, 1000)
+  timer = countdownTimer
 }
+
+const reset = (): void => {
+  if (timer !== null) clearInterval(timer)
+  startCountdown()
+}
+
+const handleClick = (): void => {
+  if (isDisabled.value) {
+    return
+  }
+  // delay to show loading spinner
+  loading.value = true
+  setTimeout(() => {
+    window.location.reload()
+  }, 1000)
+}
+
+onMounted(startCountdown)
+
+onBeforeUnmount(() => {
+  if (timer !== null) clearInterval(timer)
+})
+
+defineExpose({ startCountdown, reset, handleClick })
 </script>
 
 <style scoped>

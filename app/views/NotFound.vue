@@ -35,26 +35,27 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'NotFound',
-  created() {
-    // Set document title for 404 page
-    document.title = '404 - Page Not Found | Steam Deck Settings DB'
-  },
-  methods: {
-    goHome() {
-      this.$router.push('/')
-    },
-    goBack() {
-      // Check if there's history to go back to
-      if (window.history.length > 1) {
-        this.$router.go(-1)
-      } else {
-        this.$router.push('/')
-      }
-    },
-  },
+<script setup lang="ts">
+import { useRouter } from '#imports'
+
+defineOptions({ name: 'NotFound' })
+
+const router = useRouter()
+
+// Set document title for 404 page
+document.title = '404 - Page Not Found | Steam Deck Settings DB'
+
+const goHome = (): void => {
+  void router.push('/')
+}
+
+const goBack = (): void => {
+  // Check if there's history to go back to
+  if (window.history.length > 1) {
+    router.go(-1)
+  } else {
+    void router.push('/')
+  }
 }
 </script>
 

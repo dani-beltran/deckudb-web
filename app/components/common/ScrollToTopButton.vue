@@ -12,14 +12,14 @@
   </button>
 </template>
 
-<script>
-import { onMounted, onUnmounted, ref } from 'vue'
+<script lang="ts">
+import { defineComponent, onMounted, onUnmounted, ref } from 'vue'
 
-export default {
+export default defineComponent({
   name: 'ScrollToTopButton',
   setup() {
     const isVisible = ref(false)
-    let throttleTimeout = null
+    let throttleTimeout: ReturnType<typeof setTimeout> | null = null
 
     const handleScroll = () => {
       // Throttle scroll event handler for better performance
@@ -59,7 +59,7 @@ export default {
       scrollToTop,
     }
   },
-}
+})
 </script>
 
 <style scoped>

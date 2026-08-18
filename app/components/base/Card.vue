@@ -13,24 +13,25 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Card',
-  props: {
-    title: {
-      type: String,
-      default: null,
-    },
-    cardClass: {
-      type: String,
-      default: '',
-    },
-    hoverable: {
-      type: Boolean,
-      default: false,
-    },
+<script setup lang="ts">
+import type { PropType } from 'vue'
+
+defineOptions({ name: 'Card' })
+
+defineProps({
+  title: {
+    type: String as PropType<string | null>,
+    default: null,
   },
-}
+  cardClass: {
+    type: String,
+    default: '',
+  },
+  hoverable: {
+    type: Boolean,
+    default: false,
+  },
+})
 </script>
 
 <style scoped>

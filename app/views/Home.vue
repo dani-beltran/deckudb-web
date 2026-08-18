@@ -19,49 +19,40 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from '#imports'
 import GameSearch from '../components/ui/GameSearch.vue'
-import GameSearchResults from '../components/ui/GameSearchResults.vue'
 import HomeHeader from '../components/ui/HomeHeader.vue'
 import PopularGames from '../components/ui/PopularGames.vue'
+import type { PopularGame } from '../components/ui/types'
 
-export default {
-  name: 'Home',
-  components: {
-    GameSearch,
-    GameSearchResults,
-    HomeHeader,
-    PopularGames,
-  },
-  data() {
-    return {
-      searchTerm: '',
-      searching: false,
-    }
-  },
-  created() {
-    // Set document title for home page
-    document.title = 'DeckuDB - Optimize Your Games for Steam Deck'
-  },
-  methods: {
-    onSearch() {
-      if (!this.searchTerm) return
-      this.searching = true
-      // redirect to search results page with delay
-      setTimeout(() => {
-        this.searching = false
-        this.$router.push({ name: 'SearchResults', query: { q: this.searchTerm } })
-      }, 300)
-    },
-    onGameSelected(game) {
-      // Navigate to the game page
-      this.$router.push({
-        name: 'Game',
-        params: { gameId: game.steam_appid ?? game.id },
-        query: this.searchTerm ? { q: this.searchTerm } : {},
-      })
-    },
-  },
+defineOptions({ name: 'Home' })
+
+const router = useRouter()
+const searchTerm = ref('')
+const searching = ref(false)
+
+// Set document title for home page
+document.title = 'DeckuDB - Optimize Your Games for Steam Deck'
+
+const onSearch = (): void => {
+  if (!searchTerm.value) return
+  searching.value = true
+  // redirect to search results page with delay
+  setTimeout(() => {
+    searching.value = false
+    void router.push({ name: 'SearchResults', query: { q: searchTerm.value } })
+  }, 300)
+}
+
+const onGameSelected = (game: PopularGame): void => {
+  // Navigate to the game page
+  void router.push({
+    name: 'Game',
+    params: { gameId: game.steam_appid ?? game.id },
+    query: searchTerm.value ? { q: searchTerm.value } : {},
+  })
 }
 </script>
 

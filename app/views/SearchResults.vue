@@ -30,106 +30,112 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useNuxtApp, useRoute, useRouter } from '#imports'
 import Spinner from '../components/base/Spinner.vue'
 import GameSearchResults from '../components/ui/GameSearchResults.vue'
 import NavigationHeader from '../components/ui/NavigationHeader.vue'
+import type { SearchGame, SearchGamesResponse } from '../components/ui/types'
 
-export default {
-  name: 'SearchResults',
-  components: {
-    NavigationHeader,
-    GameSearchResults,
-    Spinner,
-  },
-  data() {
-    return {
-      searchResults: [],
-      searchLoading: false,
-      searchError: null,
-      searchTerm: '',
-      isWideScreen: false,
-    }
-  },
-  computed: {
-    initialResultsCount() {
-      return this.isWideScreen ? 8 : 4
-    },
-  },
-  created() {
-    document.title = 'Search Results - DeckuDB'
-
-    // Get search term from URL query parameter
-    this.searchTerm = this.$route.query.q || ''
-
-    // Check screen width and set up listener
-    this.checkScreenWidth()
-    window.addEventListener('resize', this.checkScreenWidth)
-
-    // Perform initial search if there's a search term
-    this.onSearch(this.searchTerm)
-  },
-  beforeUnmount() {
-    window.removeEventListener('resize', this.checkScreenWidth)
-  },
-  watch: {
-    searchTerm() {
-      this.updateUrl()
-    },
-  },
-  methods: {
-    async onSearch(term) {
-      if (!term?.trim()) {
-        this.searchError = {
-          title: 'No search term entered',
-          message: 'Please enter a game name into the search bar.',
-        }
-        return
-      }
-
-      this.searchLoading = true
-      this.searchError = null
-      this.searchResults = []
-
-      try {
-        const results = await this.$backendApi.searchSteamGamesByName(term.trim())
-        this.searchResults = results.items || []
-        if (this.searchResults.length === 0) {
-          this.searchError = {
-            title: 'No games found with that name',
-            message: 'Try a different search term or check the spelling.',
-          }
-        }
-      } catch (err) {
-        console.error('Error searching for games:', err)
-        this.searchError = {
-          title: 'Error searching for games',
-          message: 'An error occurred while searching. Please try again later.',
-        }
-      } finally {
-        this.searchLoading = false
-      }
-    },
-    onGameSelected(game) {
-      this.$router.push({
-        name: 'Game',
-        params: { gameId: game.steam_appid ?? game.id },
-      })
-    },
-    updateUrl() {
-      const currentQuery = this.$route.query.q || ''
-      if (this.searchTerm !== currentQuery) {
-        this.$router.replace({
-          name: 'SearchResults',
-          query: this.searchTerm?.trim() ? { q: this.searchTerm.trim() } : {},
-        })
-      }
-    },
-    checkScreenWidth() {
-      this.isWideScreen = window.innerWidth > 768
-    },
-  },
+interface SearchError {
+  title: string
+  message: string
 }
+
+defineOptions({ name: 'SearchResults' })
+
+const { $backendApi } = useNuxtApp()
+const route = useRoute()
+const router = useRouter()
+
+const searchResults = ref<SearchGame[]>([])
+const searchLoading = ref(false)
+const searchError = ref<SearchError | null>(null)
+const searchTerm = ref('')
+const isWideScreen = ref(false)
+
+function normalizeQueryValue(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (!Array.isArray(value)) return ''
+
+  const firstValue = value[0]
+  return typeof firstValue === 'string' ? firstValue : ''
+}
+
+const initialResultsCount = computed<number>(() => (isWideScreen.value ? 8 : 4))
+
+const onSearch = async (term?: string): Promise<void> => {
+  if (!term?.trim()) {
+    searchError.value = {
+      title: 'No search term entered',
+      message: 'Please enter a game name into the search bar.',
+    }
+    return
+  }
+
+  searchLoading.value = true
+  searchError.value = null
+  searchResults.value = []
+
+  try {
+    const results = (await $backendApi.searchSteamGamesByName(term.trim())) as SearchGamesResponse
+    searchResults.value = results.items || []
+    if (searchResults.value.length === 0) {
+      searchError.value = {
+        title: 'No games found with that name',
+        message: 'Try a different search term or check the spelling.',
+      }
+    }
+  } catch (err) {
+    console.error('Error searching for games:', err)
+    searchError.value = {
+      title: 'Error searching for games',
+      message: 'An error occurred while searching. Please try again later.',
+    }
+  } finally {
+    searchLoading.value = false
+  }
+}
+
+const onGameSelected = (game: SearchGame): void => {
+  void router.push({
+    name: 'Game',
+    params: { gameId: game.steam_appid ?? game.id },
+  })
+}
+
+const updateUrl = (): void => {
+  const currentQuery = normalizeQueryValue(route.query.q)
+  if (searchTerm.value !== currentQuery) {
+    void router.replace({
+      name: 'SearchResults',
+      query: searchTerm.value.trim() ? { q: searchTerm.value.trim() } : {},
+    })
+  }
+}
+
+const checkScreenWidth = (): void => {
+  isWideScreen.value = window.innerWidth > 768
+}
+
+watch(searchTerm, updateUrl)
+
+document.title = 'Search Results - DeckuDB'
+
+// Get search term from URL query parameter
+searchTerm.value = normalizeQueryValue(route.query.q)
+
+// Check screen width and set up listener
+checkScreenWidth()
+window.addEventListener('resize', checkScreenWidth)
+
+// Perform initial search if there's a search term
+void onSearch(searchTerm.value)
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', checkScreenWidth)
+})
 </script>
 
 <style scoped>

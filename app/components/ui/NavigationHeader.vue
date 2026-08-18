@@ -15,26 +15,26 @@
   </header>
 </template>
 
-<script>
+<script setup lang="ts">
 import GameSearch from '../ui/GameSearch.vue'
 
-export default {
-  name: 'NavigationHeader',
-  components: {
-    GameSearch,
-  },
-  props: {
-    searchTerm: {
-      type: String,
-      default: '',
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ['update:searchTerm', 'search'],
-}
+defineOptions({ name: 'NavigationHeader' })
+
+withDefaults(
+  defineProps<{
+    searchTerm?: string
+    loading?: boolean
+  }>(),
+  {
+    searchTerm: '',
+    loading: false,
+  }
+)
+
+defineEmits<{
+  'update:searchTerm': [value: string]
+  search: [submitSource: string]
+}>()
 </script>
 
 <style scoped>

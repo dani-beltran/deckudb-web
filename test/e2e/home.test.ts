@@ -4,7 +4,7 @@ import { getDebugConfig } from './helpers'
 
 const DEBUG = process.env.E2E_TESTS_DEBUG === 'true'
 
-describe('HOME page', async () => {
+describe('home page', async () => {
   await setup({
     ...(DEBUG ? getDebugConfig() : {}),
   })

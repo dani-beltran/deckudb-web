@@ -25,7 +25,7 @@
                 @last-item-visible="loadMoreGames"
             >
                 <template #item="{ item: game }">
-                    <PopularGameCard :game="game" @click="onGameClick(game)" />
+                    <PopularGameCard :game="asPopularGame(game)" @click="onGameClick" />
                 </template>
 
                 <template #loading-more>
@@ -39,10 +39,10 @@
             <InfiniteScrollCollection
                 :items="popularGames"
                 :is-loading-more="isLoadingMore"
-                @last-item-visible="infiniteScrollActive ? loadMoreGames() : null"  
+                @last-item-visible="handleLastItemVisible"
             >
                 <template #item="{ item: game }">
-                    <PopularGameCard :game="game" @click="onGameClick(game)" />
+                    <PopularGameCard :game="asPopularGame(game)" @click="onGameClick" />
                 </template>
 
                 <template #loading-more>
@@ -52,10 +52,7 @@
             <div v-if="!infiniteScrollActive" class="load-more-button-container">
               <Button 
                 :disabled="isLoadingMore || !hasMoreGames"
-                @click="() => {
-                  this.infiniteScrollActive = true;
-                  this.loadMoreGames();
-                  }" 
+                @click="activateInfiniteScroll"
               >
                 Load More
               </Button>
@@ -64,110 +61,116 @@
     </section>
 </template>
 
-<script>
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useNuxtApp } from '#imports'
 import Button from '../base/Button.vue'
 import LoadingDots from '../base/LoadingDots.vue'
 import Carousel from '../common/Carousel.vue'
 import InfiniteScrollCollection from '../common/InfiniteScrollCollection.vue'
 import PopularGameCard from './PopularGameCard.vue'
+import type { PopularGame, PopularGamesResponse } from './types'
 
-export default {
-  name: 'PopularGames',
-  components: {
-    LoadingDots,
-    Carousel,
-    InfiniteScrollCollection,
-    PopularGameCard,
-    Button,
-  },
-  emits: ['game-selected'],
-  data() {
-    return {
-      carouselItemsPerSlide: 3,
-      popularGames: [],
-      isLoading: true,
-      error: null,
-      currentPage: 1,
-      pageSize: 17,
-      hasMoreGames: true,
-      isLoadingMore: false,
-      isMobile: false,
-      infiniteScrollActive: false,
-    }
-  },
-  async mounted() {
-    this.isMobile = window.innerWidth < 640
-    this.updateCarouselConf()
-    await this.fetchPopularGames()
-    window.addEventListener('resize', this.onResize)
-  },
-  beforeUnmount() {
-    window.removeEventListener('resize', this.onResize)
-  },
-  methods: {
-    async fetchPopularGames() {
-      this.isLoading = true
-      this.error = null
-      try {
-        const { items: games, total } = await this.$backendApi.fetchMostPlayedGames(
-          this.currentPage,
-          this.pageSize
-        )
-        this.popularGames = games || []
-        this.hasMoreGames = total >= this.currentPage * this.pageSize
-      } catch (err) {
-        console.error('Error fetching popular games:', err)
-        this.popularGames = []
-        this.hasMoreGames = false
-      } finally {
-        this.isLoading = false
-      }
-    },
-    async loadMoreGames() {
-      if (this.isLoadingMore || !this.hasMoreGames) {
-        return
-      }
+defineOptions({ name: 'PopularGames' })
 
-      this.isLoadingMore = true
-      this.currentPage++
+const emit = defineEmits<{
+  'game-selected': [game: PopularGame]
+}>()
 
-      try {
-        const { items: games, total } = await this.$backendApi.fetchMostPlayedGames(
-          this.currentPage,
-          this.pageSize
-        )
+const { $backendApi } = useNuxtApp()
 
-        if (games && games.length > 0) {
-          this.popularGames = [...this.popularGames, ...games]
-          this.hasMoreGames = total >= this.currentPage * this.pageSize
-        } else {
-          this.hasMoreGames = false
-        }
-      } catch (err) {
-        console.error('Error loading more games:', err)
-        this.hasMoreGames = false
-      } finally {
-        this.isLoadingMore = false
-      }
-    },
-    updateCarouselConf() {
-      const width = window.innerWidth
-      this.windowWidth = width
-      if (width < 1024) {
-        this.carouselItemsPerSlide = 2
-      } else {
-        this.carouselItemsPerSlide = 3
-      }
-    },
-    onResize() {
-      this.isMobile = window.innerWidth < 640
-      this.updateCarouselConf()
-    },
-    onGameClick(game) {
-      this.$emit('game-selected', game)
-    },
-  },
+const carouselItemsPerSlide = ref(3)
+const popularGames = ref<PopularGame[]>([])
+const isLoading = ref(true)
+const currentPage = ref(1)
+const pageSize = 17
+const hasMoreGames = ref(true)
+const isLoadingMore = ref(false)
+const isMobile = ref(false)
+const infiniteScrollActive = ref(false)
+
+const asPopularGame = (game: unknown): PopularGame => game as PopularGame
+
+const fetchPopularGames = async (): Promise<void> => {
+  isLoading.value = true
+  try {
+    const { items: games, total } = (await $backendApi.fetchMostPlayedGames(
+      currentPage.value,
+      pageSize
+    )) as PopularGamesResponse
+    popularGames.value = games || []
+    hasMoreGames.value = total >= currentPage.value * pageSize
+  } catch (error) {
+    console.error('Error fetching popular games:', error)
+    popularGames.value = []
+    hasMoreGames.value = false
+  } finally {
+    isLoading.value = false
+  }
 }
+
+const loadMoreGames = async (): Promise<void> => {
+  if (isLoadingMore.value || !hasMoreGames.value) {
+    return
+  }
+
+  isLoadingMore.value = true
+  currentPage.value++
+
+  try {
+    const { items: games, total } = (await $backendApi.fetchMostPlayedGames(
+      currentPage.value,
+      pageSize
+    )) as PopularGamesResponse
+
+    if (games && games.length > 0) {
+      popularGames.value = [...popularGames.value, ...games]
+      hasMoreGames.value = total >= currentPage.value * pageSize
+    } else {
+      hasMoreGames.value = false
+    }
+  } catch (error) {
+    console.error('Error loading more games:', error)
+    hasMoreGames.value = false
+  } finally {
+    isLoadingMore.value = false
+  }
+}
+
+const updateCarouselConf = (): void => {
+  carouselItemsPerSlide.value = window.innerWidth < 1024 ? 2 : 3
+}
+
+const onResize = (): void => {
+  isMobile.value = window.innerWidth < 640
+  updateCarouselConf()
+}
+
+const onGameClick = (game: PopularGame): void => {
+  emit('game-selected', game)
+}
+
+const activateInfiniteScroll = (): void => {
+  infiniteScrollActive.value = true
+  void loadMoreGames()
+}
+
+const handleLastItemVisible = (): void => {
+  if (infiniteScrollActive.value) {
+    void loadMoreGames()
+  }
+}
+
+onMounted(async () => {
+  isMobile.value = window.innerWidth < 640
+  updateCarouselConf()
+  await fetchPopularGames()
+  window.addEventListener('resize', onResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
+})
 </script>
 
 <style scoped>

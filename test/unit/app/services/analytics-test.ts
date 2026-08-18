@@ -9,7 +9,22 @@ import {
   trackSearch,
   trackSearchInput,
   trackSuggestionSelect,
-} from '../app/services/analytics'
+} from '../../../../app/services/analytics'
+
+interface AnalyticsTestHelpers {
+  testSearch: () => void
+  testSearchInput: () => void
+  testSuggestionSelect: () => void
+  testGameSelect: () => void
+  testCustomEvent: () => void
+  runAllTests: () => void
+}
+
+declare global {
+  interface Window {
+    testAnalytics: AnalyticsTestHelpers
+  }
+}
 
 // Test functions - these can be called from browser console during development
 window.testAnalytics = {

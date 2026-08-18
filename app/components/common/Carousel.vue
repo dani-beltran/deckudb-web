@@ -1,5 +1,5 @@
 <template>
-    <div class="carousel-section">
+    <div ref="carouselSection" class="carousel-section">
         <!-- Carousel Container -->
         <div v-if="items.length > 0" class="carousel-container">
             <button class="carousel-button prev" @click="previousSlide" :disabled="currentIndex === 0"
@@ -34,165 +34,158 @@
     </div>
 </template>
 
-<script>
-export default {
-  name: 'Carousel',
-  props: {
-    items: {
-      type: Array,
-      required: true,
-    },
-    itemsPerSlide: {
-      type: Number,
-      default: 3,
-    },
-    isLoadingMore: {
-      type: Boolean,
-      default: false,
-    },
-    localStorageKey: {
-      type: String,
-      default: 'carousel_currentIndex',
-    },
-    prevAriaLabel: {
-      type: String,
-      default: 'Previous items',
-    },
-    nextAriaLabel: {
-      type: String,
-      default: 'Next items',
-    },
-  },
-  emits: ['index-changed', 'last-item-visible'],
-  data() {
-    return {
-      currentIndex: 0,
-      intersectionObserver: null,
-    }
-  },
-  computed: {
-    displayedItems() {
-      return this.items
-    },
-    totalSlides() {
-      return Math.ceil(this.items.length / this.itemsPerSlide)
-    },
-    maxIndex() {
-      return this.totalSlides - 1
-    },
-    itemStyle() {
-      return {
-        flex: `0 0 ${100 / this.itemsPerSlide}%`,
-      }
-    },
-    trackStyle() {
-      const translateX = -(this.currentIndex * 100)
+<script setup lang="ts">
+import { type CSSProperties, computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-      return {
-        transform: `translateX(${translateX}%)`,
-        transition: 'transform 0.3s ease-in-out',
-      }
-    },
-  },
-  watch: {
-    currentIndex(newIndex) {
-      this.saveCurrentIndex(newIndex)
-      this.$emit('index-changed', newIndex)
-    },
-    items: {
-      handler() {
-        // Re-observe when items change
-        this.$nextTick(() => {
-          this.observeLastItem()
-        })
-      },
-      deep: true,
-    },
-  },
-  async mounted() {
-    this.restoreCurrentIndex()
-    this.setupIntersectionObserver()
-  },
-  beforeUnmount() {
-    this.disconnectIntersectionObserver()
-  },
-  methods: {
-    nextSlide() {
-      if (this.currentIndex < this.maxIndex) {
-        this.currentIndex++
-      }
-    },
-    previousSlide() {
-      if (this.currentIndex > 0) {
-        this.currentIndex--
-      }
-    },
-    goToSlide(index) {
-      this.currentIndex = index
-    },
-    saveCurrentIndex(index) {
-      try {
-        localStorage.setItem(this.localStorageKey, index.toString())
-      } catch (err) {
-        console.warn('Failed to save current index to localStorage:', err)
-      }
-    },
-    restoreCurrentIndex() {
-      try {
-        const savedIndex = localStorage.getItem(this.localStorageKey)
-        if (savedIndex !== null) {
-          const index = parseInt(savedIndex, 10)
-          if (!Number.isNaN(index) && index >= 0 && index <= this.maxIndex) {
-            this.currentIndex = index
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to restore current index from localStorage:', err)
-      }
-    },
-    setupIntersectionObserver() {
-      this.disconnectIntersectionObserver()
+defineOptions({ name: 'Carousel' })
 
-      this.intersectionObserver = new IntersectionObserver(
-        (entries) => {
-          const lastItem = entries[0]
-          if (lastItem.isIntersecting && !this.isLoadingMore) {
-            this.$emit('last-item-visible')
-          }
-        },
-        {
-          root: null,
-          rootMargin: '100px',
-          threshold: 0.1,
-        }
-      )
+const props = withDefaults(
+  defineProps<{
+    items: unknown[]
+    itemsPerSlide?: number
+    isLoadingMore?: boolean
+    localStorageKey?: string
+    prevAriaLabel?: string
+    nextAriaLabel?: string
+  }>(),
+  {
+    itemsPerSlide: 3,
+    isLoadingMore: false,
+    localStorageKey: 'carousel_currentIndex',
+    prevAriaLabel: 'Previous items',
+    nextAriaLabel: 'Next items',
+  }
+)
 
-      this.$nextTick(() => {
-        this.observeLastItem()
-      })
-    },
-    observeLastItem() {
-      if (!this.intersectionObserver) {
-        return
-      }
+const emit = defineEmits<{
+  'index-changed': [index: number]
+  'last-item-visible': []
+}>()
 
-      // Disconnect all previous observations
-      this.intersectionObserver.disconnect()
+const carouselSection = ref<HTMLElement | null>(null)
+const currentIndex = ref(0)
+let intersectionObserver: IntersectionObserver | null = null
 
-      const items = this.$el.querySelectorAll('.carousel-item')
-      if (items.length > 0) {
-        const lastItem = items[items.length - 1]
-        this.intersectionObserver.observe(lastItem)
-      }
-    },
-    disconnectIntersectionObserver() {
-      if (this.intersectionObserver) {
-        this.intersectionObserver.disconnect()
-        this.intersectionObserver = null
-      }
-    },
-  },
+const displayedItems = computed(() => props.items)
+const totalSlides = computed(() => Math.ceil(props.items.length / props.itemsPerSlide))
+const maxIndex = computed(() => totalSlides.value - 1)
+const itemStyle = computed<CSSProperties>(() => ({
+  flex: `0 0 ${100 / props.itemsPerSlide}%`,
+}))
+const trackStyle = computed<CSSProperties>(() => ({
+  transform: `translateX(${-currentIndex.value * 100}%)`,
+  transition: 'transform 0.3s ease-in-out',
+}))
+
+const nextSlide = (): void => {
+  if (currentIndex.value < maxIndex.value) {
+    currentIndex.value++
+  }
 }
+
+const previousSlide = (): void => {
+  if (currentIndex.value > 0) {
+    currentIndex.value--
+  }
+}
+
+const goToSlide = (index: number): void => {
+  currentIndex.value = index
+}
+
+const saveCurrentIndex = (index: number): void => {
+  try {
+    localStorage.setItem(props.localStorageKey, index.toString())
+  } catch (err) {
+    console.warn('Failed to save current index to localStorage:', err)
+  }
+}
+
+const restoreCurrentIndex = (): void => {
+  try {
+    const savedIndex = localStorage.getItem(props.localStorageKey)
+    if (savedIndex !== null) {
+      const index = parseInt(savedIndex, 10)
+      if (!Number.isNaN(index) && index >= 0 && index <= maxIndex.value) {
+        currentIndex.value = index
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to restore current index from localStorage:', err)
+  }
+}
+
+const observeLastItem = (): void => {
+  if (!intersectionObserver) {
+    return
+  }
+
+  // Disconnect all previous observations
+  intersectionObserver.disconnect()
+
+  const items = carouselSection.value?.querySelectorAll('.carousel-item')
+  const lastItem = items?.[items.length - 1]
+  if (lastItem) intersectionObserver.observe(lastItem)
+}
+
+const disconnectIntersectionObserver = (): void => {
+  if (intersectionObserver) {
+    intersectionObserver.disconnect()
+    intersectionObserver = null
+  }
+}
+
+const setupIntersectionObserver = (): void => {
+  disconnectIntersectionObserver()
+
+  intersectionObserver = new IntersectionObserver(
+    (entries) => {
+      const lastItem = entries[0]
+      if (lastItem?.isIntersecting && !props.isLoadingMore) {
+        emit('last-item-visible')
+      }
+    },
+    {
+      root: null,
+      rootMargin: '100px',
+      threshold: 0.1,
+    }
+  )
+
+  void nextTick(observeLastItem)
+}
+
+watch(currentIndex, (newIndex) => {
+  saveCurrentIndex(newIndex)
+  emit('index-changed', newIndex)
+})
+
+watch(
+  () => props.items,
+  () => {
+    // Re-observe when items change
+    void nextTick(observeLastItem)
+  },
+  { deep: true }
+)
+
+onMounted(() => {
+  restoreCurrentIndex()
+  setupIntersectionObserver()
+})
+
+onBeforeUnmount(disconnectIntersectionObserver)
+
+defineExpose({
+  nextSlide,
+  previousSlide,
+  goToSlide,
+  saveCurrentIndex,
+  restoreCurrentIndex,
+  setupIntersectionObserver,
+  observeLastItem,
+  disconnectIntersectionObserver,
+})
 </script>
 
 <style scoped>

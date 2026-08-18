@@ -13,16 +13,12 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ProcessingWarning',
-  props: {
-    gameName: {
-      type: String,
-      required: true,
-    },
-  },
-}
+<script setup lang="ts">
+defineOptions({ name: 'ProcessingWarning' })
+
+defineProps<{
+  gameName: string
+}>()
 </script>
 
 <style scoped>

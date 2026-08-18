@@ -1,5 +1,5 @@
 <template>
-  <section :class="['ask-ai-card', cardClass]" :aria-label="title">
+  <section :class="['ask-ai-card', cardClass]" :aria-label="title ?? undefined">
     <div class="ask-ai-header">
       <h3 v-if="title">{{ title }}</h3>
       <slot name="header" v-if="!title"></slot>
@@ -44,9 +44,9 @@
   </section>
 </template>
 
-<script>
+<script lang="ts">
 import { Sparkles } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed, defineComponent, type PropType, ref, watch } from 'vue'
 import { useTypewriter } from '../../composables/useTypewriter'
 import Button from '../base/Button.vue'
 import ExpandTransition from '../base/ExpandTransition.vue'
@@ -54,7 +54,9 @@ import Notification from '../base/Notification.vue'
 import Tooltip from '../base/Tooltip.vue'
 import FeedbackButtons from './FeedbackButtons.vue'
 
-export default {
+type FeedbackType = 'positive' | 'negative'
+
+export default defineComponent({
   name: 'AskAICard',
   components: {
     Sparkles,
@@ -66,7 +68,7 @@ export default {
   },
   props: {
     title: {
-      type: String,
+      type: String as PropType<string | null>,
       default: null,
     },
     cardClass: {
@@ -93,6 +95,10 @@ export default {
       type: Number,
       default: 500, // delay before starting animation
     },
+  },
+  emits: {
+    toggle: (_isCollapsed: boolean) => true,
+    feedback: (_type: FeedbackType) => true,
   },
   setup(props, { emit }) {
     const isCollapsed = ref(true)
@@ -131,7 +137,7 @@ export default {
       }
     }
 
-    const handleFeedback = (type) => {
+    const handleFeedback = (type: FeedbackType) => {
       emit('feedback', type)
       showNotification.value = true
     }
@@ -150,7 +156,7 @@ export default {
       typewriter,
     }
   },
-}
+})
 </script>
 
 <style scoped>

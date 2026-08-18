@@ -19,11 +19,8 @@
   },
   "dependencies": {
     "@danilidonbeltran/webscrapper": "3.0.0",
-    "cors": "^2.8.5",
     "dayjs": "^1.11.20",
-    "express": "^4.18.2",
     "hls.js": "^1.6.15",
-    "js-cookie": "^3.0.5",
     "lucide-vue-next": "^0.544.0",
     "mbs3": "^0.3.1",
     "mongodb": "^6.3.0",
@@ -40,8 +37,6 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.3",
     "@nuxt/test-utils": "3.23.0",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
     "@types/node": "^20.10.6",
     "@types/supertest": "7.2.1",
     "@vue/test-utils": "2.4.11",

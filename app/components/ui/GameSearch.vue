@@ -26,211 +26,209 @@
     </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { onBeforeUnmount, ref } from 'vue'
+import { useNuxtApp, useRouter } from '#imports'
 import { trackSearch, trackSearchInput, trackSuggestionSelect } from '../../services/analytics'
-import recentGamesStore from '../../stores/recentGamesStore.js'
-import { isMobile } from '../../utils/deviceUtils.js'
-import Button from '../base/Button.vue'
+import recentGamesStore from '../../stores/recentGamesStore'
+import { isMobile } from '../../utils/deviceUtils'
 import SearchBar from '../common/SearchBar.vue'
 import SearchSuggestions from '../common/SearchSuggestions.vue'
+import type { GameId, SearchGame, SearchGamesResponse } from './types'
 
-export default {
-  name: 'GameSearch',
-  components: {
-    Button,
-    SearchBar,
-    SearchSuggestions,
-  },
-  emits: ['update:modelValue', 'search'],
-  props: {
-    modelValue: {
-      type: String,
-      default: '',
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  data() {
-    return {
-      gameSearchResults: [],
-      gameSearchSubmitted: false,
-      showRecentGames: false,
-      suggestions: [],
-      suggestionsLoading: false,
-      showSuggestions: false,
-      selectedSuggestionIndex: -1,
-      debounceTimer: null,
-      inputTrackingTimeout: null,
-    }
-  },
-  methods: {
-    // When SearchBar is focused, show recent games as suggestions if input is empty.
-    async onSearchBarFocus() {
-      if (isMobile()) {
-        // Don't show suggestions on mobile devices
-        return
-      }
-      if (this.modelValue.trim().length > 0) {
-        // If there's input, show suggestions as usual
-        this.showSuggestions = this.suggestions.length > 0
-        return
-      }
-      await this.showRecentGamesAsSuggestions()
-    },
+defineOptions({ name: 'GameSearch' })
 
-    async showRecentGamesAsSuggestions() {
-      try {
-        this.suggestions = await this.getRecentGames()
-        this.showSuggestions = this.suggestions.length > 0
-        this.selectedSuggestionIndex = -1
-        this.showRecentGames = true
-      } catch (e) {
-        console.warn('Error fetching recent games by IDs:', e)
-        this.suggestions = []
-        this.showSuggestions = false
-        this.showRecentGames = false
-      }
-    },
+type SearchSubmitSource = 'search_bar_button' | 'enter_key'
 
-    async getRecentGames() {
-      const recentIds = this.getRecentSearchedGameIds()
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string
+    loading?: boolean
+  }>(),
+  {
+    modelValue: '',
+    loading: false,
+  }
+)
 
-      if (recentIds.length === 0) {
-        return []
-      }
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+  search: [value: string]
+}>()
 
-      try {
-        const result = await this.$backendApi.fetchSteamGamesByIds(recentIds)
-        return result.items || []
-      } catch (e) {
-        console.warn('Error fetching recent games by IDs:', e)
-        return []
-      }
-    },
+const { $backendApi } = useNuxtApp()
+const router = useRouter()
 
-    getRecentSearchedGameIds() {
-      return recentGamesStore.getRecentGames()
-    },
+const gameSearchSubmitted = ref(false)
+const showRecentGames = ref(false)
+const suggestions = ref<SearchGame[]>([])
+const suggestionsLoading = ref(false)
+const showSuggestions = ref(false)
+const selectedSuggestionIndex = ref(-1)
+const debounceTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const inputTrackingTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
 
-    async handleSearch(submitSource) {
-      if (submitSource === 'enter_key' && this.selectedSuggestionIndex !== -1) {
-        // Suggestion selected with enter key, avoid search
-        return
-      }
-      this.gameSearchSubmitted = true
-      this.hideSuggestions()
-      clearTimeout(this.debounceTimer)
-      // Track the search event
-      trackSearch(this.modelValue, 'game_search', {
-        search_source: submitSource,
-      })
-      this.$emit('search', this.modelValue)
-    },
+const getRecentSearchedGameIds = (): GameId[] => recentGamesStore.getRecentGames()
 
-    onGameNameInput() {
-      this.gameSearchSubmitted = false
-      this.showRecentGames = false
+const getRecentGames = async (): Promise<SearchGame[]> => {
+  const recentIds = getRecentSearchedGameIds()
 
-      // Track search input with debouncing to avoid too many events
-      this.debounceTrackInput()
+  if (recentIds.length === 0) {
+    return []
+  }
 
-      // Trigger suggestions with debouncing (only on non-mobile devices)
-      if (!isMobile()) {
-        this.debouncedFetchSuggestions()
-      }
-    },
-
-    debounceTrackInput() {
-      // Clear existing timeout
-      if (this.inputTrackingTimeout) {
-        clearTimeout(this.inputTrackingTimeout)
-      }
-
-      // Set new timeout to track input after 1 second of inactivity
-      this.inputTrackingTimeout = setTimeout(() => {
-        if (this.modelValue && this.modelValue.trim().length > 0) {
-          trackSearchInput(
-            this.modelValue.trim(),
-            this.modelValue.trim().length,
-            'game_search_input'
-          )
-        }
-      }, 1000)
-    },
-
-    debouncedFetchSuggestions() {
-      // Clear existing timer
-      if (this.debounceTimer) {
-        clearTimeout(this.debounceTimer)
-      }
-
-      // Set new timer for 300ms delay
-      this.debounceTimer = setTimeout(() => {
-        this.fetchSuggestions()
-      }, 300)
-    },
-
-    async fetchSuggestions() {
-      if (!this.modelValue.trim() || this.modelValue.trim().length < 2) {
-        await this.showRecentGamesAsSuggestions()
-        return
-      }
-
-      this.suggestionsLoading = true
-
-      try {
-        const suggestions = await this.$backendApi.searchSteamGamesByName(this.modelValue.trim(), 7)
-        // Only show suggestions if the search hasn't been submitted
-        this.suggestions = this.gameSearchSubmitted ? [] : suggestions.items || []
-        this.showSuggestions = this.suggestions.length > 0
-        this.selectedSuggestionIndex = -1
-      } catch (error) {
-        console.error('Error fetching suggestions:', error)
-        this.suggestions = []
-        this.showSuggestions = false
-      } finally {
-        this.suggestionsLoading = false
-      }
-    },
-
-    async selectSuggestion(suggestion) {
-      this.saveRecentSearchedGameId(suggestion.id)
-      trackSuggestionSelect(suggestion.name, this.selectedSuggestionIndex, this.modelValue.trim())
-      // Route directly to the game page using the suggestion ID
-      this.$router.push(`/game/${suggestion.id}`)
-    },
-
-    hideSuggestions() {
-      this.showSuggestions = false
-      this.showRecentGames = false
-      this.selectedSuggestionIndex = -1
-    },
-
-    delayedHideSuggestions() {
-      // Delay hiding suggestions to allow click events to register
-      setTimeout(() => {
-        this.hideSuggestions()
-      }, 200)
-    },
-
-    saveRecentSearchedGameId(gameId) {
-      recentGamesStore.saveRecentSearchedGameId(gameId)
-    },
-  },
-  beforeUnmount() {
-    // Clean up debounce timer
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer)
-    }
-    // Clean up input tracking timeout
-    if (this.inputTrackingTimeout) {
-      clearTimeout(this.inputTrackingTimeout)
-    }
-    this.suggestions = []
-  },
+  try {
+    const result = (await $backendApi.fetchSteamGamesByIds(recentIds)) as SearchGamesResponse
+    return result.items || []
+  } catch (error) {
+    console.warn('Error fetching recent games by IDs:', error)
+    return []
+  }
 }
+
+const showRecentGamesAsSuggestions = async (): Promise<void> => {
+  try {
+    suggestions.value = await getRecentGames()
+    showSuggestions.value = suggestions.value.length > 0
+    selectedSuggestionIndex.value = -1
+    showRecentGames.value = true
+  } catch (error) {
+    console.warn('Error fetching recent games by IDs:', error)
+    suggestions.value = []
+    showSuggestions.value = false
+    showRecentGames.value = false
+  }
+}
+
+// When SearchBar is focused, show recent games as suggestions if input is empty.
+const onSearchBarFocus = async (): Promise<void> => {
+  if (isMobile()) {
+    // Don't show suggestions on mobile devices
+    return
+  }
+  if (props.modelValue.trim().length > 0) {
+    // If there's input, show suggestions as usual
+    showSuggestions.value = suggestions.value.length > 0
+    return
+  }
+  await showRecentGamesAsSuggestions()
+}
+
+const hideSuggestions = (): void => {
+  showSuggestions.value = false
+  showRecentGames.value = false
+  selectedSuggestionIndex.value = -1
+}
+
+const handleSearch = async (submitSource: SearchSubmitSource): Promise<void> => {
+  if (submitSource === 'enter_key' && selectedSuggestionIndex.value !== -1) {
+    // Suggestion selected with enter key, avoid search
+    return
+  }
+  gameSearchSubmitted.value = true
+  hideSuggestions()
+  if (debounceTimer.value) clearTimeout(debounceTimer.value)
+  // Track the search event
+  trackSearch(props.modelValue, 'game_search', {
+    search_source: submitSource,
+  })
+  emit('search', props.modelValue)
+}
+
+const debounceTrackInput = (): void => {
+  // Clear existing timeout
+  if (inputTrackingTimeout.value) {
+    clearTimeout(inputTrackingTimeout.value)
+  }
+
+  // Set new timeout to track input after 1 second of inactivity
+  inputTrackingTimeout.value = setTimeout(() => {
+    if (props.modelValue && props.modelValue.trim().length > 0) {
+      trackSearchInput(props.modelValue.trim(), props.modelValue.trim().length, 'game_search_input')
+    }
+  }, 1000)
+}
+
+const fetchSuggestions = async (): Promise<void> => {
+  if (!props.modelValue.trim() || props.modelValue.trim().length < 2) {
+    await showRecentGamesAsSuggestions()
+    return
+  }
+
+  suggestionsLoading.value = true
+
+  try {
+    const result = (await $backendApi.searchSteamGamesByName(
+      props.modelValue.trim(),
+      7
+    )) as SearchGamesResponse
+    // Only show suggestions if the search hasn't been submitted
+    suggestions.value = gameSearchSubmitted.value ? [] : result.items || []
+    showSuggestions.value = suggestions.value.length > 0
+    selectedSuggestionIndex.value = -1
+  } catch (error) {
+    console.error('Error fetching suggestions:', error)
+    suggestions.value = []
+    showSuggestions.value = false
+  } finally {
+    suggestionsLoading.value = false
+  }
+}
+
+const debouncedFetchSuggestions = (): void => {
+  // Clear existing timer
+  if (debounceTimer.value) {
+    clearTimeout(debounceTimer.value)
+  }
+
+  // Set new timer for 300ms delay
+  debounceTimer.value = setTimeout(() => {
+    void fetchSuggestions()
+  }, 300)
+}
+
+const onGameNameInput = (): void => {
+  gameSearchSubmitted.value = false
+  showRecentGames.value = false
+
+  // Track search input with debouncing to avoid too many events
+  debounceTrackInput()
+
+  // Trigger suggestions with debouncing (only on non-mobile devices)
+  if (!isMobile()) {
+    debouncedFetchSuggestions()
+  }
+}
+
+const saveRecentSearchedGameId = (gameId: GameId): void => {
+  recentGamesStore.saveRecentSearchedGameId(gameId)
+}
+
+const selectSuggestion = async (suggestion: SearchGame): Promise<void> => {
+  saveRecentSearchedGameId(suggestion.id)
+  trackSuggestionSelect(suggestion.name, selectedSuggestionIndex.value, props.modelValue.trim())
+  // Route directly to the game page using the suggestion ID
+  await router.push(`/game/${suggestion.id}`)
+}
+
+const delayedHideSuggestions = (): void => {
+  // Delay hiding suggestions to allow click events to register
+  setTimeout(() => {
+    hideSuggestions()
+  }, 200)
+}
+
+onBeforeUnmount(() => {
+  // Clean up debounce timer
+  if (debounceTimer.value) {
+    clearTimeout(debounceTimer.value)
+  }
+  // Clean up input tracking timeout
+  if (inputTrackingTimeout.value) {
+    clearTimeout(inputTrackingTimeout.value)
+  }
+  suggestions.value = []
+})
 </script>
 
 <style scoped>

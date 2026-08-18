@@ -48,19 +48,17 @@
 </svg>
 </template>
 
-<script setup>
-defineProps({
-  size: {
-    type: [Number, String],
-    default: 24,
-  },
-  color: {
-    type: String,
-    default: 'currentColor',
-  },
-  ariaLabel: {
-    type: String,
-    default: 'Proton',
-  },
-})
+<script setup lang="ts">
+withDefaults(
+  defineProps<{
+    size?: number | string
+    color?: string
+    ariaLabel?: string
+  }>(),
+  {
+    size: 24,
+    color: 'currentColor',
+    ariaLabel: 'Proton',
+  }
+)
 </script>

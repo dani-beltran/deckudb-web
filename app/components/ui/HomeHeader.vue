@@ -8,10 +8,8 @@
   </header>
 </template>
 
-<script>
-export default {
-  name: 'HomeHeader',
-}
+<script setup lang="ts">
+defineOptions({ name: 'HomeHeader' })
 </script>
 
 <style scoped>

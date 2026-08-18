@@ -19,84 +19,95 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Tooltip',
-  data() {
-    return {
-      tooltipShiftX: 0,
-    }
+<script setup lang="ts">
+import { type CSSProperties, computed, nextTick, type PropType, ref } from 'vue'
+
+type TooltipPosition =
+  | 'top'
+  | 'bottom'
+  | 'left'
+  | 'right'
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right'
+
+defineOptions({ name: 'Tooltip' })
+
+const props = defineProps({
+  text: {
+    type: String,
+    required: true,
   },
-  computed: {
-    tooltipStyle() {
-      return {
-        '--tooltip-shift-x': `${this.tooltipShiftX}px`,
+  position: {
+    type: String as PropType<TooltipPosition>,
+    default: 'top',
+    validator: (value: unknown): value is TooltipPosition =>
+      typeof value === 'string' &&
+      [
+        'top',
+        'bottom',
+        'left',
+        'right',
+        'top-left',
+        'top-right',
+        'bottom-left',
+        'bottom-right',
+      ].includes(value),
+  },
+  wrapperClass: {
+    type: String,
+    default: '',
+  },
+})
+
+const tooltipContent = ref<HTMLElement | null>(null)
+const tooltipShiftX = ref(0)
+const tooltipStyle = computed<CSSProperties>(() => ({
+  '--tooltip-shift-x': `${tooltipShiftX.value}px`,
+}))
+
+/**
+ * Position the tooltip to ensure it stays within the viewport, especially for top and bottom positions in mobile design where horizontal
+ * overflow is more likely.
+ */
+const adjustPosition = (): void => {
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      const tooltip = tooltipContent.value
+      if (!tooltip) return
+
+      if (props.position !== 'top' && props.position !== 'bottom') {
+        tooltipShiftX.value = 0
+        return
       }
-    },
-  },
-  props: {
-    text: {
-      type: String,
-      required: true,
-    },
-    position: {
-      type: String,
-      default: 'top',
-      validator: (value) =>
-        [
-          'top',
-          'bottom',
-          'left',
-          'right',
-          'top-left',
-          'top-right',
-          'bottom-left',
-          'bottom-right',
-        ].includes(value),
-    },
-    wrapperClass: {
-      type: String,
-      default: '',
-    },
-  },
-  methods: {
-    /**
-     * Position the tooltip to ensure it stays within the viewport, especially for top and bottom positions in mobile design where horizontal
-     * overflow is more likely.
-     */
-    adjustPosition() {
-      this.$nextTick(() => {
-        requestAnimationFrame(() => {
-          const tooltip = this.$refs.tooltipContent
-          if (!tooltip) return
 
-          if (this.position !== 'top' && this.position !== 'bottom') {
-            this.tooltipShiftX = 0
-            return
-          }
+      // Caculated from mobile design, where tooltips are more constrainted
+      const viewportPadding = 16
+      const rect = tooltip.getBoundingClientRect()
+      const minLeft = viewportPadding
+      const maxRight = window.innerWidth - viewportPadding
 
-          // Caculated from mobile design, where tooltips are more constrainted
-          const viewportPadding = 16
-          const rect = tooltip.getBoundingClientRect()
-          const minLeft = viewportPadding
-          const maxRight = window.innerWidth - viewportPadding
+      let shiftX = 0
+      if (rect.left < minLeft) {
+        shiftX = minLeft - rect.left
+      } else if (rect.right > maxRight) {
+        shiftX = maxRight - rect.right
+      }
 
-          let shiftX = 0
-          if (rect.left < minLeft) {
-            shiftX = minLeft - rect.left
-          } else if (rect.right > maxRight) {
-            shiftX = maxRight - rect.right
-          }
-
-          this.tooltipShiftX = shiftX
-        })
-      })
-    },
-    resetPosition() {
-      this.tooltipShiftX = 0
-    },
-  },
+      tooltipShiftX.value = shiftX
+    })
+  })
 }
+
+const resetPosition = (): void => {
+  tooltipShiftX.value = 0
+}
+
+defineExpose({
+  adjustPosition,
+  resetPosition,
+})
 </script>
 
 <style scoped>

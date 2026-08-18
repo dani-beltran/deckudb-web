@@ -1,5 +1,11 @@
 import { reactive, readonly } from 'vue'
 
+export type RecentGameId = string | number
+
+interface RecentGamesState {
+  recentGames: RecentGameId[]
+}
+
 /**
  * Recent Games Store
  * Manages recently searched games stored in localStorage
@@ -7,18 +13,26 @@ import { reactive, readonly } from 'vue'
 const STORAGE_KEY = 'recentSearchedGameIds'
 const MAX_RECENT_GAMES = 10
 
-const state = reactive({
+function isRecentGameId(value: unknown): value is RecentGameId {
+  return typeof value === 'string' || typeof value === 'number'
+}
+
+const state = reactive<RecentGamesState>({
   recentGames: [],
 })
 
 /**
  * Load recent games from localStorage
  */
-function loadFromStorage() {
+function loadFromStorage(): void {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
-      state.recentGames = JSON.parse(stored)
+      const parsed: unknown = JSON.parse(stored)
+      if (!Array.isArray(parsed) || !parsed.every(isRecentGameId)) {
+        throw new TypeError('Stored recent games are invalid')
+      }
+      state.recentGames = parsed
     }
   } catch (error) {
     console.error('Failed to load recent games from storage:', error)
@@ -29,7 +43,7 @@ function loadFromStorage() {
 /**
  * Save recent games to localStorage
  */
-function saveToStorage() {
+function saveToStorage(): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.recentGames))
   } catch (error) {
@@ -41,7 +55,7 @@ function saveToStorage() {
  * Save a recently searched game by ID
  * @param {string|number} gameId - The game ID to save
  */
-function saveRecentSearchedGameId(gameId) {
+function saveRecentSearchedGameId(gameId: RecentGameId): void {
   if (!gameId) return
 
   // Remove the game if it already exists (to move it to the front)
@@ -65,14 +79,14 @@ function saveRecentSearchedGameId(gameId) {
  * Get the list of recently searched game IDs
  * @returns {Array} Array of recent game IDs
  */
-function getRecentGames() {
+function getRecentGames(): RecentGameId[] {
   return [...state.recentGames]
 }
 
 /**
  * Clear all recent games
  */
-function clearRecentGames() {
+function clearRecentGames(): void {
   state.recentGames = []
   saveToStorage()
 }

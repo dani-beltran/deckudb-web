@@ -5,21 +5,22 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ErrorMessage',
-  props: {
-    message: {
-      type: String,
-      default: null,
-    },
-  },
-  methods: {
-    dismiss() {
-      this.$emit('dismiss')
-    },
-  },
+<script setup lang="ts">
+defineOptions({ name: 'ErrorMessage' })
+
+const { message = null } = defineProps<{
+  message?: string | null
+}>()
+
+const emit = defineEmits<{
+  dismiss: []
+}>()
+
+const dismiss = (): void => {
+  emit('dismiss')
 }
+
+defineExpose({ dismiss })
 </script>
 
 <style scoped>

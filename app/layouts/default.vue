@@ -13,13 +13,14 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import DarkModeToggle from '../components/common/DarkModeToggle.vue'
 import ScrollToTopButton from '../components/common/ScrollToTopButton.vue'
 import Footer from '../components/ui/Footer.vue'
 import { useDarkMode } from '../composables/useDarkMode'
 
-export default {
+export default defineComponent({
   name: 'DefaultLayout',
   components: {
     Footer,
@@ -30,7 +31,7 @@ export default {
     // Initialize dark mode
     useDarkMode()
   },
-}
+})
 </script>
 
 <style scoped>

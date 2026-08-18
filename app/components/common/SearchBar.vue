@@ -38,79 +38,81 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { Search } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
 import Button from '../base/Button.vue'
 import Spinner from '../base/Spinner.vue'
 
-export default {
-  name: 'SearchBar',
-  components: {
-    Button,
-    Search,
-    Spinner,
-  },
-  props: {
-    modelValue: {
-      type: String,
-      default: '',
-    },
-    placeholder: {
-      type: String,
-      default: 'Enter search term...',
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    showSuggestions: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ['update:modelValue', 'search', 'input', 'blur', 'focus'],
-  computed: {
-    searchTerm: {
-      get() {
-        return this.modelValue
-      },
-      set(value) {
-        this.$emit('update:modelValue', value)
-      },
-    },
-  },
-  methods: {
-    handleSearchBtnClick() {
-      this.hideMobileKeyboard()
-      this.$emit('search', 'search_bar_button')
-    },
+type SearchSubmitSource = 'search_bar_button' | 'enter_key'
 
-    handleInput() {
-      this.$emit('input', this.searchTerm)
-    },
+defineOptions({ name: 'SearchBar' })
 
-    handleKeyDown(event) {
-      if (event.key === 'Enter') {
-        this.hideMobileKeyboard()
-        this.$emit('search', 'enter_key')
-      }
-    },
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string
+    placeholder?: string
+    loading?: boolean
+    showSuggestions?: boolean
+  }>(),
+  {
+    modelValue: '',
+    placeholder: 'Enter search term...',
+    loading: false,
+    showSuggestions: false,
+  }
+)
 
-    handleBlur(event) {
-      this.$emit('blur', event)
-    },
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+  search: [source: SearchSubmitSource]
+  input: [value: string]
+  blur: [event: FocusEvent]
+  focus: [event: FocusEvent]
+}>()
 
-    handleFocus(event) {
-      this.$emit('focus', event)
-    },
+const searchInput = ref<HTMLInputElement | null>(null)
+const searchTerm = computed({
+  get: () => props.modelValue,
+  set: (value: string) => emit('update:modelValue', value),
+})
 
-    hideMobileKeyboard() {
-      if (this.$refs.searchInput) {
-        this.$refs.searchInput.blur()
-      }
-    },
-  },
+const hideMobileKeyboard = (): void => {
+  searchInput.value?.blur()
 }
+
+const handleSearchBtnClick = (): void => {
+  hideMobileKeyboard()
+  emit('search', 'search_bar_button')
+}
+
+const handleInput = (): void => {
+  emit('input', searchTerm.value)
+}
+
+const handleKeyDown = (event: KeyboardEvent): void => {
+  if (event.key === 'Enter') {
+    hideMobileKeyboard()
+    emit('search', 'enter_key')
+  }
+}
+
+const handleBlur = (event: FocusEvent): void => {
+  emit('blur', event)
+}
+
+const handleFocus = (event: FocusEvent): void => {
+  emit('focus', event)
+}
+
+defineExpose({
+  handleSearchBtnClick,
+  handleInput,
+  handleKeyDown,
+  handleBlur,
+  handleFocus,
+  hideMobileKeyboard,
+})
 </script>
 
 <style scoped>

@@ -2,7 +2,7 @@
   <button 
     :class="buttonClasses"
     :disabled="disabled"
-    @click="$emit('click')"
+    @click="emit('click')"
     :type="type"
   >
     <slot>
@@ -12,47 +12,54 @@
   </button>
 </template>
 
-<script>
-export default {
-  name: 'Button',
-  props: {
-    variant: {
-      type: String,
-      default: 'primary',
-      validator: (value) => ['primary', 'secondary', 'search'].includes(value),
-    },
-    size: {
-      type: String,
-      default: 'medium',
-      validator: (value) => ['small', 'medium', 'large'].includes(value),
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    type: {
-      type: String,
-      default: 'button',
-    },
-    label: {
-      type: String,
-      default: '',
-    },
+<script setup lang="ts">
+import { computed, type PropType } from 'vue'
+
+type ButtonVariant = 'primary' | 'secondary' | 'search'
+type ButtonSize = 'small' | 'medium' | 'large'
+type ButtonType = 'button' | 'submit' | 'reset'
+
+defineOptions({ name: 'Button' })
+
+const props = defineProps({
+  variant: {
+    type: String as PropType<ButtonVariant>,
+    default: 'primary',
+    validator: (value: unknown): value is ButtonVariant =>
+      typeof value === 'string' && ['primary', 'secondary', 'search'].includes(value),
   },
-  emits: ['click'],
-  computed: {
-    buttonClasses() {
-      return [
-        'btn',
-        `btn-${this.variant}`,
-        `btn-${this.size}`,
-        {
-          'btn-disabled': this.disabled,
-        },
-      ]
-    },
+  size: {
+    type: String as PropType<ButtonSize>,
+    default: 'medium',
+    validator: (value: unknown): value is ButtonSize =>
+      typeof value === 'string' && ['small', 'medium', 'large'].includes(value),
   },
-}
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  type: {
+    type: String as PropType<ButtonType>,
+    default: 'button',
+  },
+  label: {
+    type: String,
+    default: '',
+  },
+})
+
+const emit = defineEmits({
+  click: () => true,
+})
+
+const buttonClasses = computed(() => [
+  'btn',
+  `btn-${props.variant}`,
+  `btn-${props.size}`,
+  {
+    'btn-disabled': props.disabled,
+  },
+])
 </script>
 
 <style scoped>
