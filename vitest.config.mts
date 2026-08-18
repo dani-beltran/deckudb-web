@@ -47,6 +47,8 @@ export default defineConfig({
         test: {
           name: 'e2e',
           environment: 'nuxt',
+          // Browser navigation can exceed Vitest's 5-second Node default on shared CI runners.
+          testTimeout: 15_000,
           env: {
             NUXT_MONGODB_DATABASE: 'deckudb-e2e',
             NUXT_NODE_ENV: 'test',
