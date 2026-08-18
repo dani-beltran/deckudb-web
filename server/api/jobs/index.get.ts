@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
 import { JOB_STATUS, JOB_TYPE } from '../../models/jobs.schema'
-import { apiHandler, parseQuery, requireJobApiKey } from '../../utils/api'
+import { apiHandler, parseQuery, requireAdminOrJobApiKey } from '../../utils/api'
 import { paginationSchema } from '../../utils/pagination'
 
 const jobsQuerySchema = paginationSchema.extend({
@@ -14,7 +14,7 @@ const jobsQuerySchema = paginationSchema.extend({
 
 export default defineEventHandler((event) =>
   apiHandler(event, async () => {
-    requireJobApiKey(event)
+    requireAdminOrJobApiKey(event)
     const { status, job_type, game_id, page, page_size, sort_by, sort_order } = await parseQuery(
       event,
       jobsQuerySchema

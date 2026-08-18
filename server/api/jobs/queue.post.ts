@@ -2,15 +2,14 @@ import { defineEventHandler, setResponseStatus } from 'h3'
 import z from 'zod'
 import { gameIdSchema } from '../../models/games.schema'
 import { JOB_TYPE } from '../../models/jobs.schema'
-import { apiHandler, parseBody, requireJobApiKey } from '../../utils/api'
+import { apiHandler, parseBody, requireAdminOrJobApiKey } from '../../utils/api'
 import { NotFoundError } from '../../utils/errors/NotFoundError'
 
 const queueJobBodySchema = z.object({ game_id: gameIdSchema, job_type: z.enum(JOB_TYPE) })
 
 export default defineEventHandler((event) =>
   apiHandler(event, async () => {
-    // Only allow requests with a valid API key to queue jobs
-    requireJobApiKey(event)
+    requireAdminOrJobApiKey(event)
 
     const { game_id, job_type } = await parseBody(event, queueJobBodySchema)
     const { repositories } = event.context

@@ -1,6 +1,14 @@
-import { createError, getHeader, getQuery, readBody, setResponseStatus } from 'h3'
+import {
+  createError,
+  getHeader,
+  getQuery,
+  readBody,
+  setResponseHeader,
+  setResponseStatus,
+} from 'h3'
 import { ZodError, type ZodType } from 'zod'
 import { useRuntimeConfig } from '#imports'
+import { isAdminAuthenticated } from './admin-auth'
 import { ConflictError } from './errors/ConflictError'
 import { NotFoundError } from './errors/NotFoundError'
 import { ValidationError } from './errors/ValidationError'
@@ -59,6 +67,13 @@ export function requireJobApiKey(event: Parameters<typeof getHeader>[0]) {
   if (getHeader(event, 'x-api-key') !== jobApiKey) {
     throw createHttpError(401, { error: 'Unauthorized' })
   }
+}
+
+/** Allows browser dashboard sessions while preserving API-key access for legacy clients. */
+export function requireAdminOrJobApiKey(event: Parameters<typeof getHeader>[0]) {
+  setResponseHeader(event, 'Cache-Control', 'no-store')
+  if (isAdminAuthenticated(event)) return
+  requireJobApiKey(event)
 }
 
 export function getSessionId(event: Parameters<typeof getHeader>[0]) {
