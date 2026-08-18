@@ -32,7 +32,9 @@ jobs:
     name: Quality
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: ci/cd
+    environment:
+      name: ci/cd
+      deployment: false
 
     steps:
       - name: Check out repository
@@ -65,7 +67,9 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment: ci/cd
+    environment:
+      name: ci/cd
+      deployment: false
 
     steps:
       - name: Check out repository
@@ -108,7 +112,9 @@ jobs:
       - tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: ci/cd
+    environment:
+      name: ci/cd
+      deployment: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
     permissions:
       contents: read
       packages: write
