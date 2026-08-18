@@ -17,6 +17,8 @@ export function getEnvConfig(): Record<string, string | undefined> {
     // Nuxt prefixed environment variables take precedence over unprefixed ones.
     // This is the same behavior as Nuxt's useRuntimeConfig.
     config[key] = process.env[`NUXT_${envVarName}`] ?? process.env[envVarName]
+    // Empty strings are treated as undefined to allow for default values to be applied in the config schema validation.
+    config[key] = config[key] === '' ? undefined : config[key]
   }
 
   return config
