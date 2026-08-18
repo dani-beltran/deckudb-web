@@ -66,7 +66,7 @@ export default defineNuxtConfig({
       ],
     },
   },
-  runtimeConfig: { ...getEnvConfig(), public: { apiBase: '/api', webHost: process.env.WEB_HOST } },
+  runtimeConfig: { ...getEnvConfig(), public: { apiBase: '/api', webHost: process.env.NUXT_WEB_HOST } },
   nitro: {
     experimental: {
       tasks: true,
