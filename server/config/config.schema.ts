@@ -12,10 +12,6 @@ export const configSchema = z.object({
   nodeEnv: z.string().trim().min(1),
   // Port to listen on for HTTP requests
   port: positiveInteger,
-  // Domain hosting the app
-  webHost: z.url(),
-  // Domain hosting the dashboard
-  dashboardHost: z.url(),
   // MongoDB connection string
   mongodbUri: z.string().trim().min(1),
   // MongoDB database name
@@ -30,10 +26,11 @@ export const configSchema = z.object({
   sessionSecret: z.string().trim().min(10).max(100),
   // Session max age in milliseconds
   sessionMaxAgeMs: positiveInteger,
+  // Single-user dashboard credentials (server-only)
+  adminUsername: z.string().trim().min(1).max(128),
+  adminPassword: z.string().min(12).max(1024),
   // Days between scrapes for a game before it is considered stale and needs to be re-scraped
   daysBetweenScrapes: positiveInteger,
-  // Job API key for internal job queueing from dashboard
-  jobApiKey: z.string().trim().min(1),
   // Job timeout in minutes for jobs to complete before they are considered failed
   jobTimeoutMinutes: positiveInteger,
   // Job max attempts before a job is considered failed

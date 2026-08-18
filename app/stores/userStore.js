@@ -1,5 +1,4 @@
 import { reactive, readonly } from 'vue'
-import apiService from '../services/backend/apiService.js'
 
 /**
  * User Store
@@ -20,10 +19,11 @@ const CACHE_DURATION = 5 * 60 * 1000
 /**
  * Fetch the authenticated user from the backend
  * Uses cached data if available and not expired
+ * @param {import('../plugins/api/BackendApi').BackendApi} api
  * @param {boolean} forceRefresh - Force a fresh fetch even if cached data exists
  * @returns {Promise<Object|null>} The user data or null
  */
-async function fetchUser(forceRefresh = false) {
+async function fetchUser(api, forceRefresh = false) {
   const now = Date.now()
 
   // Return cached user if available and not expired
@@ -51,7 +51,7 @@ async function fetchUser(forceRefresh = false) {
   state.error = null
 
   try {
-    const user = await apiService.fetchAuthUser()
+    const user = await api.fetchAuthUser()
     state.user = user
     state.isAuthenticated = user !== null
     state.authCheckComplete = true
@@ -99,14 +99,14 @@ function isAuthenticated() {
   return state.isAuthenticated
 }
 
-function signIn() {
+function signIn(api) {
   clearUser()
-  apiService.loginWithSteam()
+  api.loginWithSteam()
 }
 
-function signOut() {
+function signOut(api) {
   clearUser()
-  apiService.logout()
+  api.logout()
 }
 
 export default {

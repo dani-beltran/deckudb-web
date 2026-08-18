@@ -65,7 +65,6 @@
 </template>
 
 <script>
-import apiService from '../../services/backend/apiService.js'
 import Button from '../base/Button.vue'
 import LoadingDots from '../base/LoadingDots.vue'
 import Carousel from '../common/Carousel.vue'
@@ -110,7 +109,7 @@ export default {
       this.isLoading = true
       this.error = null
       try {
-        const { items: games, total } = await apiService.fetchMostPlayedGames(
+        const { items: games, total } = await this.$backendApi.fetchMostPlayedGames(
           this.currentPage,
           this.pageSize
         )
@@ -133,7 +132,7 @@ export default {
       this.currentPage++
 
       try {
-        const { items: games, total } = await apiService.fetchMostPlayedGames(
+        const { items: games, total } = await this.$backendApi.fetchMostPlayedGames(
           this.currentPage,
           this.pageSize
         )

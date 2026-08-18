@@ -10,6 +10,7 @@ The browser app, API, database bootstrap, and the job worker all live in this re
 - View community-reported graphics settings, performance, compatibility, and source links.
 - Generate concise AI summaries from collected reports.
 - Vote on the usefulness of a game summary with an anonymous session.
+- Monitor, queue, and remove processing jobs from the session-protected admin dashboard.
 
 ## Tech stack
 
@@ -62,12 +63,12 @@ Server configuration is validated at startup. Nuxt runtime overrides use the `NU
 | --- | --- |
 | Database | `NUXT_MONGODB_URI`, `NUXT_MONGODB_DATABASE` |
 | AI and scraping | `NUXT_CLAUDE_API_KEY`, `NUXT_CLAUDE_AI_MODEL`, `NUXT_FIRECRAWL_API_KEY`, `NUXT_DAYS_BETWEEN_SCRAPES` |
-| Sessions and hosts | `NUXT_SESSION_SECRET`, `NUXT_SESSION_MAX_AGE_MS`, `NUXT_WEB_HOST`, `NUXT_DASHBOARD_HOST` |
-| Protected job API | `NUXT_JOB_API_KEY` |
+| Sessions | `NUXT_SESSION_SECRET`, `NUXT_SESSION_MAX_AGE_MS` |
+| Admin dashboard | `NUXT_ADMIN_USERNAME`, `NUXT_ADMIN_PASSWORD` |
 | Job execution | `NUXT_JOB_TIMEOUT_MINUTES`, `NUXT_JOB_MAX_ATTEMPTS`, `NUXT_WORKER_ENABLED` |
 | Worker polling | `NUXT_WORKER_POLL_INTERVAL_MS`, `NUXT_WORKER_POLL_JITTER_MS`, `NUXT_WORKER_REQUEUE_SWEEP_MS`, `NUXT_WORKER_IDLE_LOG_EVERY` |
 
-Keep all API keys and the session secret out of version control.
+Keep all API keys, admin credentials, and the session secret out of version control.
 
 ## Application routes
 
@@ -76,8 +77,28 @@ Keep all API keys and the session secret out of version control.
 | `/` | Home page and popular games |
 | `/search?q=...` | Steam catalog search |
 | `/game/:gameId` | Game reports, settings, and summary |
+| `/admin/login` | Admin sign-in |
+| `/admin` | Authenticated job dashboard |
 
 Unknown routes render the application's not-found view.
+
+## Admin dashboard
+
+The backoffice is available at `/admin` and is intended for a single operator. Configure its
+credentials through `NUXT_ADMIN_USERNAME` and `NUXT_ADMIN_PASSWORD`; both values stay in the
+server-only Nuxt runtime configuration and must not be exposed through client-side variables.
+
+Signing in at `/admin/login` creates an authenticated server-side session. The browser receives
+only the signed, HTTP-only `decku.sid` cookie. A successful login rotates the anonymous session
+identifier, subsequent visits to `/admin` reuse the authenticated session until it expires, and
+logging out invalidates it. Admin page navigation without an authenticated session is redirected
+to the login page, while unauthenticated job-management API requests return `401 Unauthorized`.
+
+Use HTTPS and a strong, unique password in production. `NUXT_SESSION_SECRET` protects the signed
+session cookie and must also be a strong secret.
+
+The integrated dashboard and API use the application's origin. Cross-origin API access is not
+allowed.
 
 ## API
 
@@ -86,6 +107,9 @@ Nitro maps files in `server/api` directly to `/api` endpoints.
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/health` | Health check |
+| `GET` | `/api/admin/auth/session` | Report whether the current session is authenticated |
+| `POST` | `/api/admin/auth/login` | Authenticate the admin session |
+| `POST` | `/api/admin/auth/logout` | Invalidate the admin session |
 | `GET` | `/api/games/:id` | Return a game and its reports; queue stale or missing data |
 | `POST` | `/api/games/:id/summary-vote` | Record an anonymous `up` or `down` summary vote |
 | `GET` | `/api/steam/games?term=...&limit=...` | Search Steam games |
@@ -96,7 +120,7 @@ Nitro maps files in `server/api` directly to `/api` endpoints.
 | `POST` | `/api/jobs/queue` | Queue a processing job |
 | `DELETE` | `/api/jobs/:job_id` | Delete a job |
 
-The job endpoints require the configured job API key in the `X-API-Key` request header. Job types are `search`, `scrape`, `reports`, `summary`, and `full`.
+The job endpoints accept the authenticated admin session used by the integrated dashboard. Job types are `search`, `scrape`, `reports`, `summary`, and `full`.
 
 ## Background processing
 

@@ -2,20 +2,21 @@ import { fileURLToPath } from 'node:url'
 import { defineVitestProject } from '@nuxt/test-utils/config'
 import { defineConfig } from 'vitest/config'
 
-const serverAlias = {
+const aliases = {
   '@server': fileURLToPath(new URL('./server', import.meta.url)),
+  '@app': fileURLToPath(new URL('./app', import.meta.url)),
 }
 
 export default defineConfig({
   resolve: {
-    alias: serverAlias,
+    alias: aliases,
   },
   test: {
     globalSetup: ['test/mongodb.global-setup.ts'],
     projects: [
       {
         resolve: {
-          alias: serverAlias,
+          alias: aliases,
         },
         test: {
           name: 'unit',
@@ -29,7 +30,7 @@ export default defineConfig({
       },
       {
         resolve: {
-          alias: serverAlias,
+          alias: aliases,
         },
         test: {
           name: 'api',

@@ -72,7 +72,6 @@ import GameDescription from '../components/ui/GameDescription.vue'
 import GameReportsSection from '../components/ui/GameReportsSection.vue'
 import NavigationHeader from '../components/ui/NavigationHeader.vue'
 import ProcessingWarning from '../components/ui/ProcessingWarning.vue'
-import apiService from '../services/backend/apiService.js'
 
 export default {
   name: 'GamePage',
@@ -186,7 +185,7 @@ export default {
       this.pendingGame = false
 
       try {
-        const res = await apiService.fetchGame(this.gameId)
+        const res = await this.$backendApi.fetchGame(this.gameId)
 
         if (res.status === 'queued') {
           this.pendingGame = true
@@ -207,10 +206,15 @@ export default {
         this.loading = false
       }
     },
-    submitGameSummaryVote(gameId, feedback) {
+    async submitGameSummaryVote(gameId, feedback) {
       const voteType = feedback === 'positive' ? 'up' : feedback === 'negative' ? 'down' : null
       if (!voteType) return
-      return apiService.submitGameSummaryVote(gameId, voteType)
+
+      try {
+        await this.$backendApi.submitGameSummaryVote(gameId, voteType)
+      } catch (error) {
+        console.error('Error submitting game summary vote:', error)
+      }
     },
   },
 }

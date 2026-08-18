@@ -8,7 +8,9 @@ import request from 'supertest'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createNuxtTestServer } from '../test-server'
 
-const TEST_API_KEY = process.env.JOB_API_KEY ?? 'your_job_api_key_here'
+const ADMIN_USERNAME = process.env.NUXT_ADMIN_USERNAME ?? process.env.ADMIN_USERNAME ?? 'admin'
+const ADMIN_PASSWORD =
+  process.env.NUXT_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD ?? 'test-admin-password'
 
 const makeJob = (overrides: Partial<Job> = {}): Job => {
   const now = new Date()
@@ -29,6 +31,7 @@ const makeJob = (overrides: Partial<Job> = {}): Job => {
 describe('jobs API', () => {
   let testServer: NodeListener
   let dependencies: ServerDependencies
+  let client: ReturnType<typeof request.agent>
 
   beforeAll(async () => {
     dependencies = await bootstrapDependencies({
@@ -38,7 +41,7 @@ describe('jobs API', () => {
     testServer = createNuxtTestServer(dependencies)
   })
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.mocked(steamService.getSteamGameDetails).mockImplementation(
       async (gameId) =>
         ({
@@ -47,6 +50,11 @@ describe('jobs API', () => {
           type: 'game',
         }) as SteamApp
     )
+    client = request.agent(testServer)
+    await client
+      .post('/api/admin/auth/login')
+      .send({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD })
+      .expect(200)
   })
 
   afterEach(async () => {
@@ -66,20 +74,14 @@ describe('jobs API', () => {
         makeJob({ job_id: 'job-3', game_id: 3 }),
       ])
 
-      const response = await request(testServer)
-        .get('/api/jobs')
-        .set('x-api-key', TEST_API_KEY)
-        .expect(200)
+      const response = await client.get('/api/jobs').expect(200)
 
       expect(response.body).toMatchObject({ total: 3, page: 1, page_size: 20, total_pages: 1 })
       expect(response.body.items).toHaveLength(3)
     })
 
     it('returns an empty page when no jobs exist', async () => {
-      const response = await request(testServer)
-        .get('/api/jobs')
-        .set('x-api-key', TEST_API_KEY)
-        .expect(200)
+      const response = await client.get('/api/jobs').expect(200)
 
       expect(response.body).toMatchObject({ items: [], total: 0, total_pages: 0 })
     })
@@ -110,10 +112,7 @@ describe('jobs API', () => {
         }),
       ])
 
-      const response = await request(testServer)
-        .get(`/api/jobs?${filter}=${value}`)
-        .set('x-api-key', TEST_API_KEY)
-        .expect(200)
+      const response = await client.get(`/api/jobs?${filter}=${value}`).expect(200)
 
       expect(response.body.total).toBe(2)
       expect(response.body.items).toHaveLength(2)
@@ -147,9 +146,8 @@ describe('jobs API', () => {
         }),
       ])
 
-      const response = await request(testServer)
+      const response = await client
         .get('/api/jobs?game_id=1&status=completed&job_type=scrape')
-        .set('x-api-key', TEST_API_KEY)
         .expect(200)
 
       expect(response.body.items).toEqual([expect.objectContaining({ job_id: 'match' })])
@@ -160,10 +158,7 @@ describe('jobs API', () => {
         Array.from({ length: 10 }, (_, index) => makeJob({ job_id: `job-${index + 1}` }))
       )
 
-      const response = await request(testServer)
-        .get('/api/jobs?page=2&page_size=3')
-        .set('x-api-key', TEST_API_KEY)
-        .expect(200)
+      const response = await client.get('/api/jobs?page=2&page_size=3').expect(200)
 
       expect(response.body).toMatchObject({ total: 10, page: 2, page_size: 3, total_pages: 4 })
       expect(response.body.items).toHaveLength(3)
@@ -179,10 +174,7 @@ describe('jobs API', () => {
         makeJob({ job_id: 'job-new', created_at: new Date(now) }),
       ])
 
-      const response = await request(testServer)
-        .get(`/api/jobs?sort_order=${sortOrder}`)
-        .set('x-api-key', TEST_API_KEY)
-        .expect(200)
+      const response = await client.get(`/api/jobs?sort_order=${sortOrder}`).expect(200)
 
       expect(response.body.items.map((job: Job) => job.job_id)).toEqual(expected)
     })
@@ -199,10 +191,7 @@ describe('jobs API', () => {
         }),
       ])
 
-      const response = await request(testServer)
-        .get('/api/jobs')
-        .set('x-api-key', TEST_API_KEY)
-        .expect(200)
+      const response = await client.get('/api/jobs').expect(200)
 
       expect(response.body.items[0]).toMatchObject({
         job_id: 'job-check-fields',
@@ -216,11 +205,8 @@ describe('jobs API', () => {
       expect(response.body.items[0]).toHaveProperty('updated_at')
     })
 
-    it.each([undefined, 'wrong-api-key'])('returns 401 for API key %s', async (apiKey) => {
-      const pending = request(testServer).get('/api/jobs')
-      if (apiKey) pending.set('x-api-key', apiKey)
-
-      const response = await pending.expect(401)
+    it('returns 401 without an authenticated admin session', async () => {
+      const response = await request(testServer).get('/api/jobs').expect(401)
 
       expect(response.body.data.error).toBe('Unauthorized')
     })
@@ -228,10 +214,7 @@ describe('jobs API', () => {
     it.each(['status=invalid_status', 'job_type=invalid_type', 'game_id=abc', 'page_size=101'])(
       'returns 400 for invalid query %s',
       async (query) => {
-        const response = await request(testServer)
-          .get(`/api/jobs?${query}`)
-          .set('x-api-key', TEST_API_KEY)
-          .expect(400)
+        const response = await client.get(`/api/jobs?${query}`).expect(400)
 
         expect(response.body.data.error).toBe('Invalid request query parameters')
       }
@@ -242,10 +225,7 @@ describe('jobs API', () => {
         new Error('Database connection failed')
       )
 
-      const response = await request(testServer)
-        .get('/api/jobs')
-        .set('x-api-key', TEST_API_KEY)
-        .expect(500)
+      const response = await client.get('/api/jobs').expect(500)
 
       expect(response.body.data.error).toBe('Internal server error')
     })
@@ -253,10 +233,7 @@ describe('jobs API', () => {
     it('returns an empty item list for a page beyond the result set', async () => {
       await dependencies.repositories.jobs.insertTestJobs([makeJob()])
 
-      const response = await request(testServer)
-        .get('/api/jobs?page=999')
-        .set('x-api-key', TEST_API_KEY)
-        .expect(200)
+      const response = await client.get('/api/jobs?page=999').expect(200)
 
       expect(response.body).toMatchObject({ items: [], total: 1 })
     })
@@ -264,9 +241,8 @@ describe('jobs API', () => {
 
   describe('POST /api/jobs/queue', () => {
     it('queues and persists a job using Steam metadata', async () => {
-      const response = await request(testServer)
+      const response = await client
         .post('/api/jobs/queue')
-        .set('x-api-key', TEST_API_KEY)
         .send({ game_id: 123, job_type: JOB_TYPE.SCRAPE })
         .expect(201)
 
@@ -284,17 +260,9 @@ describe('jobs API', () => {
 
     it('does not duplicate an active job for the same game and type', async () => {
       const body = { game_id: 456, job_type: JOB_TYPE.REPORTS }
-      await request(testServer)
-        .post('/api/jobs/queue')
-        .set('x-api-key', TEST_API_KEY)
-        .send(body)
-        .expect(201)
+      await client.post('/api/jobs/queue').send(body).expect(201)
 
-      const response = await request(testServer)
-        .post('/api/jobs/queue')
-        .set('x-api-key', TEST_API_KEY)
-        .send(body)
-        .expect(409)
+      const response = await client.post('/api/jobs/queue').send(body).expect(409)
 
       expect(response.body.data.error).toContain('already in progress or queued')
     })
@@ -302,16 +270,15 @@ describe('jobs API', () => {
     it('returns 404 when Steam has no game details', async () => {
       vi.mocked(steamService.getSteamGameDetails).mockRejectedValueOnce(new Error('Steam error'))
 
-      const response = await request(testServer)
+      const response = await client
         .post('/api/jobs/queue')
-        .set('x-api-key', TEST_API_KEY)
         .send({ game_id: 404, job_type: JOB_TYPE.SCRAPE })
         .expect(404)
 
       expect(response.body.data.error).toBe('Game not found on Steam')
     })
 
-    it('returns 401 when the API key is missing', async () => {
+    it('returns 401 without an authenticated admin session', async () => {
       const response = await request(testServer)
         .post('/api/jobs/queue')
         .send({ game_id: 100, job_type: JOB_TYPE.SCRAPE })
@@ -324,11 +291,7 @@ describe('jobs API', () => {
       { game_id: 100, job_type: 'invalid_type' },
       { game_id: 'abc', job_type: JOB_TYPE.SCRAPE },
     ])('validates queue body %j', async (body) => {
-      const response = await request(testServer)
-        .post('/api/jobs/queue')
-        .set('x-api-key', TEST_API_KEY)
-        .send(body)
-        .expect(400)
+      const response = await client.post('/api/jobs/queue').send(body).expect(400)
 
       expect(response.body.data.error).toBe('Invalid request body')
     })
@@ -338,9 +301,8 @@ describe('jobs API', () => {
         new Error('Queue insertion failed')
       )
 
-      const response = await request(testServer)
+      const response = await client
         .post('/api/jobs/queue')
-        .set('x-api-key', TEST_API_KEY)
         .send({ game_id: 100, job_type: JOB_TYPE.SCRAPE })
         .expect(500)
 
@@ -356,19 +318,13 @@ describe('jobs API', () => {
     it('deletes an existing queued job', async () => {
       await dependencies.repositories.jobs.insertTestJobs([queuedJob])
 
-      await request(testServer)
-        .delete(`/api/jobs/${queuedJob.job_id}`)
-        .set('x-api-key', TEST_API_KEY)
-        .expect(204)
+      await client.delete(`/api/jobs/${queuedJob.job_id}`).expect(204)
 
       expect(await dependencies.repositories.jobs.getJobById(queuedJob.job_id)).toBeNull()
     })
 
     it('returns 409 when deleting a missing job', async () => {
-      const response = await request(testServer)
-        .delete(`/api/jobs/${missingJobId}`)
-        .set('x-api-key', TEST_API_KEY)
-        .expect(409)
+      const response = await client.delete(`/api/jobs/${missingJobId}`).expect(409)
 
       expect(response.body.data.error).toContain('cannot be deleted')
     })
@@ -376,10 +332,7 @@ describe('jobs API', () => {
     it('returns 409 when deleting an in-progress job', async () => {
       await dependencies.repositories.jobs.insertTestJobs([inProgressJob])
 
-      const response = await request(testServer)
-        .delete(`/api/jobs/${inProgressJob.job_id}`)
-        .set('x-api-key', TEST_API_KEY)
-        .expect(409)
+      const response = await client.delete(`/api/jobs/${inProgressJob.job_id}`).expect(409)
 
       expect(response.body.data.error).toContain('cannot be deleted')
     })
@@ -391,10 +344,7 @@ describe('jobs API', () => {
     })
 
     it('returns 400 for an invalid job UUID', async () => {
-      const response = await request(testServer)
-        .delete('/api/jobs/not-a-uuid')
-        .set('x-api-key', TEST_API_KEY)
-        .expect(400)
+      const response = await client.delete('/api/jobs/not-a-uuid').expect(400)
 
       expect(response.body.data.error).toBe('Invalid request parameters')
     })
@@ -405,10 +355,7 @@ describe('jobs API', () => {
         new Error('Delete failed')
       )
 
-      const response = await request(testServer)
-        .delete(`/api/jobs/${jobId}`)
-        .set('x-api-key', TEST_API_KEY)
-        .expect(500)
+      const response = await client.delete(`/api/jobs/${jobId}`).expect(500)
 
       expect(response.body.data.error).toBe('Internal server error')
     })

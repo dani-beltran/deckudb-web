@@ -1,89 +1,55 @@
-import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
-import { defineEventHandler, getCookie, setCookie } from 'h3'
-import { useStorage } from 'nitropack/runtime/internal/storage'
-import { getServerConfig } from '../config/index'
+import { createError, defineEventHandler, getRequestURL, sendRedirect, setResponseHeader } from 'h3'
+import { isAdminAuthenticated } from '../utils/admin-auth'
+import { loadSession } from '../utils/session'
 
-const cookieName = 'decku.sid'
-const sessionKeyPrefix = 'session:'
-const sessionIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-const signaturePattern = /^[A-Za-z0-9_-]{43}$/
+const publicAdminAuthRequests = new Set([
+  'POST /api/admin/auth/login',
+  'GET /api/admin/auth/session',
+  'POST /api/admin/auth/logout',
+])
 
-type StoredSession = {
-  id: string
-  data: Record<string, unknown>
-  createdAt: number
-  expiresAt: number
+function isAdminPage(pathname: string) {
+  return pathname === '/admin' || pathname.startsWith('/admin/')
 }
 
-type Session = StoredSession
-
-declare module 'h3' {
-  interface H3EventContext {
-    session?: Session
-  }
+function isAdminApi(pathname: string) {
+  return pathname === '/api/admin' || pathname.startsWith('/api/admin/')
 }
 
-function sign(sessionId: string, secret: string) {
-  return createHmac('sha256', secret).update(sessionId).digest('base64url')
-}
-
-function hasValidSignature(sessionId: string, signature: string, secret: string) {
-  const received = Buffer.from(signature, 'base64url')
-
-  const expected = Buffer.from(sign(sessionId, secret), 'base64url')
-  return received.length === expected.length && timingSafeEqual(received, expected)
-}
-
-function getSignedSessionId(event: Parameters<typeof getCookie>[0], secret: string) {
-  const value = getCookie(event, cookieName)
-  if (!value) return
-
-  const [sessionId, signature, ...rest] = value.split('.')
-  if (!sessionId || !signature || rest.length > 0) return
-  if (!sessionIdPattern.test(sessionId) || !signaturePattern.test(signature)) return
-
-  return hasValidSignature(sessionId, signature, secret) ? sessionId : undefined
-}
-
-function setSignedSessionCookie(event: Parameters<typeof setCookie>[0], sessionId: string) {
-  const { nodeEnv, sessionMaxAgeMs, sessionSecret } = getServerConfig()
-
-  setCookie(event, cookieName, `${sessionId}.${sign(sessionId, sessionSecret)}`, {
-    path: '/',
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: nodeEnv === 'production',
-    maxAge: Math.floor(sessionMaxAgeMs / 1000),
-  })
-}
-
-/** Initializes a signed, server-side MongoDB session for API requests. */
+/** Initializes API sessions and protects admin pages and API routes. */
 export default defineEventHandler(async (event) => {
-  if (event.method === 'OPTIONS' || !event.path.startsWith('/api/')) return
+  if (event.method === 'OPTIONS') return
 
-  const { sessionMaxAgeMs, sessionSecret } = getServerConfig()
-  const sessions = useStorage<StoredSession>('mongo')
-  const sessionId = getSignedSessionId(event, sessionSecret)
-  const key = sessionId ? `${sessionKeyPrefix}${sessionId}` : undefined
-  const session = key ? await sessions.getItem(key) : null
+  const requestUrl = getRequestURL(event)
+  const pathname = requestUrl.pathname
+  const normalizedPathname = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
+  if ((event.method === 'GET' || event.method === 'HEAD') && isAdminPage(normalizedPathname)) {
+    setResponseHeader(event, 'Cache-Control', 'no-store')
+    await loadSession(event, false)
 
-  if (session && session.expiresAt > Date.now()) {
-    event.context.session = session
+    if (normalizedPathname === '/admin/login') {
+      if (isAdminAuthenticated(event)) return sendRedirect(event, '/admin', 302)
+      return
+    }
+
+    if (!isAdminAuthenticated(event)) {
+      const returnPath = `${pathname}${requestUrl.search}`
+      return sendRedirect(event, `/admin/login?redirect=${encodeURIComponent(returnPath)}`, 302)
+    }
     return
   }
 
-  if (key && session) await sessions.removeItem(key)
+  if (!pathname.startsWith('/api/')) return
+  await loadSession(event)
 
-  const id = randomUUID()
-  const createdAt = Date.now()
-  const newSession: StoredSession = {
-    id,
-    data: {},
-    createdAt,
-    expiresAt: createdAt + sessionMaxAgeMs,
+  if (!isAdminApi(pathname)) return
+  setResponseHeader(event, 'Cache-Control', 'no-store')
+
+  if (!publicAdminAuthRequests.has(`${event.method} ${pathname}`) && !isAdminAuthenticated(event)) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Unauthorized',
+      data: { error: 'Unauthorized' },
+    })
   }
-
-  await sessions.setItem(`${sessionKeyPrefix}${id}`, newSession)
-  setSignedSessionCookie(event, id)
-  event.context.session = newSession
 })

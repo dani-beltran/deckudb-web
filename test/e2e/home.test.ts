@@ -1,17 +1,16 @@
-import { $fetch, setup } from '@nuxt/test-utils/e2e'
+import { createPage, setup } from '@nuxt/test-utils/e2e'
 import { describe, expect, it } from 'vitest'
+import { getDebugConfig } from './helpers'
+
+const DEBUG = process.env.E2E_TESTS_DEBUG === 'true'
 
 describe('HOME page', async () => {
-  await setup({})
-
-  it('should include site title', async () => {
-    const res = await $fetch<string>('/', { method: 'GET' })
-    expect(res).toContain('<title>DeckuDB - Optimize Every Game on the Steam Deck</title>')
+  await setup({
+    ...(DEBUG ? getDebugConfig() : {}),
   })
 
-  // it("should show search title", async () => {
-  //     const page = await createPage('/')
-  //         expect(await page.getByTestId('search-title').isVisible()).toBe(true)
-
-  // })
+  it("should show search title", async () => {
+    const page = await createPage('/')
+    expect(await page.getByTestId('search-title').isVisible()).toBe(true)
+  })
 })
