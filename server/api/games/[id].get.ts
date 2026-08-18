@@ -1,21 +1,35 @@
 import { getServerConfig } from '@server/config/index'
-import { gameIdSchema } from '@server/models/games.schema'
+import type { GameReport } from '@server/models/game-reports.schema'
+import { type Game, gameIdSchema } from '@server/models/games.schema'
 import { JOB_TYPE } from '@server/models/jobs.schema'
+import type { SteamApp } from '@server/services/steam/steam.types'
 import { apiHandler, parseParams } from '@server/utils/api'
 import { ConflictError } from '@server/utils/errors/ConflictError'
 import logger from '@server/utils/logger'
 import { defineEventHandler, type EventHandlerRequest, type H3Event } from 'h3'
 import z from 'zod'
 
+type GameStatus = 'queued' | 'invalid' | 'ready'
+
+type GameResponseData = {
+  steam_app: Partial<SteamApp>
+  reports: GameReport[]
+}
+
+export type GameResponse = {
+  status: GameStatus
+  game: Partial<Game> & GameResponseData
+}
+
 export default defineEventHandler((event) =>
-  apiHandler(event, async () => {
+  apiHandler<GameResponse>(event, async () => {
     const { id: gameId } = await parseParams(event.context.params, z.object({ id: gameIdSchema }))
     const { repositories } = event.context
     const [game, steamApp] = await Promise.all([
       repositories.games.fetchGameById(gameId),
       repositories.steamCache.getGameDetails(gameId),
     ])
-    let status: 'queued' | 'ready' | 'invalid' = 'invalid'
+    let status: GameStatus = 'invalid'
 
     if (steamApp?.type === 'game') {
       status = 'queued'

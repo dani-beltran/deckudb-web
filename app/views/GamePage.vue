@@ -217,10 +217,11 @@ watch(
   { immediate: true }
 )
 
+watch(gameTitle, updateDocumentTitle, { immediate: true })
+
 onMounted(() => {
   // Add keyboard event listener for backspace key
   document.addEventListener('keydown', handleKeydown)
-  updateDocumentTitle()
 })
 
 onUnmounted(() => {
