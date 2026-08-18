@@ -65,7 +65,6 @@ Server configuration is validated at startup. Nuxt runtime overrides use the `NU
 | AI and scraping | `NUXT_CLAUDE_API_KEY`, `NUXT_CLAUDE_AI_MODEL`, `NUXT_FIRECRAWL_API_KEY`, `NUXT_DAYS_BETWEEN_SCRAPES` |
 | Sessions and hosts | `NUXT_SESSION_SECRET`, `NUXT_SESSION_MAX_AGE_MS`, `NUXT_WEB_HOST`, `NUXT_DASHBOARD_HOST` |
 | Admin dashboard | `NUXT_ADMIN_USERNAME`, `NUXT_ADMIN_PASSWORD` |
-| Legacy job API access | `NUXT_JOB_API_KEY` |
 | Job execution | `NUXT_JOB_TIMEOUT_MINUTES`, `NUXT_JOB_MAX_ATTEMPTS`, `NUXT_WORKER_ENABLED` |
 | Worker polling | `NUXT_WORKER_POLL_INTERVAL_MS`, `NUXT_WORKER_POLL_JITTER_MS`, `NUXT_WORKER_REQUEUE_SWEEP_MS`, `NUXT_WORKER_IDLE_LOG_EVERY` |
 
@@ -121,11 +120,7 @@ Nitro maps files in `server/api` directly to `/api` endpoints.
 | `POST` | `/api/jobs/queue` | Queue a processing job |
 | `DELETE` | `/api/jobs/:job_id` | Delete a job |
 
-The job endpoints accept the authenticated admin session used by the integrated dashboard. For
-backward compatibility, non-browser clients can instead send the server-side
-`NUXT_JOB_API_KEY` value in the `X-API-Key` request header. Never place this key in a client-side
-environment variable or browser bundle. Job types are `search`, `scrape`, `reports`, `summary`,
-and `full`.
+The job endpoints accept the authenticated admin session used by the integrated dashboard. Job types are `search`, `scrape`, `reports`, `summary`, and `full`.
 
 ## Background processing
 

@@ -1,7 +1,7 @@
+import corsMiddleware from '@server/middleware/cors'
 import { createApp, createRouter, toNodeListener } from 'h3'
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
-import corsMiddleware from '@server/middleware/cors'
 
 const allowedOrigin = 'http://localhost:3000'
 
@@ -44,12 +44,12 @@ describe('Nuxt API CORS', () => {
       .options('/api/health')
       .set('Origin', allowedOrigin)
       .set('Access-Control-Request-Method', 'POST')
-      .set('Access-Control-Request-Headers', 'content-type,x-api-key')
+      .set('Access-Control-Request-Headers', 'content-type')
       .expect(204)
 
     expect(response.headers['access-control-allow-origin']).toBe(allowedOrigin)
     expect(response.headers['access-control-allow-credentials']).toBe('true')
     expect(response.headers['access-control-allow-methods']).toBe('GET,POST,DELETE')
-    expect(response.headers['access-control-allow-headers']).toBe('Content-Type,X-API-Key')
+    expect(response.headers['access-control-allow-headers']).toBe('Content-Type')
   })
 })

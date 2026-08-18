@@ -35,8 +35,6 @@ export const configSchema = z.object({
   adminPassword: z.string().min(12).max(1024),
   // Days between scrapes for a game before it is considered stale and needs to be re-scraped
   daysBetweenScrapes: positiveInteger,
-  // Job API key for internal job queueing from dashboard
-  jobApiKey: z.string().trim().min(1),
   // Job timeout in minutes for jobs to complete before they are considered failed
   jobTimeoutMinutes: positiveInteger,
   // Job max attempts before a job is considered failed

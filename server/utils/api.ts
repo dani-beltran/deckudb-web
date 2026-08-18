@@ -1,13 +1,12 @@
 import {
   createError,
-  getHeader,
   getQuery,
+  type H3Event,
   readBody,
   setResponseHeader,
   setResponseStatus,
 } from 'h3'
 import { ZodError, type ZodType } from 'zod'
-import { useRuntimeConfig } from '#imports'
 import { isAdminAuthenticated } from './admin-auth'
 import { ConflictError } from './errors/ConflictError'
 import { NotFoundError } from './errors/NotFoundError'
@@ -57,26 +56,14 @@ export async function parseParams<T>(params: unknown, schema: ZodType<T>) {
   }
 }
 
-export function requireJobApiKey(event: Parameters<typeof getHeader>[0]) {
-  const { jobApiKey } = useRuntimeConfig()
-  if (!jobApiKey) {
-    logger.error('JOB_API_KEY is not configured')
-    throw createHttpError(500, { error: 'Internal server error' })
-  }
-
-  if (getHeader(event, 'x-api-key') !== jobApiKey) {
-    throw createHttpError(401, { error: 'Unauthorized' })
-  }
-}
-
-/** Allows browser dashboard sessions while preserving API-key access for legacy clients. */
-export function requireAdminOrJobApiKey(event: Parameters<typeof getHeader>[0]) {
+/** Requires an authenticated admin session. */
+export function requireAdmin(event: H3Event) {
   setResponseHeader(event, 'Cache-Control', 'no-store')
   if (isAdminAuthenticated(event)) return
-  requireJobApiKey(event)
+  throw createHttpError(401, { error: 'Unauthorized' })
 }
 
-export function getSessionId(event: Parameters<typeof getHeader>[0]) {
+export function getSessionId(event: H3Event) {
   const sessionId = event.context.session?.id
   if (!sessionId) throw new Error('Session middleware is not configured')
   return sessionId

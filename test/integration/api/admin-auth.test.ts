@@ -10,8 +10,6 @@ import { createNuxtTestServer } from './test-server'
 const ADMIN_USERNAME = process.env.NUXT_ADMIN_USERNAME ?? process.env.ADMIN_USERNAME ?? 'admin'
 const ADMIN_PASSWORD =
   process.env.NUXT_ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD ?? 'test-admin-password'
-const LEGACY_JOB_API_KEY =
-  process.env.NUXT_JOB_API_KEY ?? process.env.JOB_API_KEY ?? 'your_job_api_key_here'
 
 const cookieValue = (setCookieHeader: string | string[] | undefined, name: string) => {
   const cookies = Array.isArray(setCookieHeader)
@@ -197,7 +195,7 @@ describe('admin authentication', () => {
     expect(response.body.data.error).toBe('Unauthorized')
   })
 
-  it('allows an authenticated admin session to list jobs without an API key', async () => {
+  it('allows an authenticated admin session to list jobs', async () => {
     const job = makeJob()
     await dependencies.repositories.jobs.insertTestJobs([job])
     const client = request.agent(testServer)
@@ -211,17 +209,5 @@ describe('admin authentication', () => {
     expect(response.body.items).toEqual([
       expect.objectContaining({ job_id: job.job_id, game_name: job.game_name }),
     ])
-  })
-
-  it('retains API-key access to the jobs API for legacy clients', async () => {
-    const job = makeJob()
-    await dependencies.repositories.jobs.insertTestJobs([job])
-
-    const response = await request(testServer)
-      .get('/api/jobs')
-      .set('x-api-key', LEGACY_JOB_API_KEY)
-      .expect(200)
-
-    expect(response.body.items).toEqual([expect.objectContaining({ job_id: job.job_id })])
   })
 })

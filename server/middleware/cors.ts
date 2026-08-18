@@ -14,6 +14,6 @@ export default defineEventHandler((event) => {
     origin: (origin) => allowedOrigins.includes(origin),
     credentials: true,
     methods: ['GET', 'POST', 'DELETE'],
-    allowHeaders: ['Content-Type', 'X-API-Key'],
+    allowHeaders: ['Content-Type'],
   })
 })
