@@ -3,6 +3,10 @@ import { useRuntimeConfig } from '#imports'
 const DEFAULT_ADMIN_ROUTE = '/admin'
 const ADMIN_PATH_PATTERN = /^\/admin(?:\/|$)/
 
+/**
+ * Sanitizes a redirect URL for the admin panel. 
+ * Ensures that the URL is a valid path within the admin section of the application.
+ */
 export function sanitizeAdminRedirect(value: unknown): string {
   if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) {
     return DEFAULT_ADMIN_ROUTE

@@ -48,8 +48,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { definePageMeta, navigateTo, useHead, useNuxtApp, useRoute } from '#imports'
-import { getApiErrorMessage, isUnauthorizedError } from '../../plugins/api/errorHelpers'
-import { sanitizeAdminRedirect } from '../../services/admin/redirect'
+import { getApiErrorMessage, isUnauthorizedError } from '@app/plugins/api/errorHelpers'
+import { sanitizeAdminRedirect } from '@app/utils/redirect'
 
 definePageMeta({ layout: 'admin', name: 'AdminLogin' })
 useHead({
