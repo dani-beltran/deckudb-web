@@ -4,8 +4,8 @@ import { authenticateAdmin, requireValidAdminCredentials } from '../../../utils/
 import { apiHandler, parseBody } from '../../../utils/api'
 
 const credentialsSchema = z.object({
-  username: z.string(),
-  password: z.string(),
+  username: z.string().max(255),
+  password: z.string().max(255),
 })
 
 export default defineEventHandler((event) =>
