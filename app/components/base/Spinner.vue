@@ -5,32 +5,30 @@
   </div>
 </template>
 
-<script lang="ts">
-import { type CSSProperties, defineComponent, type PropType } from 'vue'
+<script setup lang="ts">
+import { type CSSProperties, computed, type PropType } from 'vue'
 
-export default defineComponent({
-  name: 'Spinner',
-  props: {
-    message: {
-      type: String,
-      default: '',
-    },
-    size: {
-      type: [Number, String] as PropType<number | string>,
-      default: 40,
-    },
+defineOptions({ name: 'Spinner' })
+
+const props = defineProps({
+  message: {
+    type: String,
+    default: '',
   },
-  computed: {
-    spinnerStyle(): CSSProperties {
-      const sizeValue = typeof this.size === 'number' ? `${this.size}px` : this.size
-      const borderWidth = Math.max(2, Math.round(parseInt(String(this.size), 10) / 10))
-      return {
-        width: sizeValue,
-        height: sizeValue,
-        borderWidth: `${borderWidth}px`,
-      }
-    },
+  size: {
+    type: [Number, String] as PropType<number | string>,
+    default: 40,
   },
+})
+
+const spinnerStyle = computed<CSSProperties>(() => {
+  const sizeValue = typeof props.size === 'number' ? `${props.size}px` : props.size
+  const borderWidth = Math.max(2, Math.round(parseInt(String(props.size), 10) / 10))
+  return {
+    width: sizeValue,
+    height: sizeValue,
+    borderWidth: `${borderWidth}px`,
+  }
 })
 </script>
 

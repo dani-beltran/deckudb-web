@@ -43,8 +43,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted } from 'vue'
 
 type SuggestionReleaseDate = string | { date?: string | null }
 
@@ -56,81 +56,87 @@ interface SearchSuggestion {
   [key: string]: unknown
 }
 
-export default defineComponent({
-  name: 'SearchSuggestions',
-  props: {
-    suggestions: {
-      type: Array as PropType<SearchSuggestion[]>,
-      default: () => [],
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    selectedIndex: {
-      type: Number,
-      default: -1,
-    },
-    title: {
-      type: String,
-      default: 'Suggestions',
-    },
-  },
-  emits: {
-    'select-suggestion': (_suggestion: SearchSuggestion, _index: number) => true,
-    'update-selected-index': (_index: number) => true,
-    'close-suggestions': () => true,
-  },
-  methods: {
-    selectSuggestion(suggestion: SearchSuggestion, index: number) {
-      this.$emit('select-suggestion', suggestion, index)
-    },
+defineOptions({ name: 'SearchSuggestions' })
 
-    updateSelectedIndex(index: number) {
-      this.$emit('update-selected-index', index)
-    },
+const props = withDefaults(
+  defineProps<{
+    suggestions?: SearchSuggestion[]
+    loading?: boolean
+    selectedIndex?: number
+    title?: string
+  }>(),
+  {
+    suggestions: () => [],
+    loading: false,
+    selectedIndex: -1,
+    title: 'Suggestions',
+  }
+)
 
-    formatReleaseDate(releaseDate: SuggestionReleaseDate) {
-      return typeof releaseDate === 'string' ? releaseDate : releaseDate.date || releaseDate
-    },
+const emit = defineEmits<{
+  'select-suggestion': [suggestion: SearchSuggestion, index: number]
+  'update-selected-index': [index: number]
+  'close-suggestions': []
+}>()
 
-    handleKeyDown(event: KeyboardEvent) {
-      if (this.suggestions.length === 0) return
+const selectSuggestion = (suggestion: SearchSuggestion, index: number): void => {
+  emit('select-suggestion', suggestion, index)
+}
 
-      switch (event.key) {
-        case 'ArrowDown': {
-          event.preventDefault()
-          const nextIndex = Math.min(this.selectedIndex + 1, this.suggestions.length - 1)
-          this.updateSelectedIndex(nextIndex)
-          break
-        }
-        case 'ArrowUp': {
-          event.preventDefault()
-          const prevIndex = Math.max(this.selectedIndex - 1, -1)
-          this.updateSelectedIndex(prevIndex)
-          break
-        }
-        case 'Enter':
-          event.preventDefault()
-          if (this.selectedIndex >= 0) {
-            const suggestion = this.suggestions[this.selectedIndex]
-            if (suggestion) this.selectSuggestion(suggestion, this.selectedIndex)
-          }
-          break
-        case 'Escape':
-          this.$emit('close-suggestions')
-          break
+const updateSelectedIndex = (index: number): void => {
+  emit('update-selected-index', index)
+}
+
+const formatReleaseDate = (
+  releaseDate: SuggestionReleaseDate
+): string | { date?: string | null } =>
+  typeof releaseDate === 'string' ? releaseDate : releaseDate.date || releaseDate
+
+const handleKeyDown = (event: KeyboardEvent): void => {
+  if (props.suggestions.length === 0) return
+
+  switch (event.key) {
+    case 'ArrowDown': {
+      event.preventDefault()
+      const nextIndex = Math.min(props.selectedIndex + 1, props.suggestions.length - 1)
+      updateSelectedIndex(nextIndex)
+      break
+    }
+    case 'ArrowUp': {
+      event.preventDefault()
+      const prevIndex = Math.max(props.selectedIndex - 1, -1)
+      updateSelectedIndex(prevIndex)
+      break
+    }
+    case 'Enter': {
+      event.preventDefault()
+      if (props.selectedIndex >= 0) {
+        const suggestion = props.suggestions[props.selectedIndex]
+        if (suggestion) selectSuggestion(suggestion, props.selectedIndex)
       }
-    },
-  },
-  mounted() {
-    // Listen for keydown events on the document when component is active
-    document.addEventListener('keydown', this.handleKeyDown)
-  },
-  beforeUnmount() {
-    // Clean up event listener
-    document.removeEventListener('keydown', this.handleKeyDown)
-  },
+      break
+    }
+    case 'Escape':
+      emit('close-suggestions')
+      break
+  }
+}
+
+onMounted(() => {
+  // Listen for keydown events on the document when component is active
+  document.addEventListener('keydown', handleKeyDown)
+})
+
+onBeforeUnmount(() => {
+  // Clean up event listener
+  document.removeEventListener('keydown', handleKeyDown)
+})
+
+defineExpose({
+  selectSuggestion,
+  updateSelectedIndex,
+  formatReleaseDate,
+  handleKeyDown,
 })
 </script>
 

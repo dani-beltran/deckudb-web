@@ -5,9 +5,9 @@
     </span>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { Gamepad2 } from 'lucide-vue-next'
-import { type Component, defineComponent } from 'vue'
+import { type Component, computed } from 'vue'
 import ProtonIcon from '@/components/icons/ProtonIcon.vue'
 import RedditIcon from '@/components/icons/RedditIcon.vue'
 import WebsiteIcon from '@/components/icons/WebsiteIcon.vue'
@@ -21,33 +21,26 @@ const SOURCE_ICONS: Partial<Record<string, Component>> = {
   other: WebsiteIcon,
 }
 
-export default defineComponent({
-  name: 'SourceBadge',
-  props: {
-    sourceName: {
-      type: String,
-      required: true,
-    },
-  },
-  computed: {
-    icon() {
-      return SOURCE_ICONS[this.sourceName] ?? null
-    },
-    iconColor() {
-      switch (this.sourceName) {
-        case 'reddit':
-          return '#FF4500'
-        case 'youtube':
-          return '#FF0034'
-        case 'protondb':
-          return '#485265'
-        case 'sharedeck':
-          return '#FB923C'
-        default:
-          return 'currentColor'
-      }
-    },
-  },
+defineOptions({ name: 'SourceBadge' })
+
+const props = defineProps<{
+  sourceName: string
+}>()
+
+const icon = computed(() => SOURCE_ICONS[props.sourceName] ?? null)
+const iconColor = computed(() => {
+  switch (props.sourceName) {
+    case 'reddit':
+      return '#FF4500'
+    case 'youtube':
+      return '#FF0034'
+    case 'protondb':
+      return '#485265'
+    case 'sharedeck':
+      return '#FB923C'
+    default:
+      return 'currentColor'
+  }
 })
 </script>
 <style scoped>

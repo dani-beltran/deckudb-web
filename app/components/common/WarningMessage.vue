@@ -5,26 +5,22 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+<script setup lang="ts">
+defineOptions({ name: 'WarningMessage' })
 
-export default defineComponent({
-  name: 'WarningMessage',
-  props: {
-    message: {
-      type: String as PropType<string | null>,
-      default: null,
-    },
-  },
-  emits: {
-    dismiss: () => true,
-  },
-  methods: {
-    dismiss() {
-      this.$emit('dismiss')
-    },
-  },
-})
+const { message = null } = defineProps<{
+  message?: string | null
+}>()
+
+const emit = defineEmits<{
+  dismiss: []
+}>()
+
+const dismiss = (): void => {
+  emit('dismiss')
+}
+
+defineExpose({ dismiss })
 </script>
 
 <style scoped>

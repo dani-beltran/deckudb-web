@@ -13,24 +13,23 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+<script setup lang="ts">
+import type { PropType } from 'vue'
 
-export default defineComponent({
-  name: 'Card',
-  props: {
-    title: {
-      type: String as PropType<string | null>,
-      default: null,
-    },
-    cardClass: {
-      type: String,
-      default: '',
-    },
-    hoverable: {
-      type: Boolean,
-      default: false,
-    },
+defineOptions({ name: 'Card' })
+
+defineProps({
+  title: {
+    type: String as PropType<string | null>,
+    default: null,
+  },
+  cardClass: {
+    type: String,
+    default: '',
+  },
+  hoverable: {
+    type: Boolean,
+    default: false,
   },
 })
 </script>

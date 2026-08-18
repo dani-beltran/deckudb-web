@@ -1,5 +1,5 @@
 <template>
-    <div class="infinite-scroll-collection">
+    <div ref="collectionElement" class="infinite-scroll-collection">
         <div class="items-list">
             <div v-for="(item, index) in items" :key="index" class="list-item">
                 <slot name="item" :item="item" :index="index"></slot>
@@ -13,89 +13,84 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+<script setup lang="ts">
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-export default defineComponent({
-  name: 'InfiniteScrollCollection',
-  props: {
-    items: {
-      type: Array as PropType<unknown[]>,
-      required: true,
+defineOptions({ name: 'InfiniteScrollCollection' })
+
+const props = withDefaults(
+  defineProps<{
+    items: unknown[]
+    isLoadingMore?: boolean
+  }>(),
+  {
+    isLoadingMore: false,
+  }
+)
+
+const emit = defineEmits<{
+  'last-item-visible': []
+}>()
+
+const collectionElement = ref<HTMLElement | null>(null)
+let intersectionObserver: IntersectionObserver | null = null
+
+const observeLastItem = (): void => {
+  if (!intersectionObserver) {
+    return
+  }
+
+  // Disconnect all previous observations
+  intersectionObserver.disconnect()
+
+  const items = collectionElement.value?.querySelectorAll('.list-item')
+  const lastItem = items?.[items.length - 1]
+  if (lastItem) intersectionObserver.observe(lastItem)
+}
+
+const disconnectIntersectionObserver = (): void => {
+  if (intersectionObserver) {
+    intersectionObserver.disconnect()
+    intersectionObserver = null
+  }
+}
+
+const setupIntersectionObserver = (): void => {
+  disconnectIntersectionObserver()
+
+  intersectionObserver = new IntersectionObserver(
+    (entries) => {
+      const lastItem = entries[0]
+      if (lastItem?.isIntersecting && !props.isLoadingMore) {
+        emit('last-item-visible')
+      }
     },
-    isLoadingMore: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: {
-    'last-item-visible': () => true,
-  },
-  data() {
-    return {
-      intersectionObserver: null as IntersectionObserver | null,
+    {
+      root: null,
+      rootMargin: '100px',
+      threshold: 0.1,
     }
-  },
-  mounted() {
-    this.setupIntersectionObserver()
-  },
-  beforeUnmount() {
-    this.disconnectIntersectionObserver()
-  },
-  methods: {
-    setupIntersectionObserver() {
-      this.disconnectIntersectionObserver()
+  )
 
-      this.intersectionObserver = new IntersectionObserver(
-        (entries) => {
-          const lastItem = entries[0]
-          if (lastItem?.isIntersecting && !this.isLoadingMore) {
-            this.$emit('last-item-visible')
-          }
-        },
-        {
-          root: null,
-          rootMargin: '100px',
-          threshold: 0.1,
-        }
-      )
+  void nextTick(observeLastItem)
+}
 
-      this.$nextTick(() => {
-        this.observeLastItem()
-      })
-    },
-    observeLastItem() {
-      if (!this.intersectionObserver) {
-        return
-      }
-
-      // Disconnect all previous observations
-      this.intersectionObserver.disconnect()
-
-      const items = (this.$el as HTMLElement).querySelectorAll('.list-item')
-      if (items.length > 0) {
-        const lastItem = items[items.length - 1]
-        if (lastItem) this.intersectionObserver.observe(lastItem)
-      }
-    },
-    disconnectIntersectionObserver() {
-      if (this.intersectionObserver) {
-        this.intersectionObserver.disconnect()
-        this.intersectionObserver = null
-      }
-    },
+watch(
+  () => props.items,
+  () => {
+    // Re-observe when items change
+    void nextTick(observeLastItem)
   },
-  watch: {
-    items: {
-      handler() {
-        // Re-observe when items change
-        this.$nextTick(() => {
-          this.observeLastItem()
-        })
-      },
-      deep: true,
-    },
-  },
+  { deep: true }
+)
+
+onMounted(setupIntersectionObserver)
+onBeforeUnmount(disconnectIntersectionObserver)
+
+defineExpose({
+  setupIntersectionObserver,
+  observeLastItem,
+  disconnectIntersectionObserver,
 })
 </script>
 
