@@ -149,7 +149,7 @@ A `full` job runs the pipeline in this order:
 ## Project structure
 
 ```text
-app/                 Vue pages, views, components, stores, and browser services
+app/                 Vue pages, views, components, stores, and browser plugins
 public/              Static site assets and metadata
 server/api/          Nitro API route handlers
 server/config/       Runtime configuration schema and validation
@@ -195,7 +195,7 @@ App -> pages -> views -> ui -> common -> base
                                 icons
 ```
 
-Components do not have to use every intermediate layer: views can use common or base components directly, and UI or common components can render icons. Shared browser behavior lives next to the component tree in `composables/`, state containers in `stores/`, API and analytics integrations in `services/`, and framework-independent helpers in `utils/`.
+Components do not have to use every intermediate layer: views can use common or base components directly, and UI or common components can render icons. Shared browser behavior lives next to the component tree in `composables/`, state containers in `stores/`, API and analytics integrations in Nuxt `plugins/`, and framework-independent helpers in `utils/`.
 
 ## Logging
 
