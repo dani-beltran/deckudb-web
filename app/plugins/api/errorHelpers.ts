@@ -8,7 +8,7 @@ export function throwApiError(error: unknown): never {
 }
 
 export function getApiErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error && error.message ? error.message : fallback
+  return error instanceof ApiError ? error.message : fallback
 }
 
 export function isUnauthorizedError(error: unknown) {
