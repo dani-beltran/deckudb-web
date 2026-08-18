@@ -149,7 +149,7 @@ A `full` job runs the pipeline in this order:
 ## Project structure
 
 ```text
-app/                 Vue pages, views, components, stores, and browser plugins
+app/                 Vue pages, components, stores, and browser plugins
 public/              Static site assets and metadata
 server/api/          Nitro API route handlers
 server/config/       Runtime configuration schema and validation
@@ -171,8 +171,8 @@ The browser application is organized in layers, with page-specific composition a
 
 ```text
 app/App.vue                 Global application shell
-app/pages/                  Nuxt route entry points
-app/views/                  Page-level layouts and data orchestration
+app/pages/                  Nuxt routes and page-level data orchestration
+app/components/admin/       Admin dashboard components
 app/components/ui/          DeckuDB feature and domain components
 app/components/common/      Reusable composed widgets
 app/components/base/        Small, generic UI primitives
@@ -180,8 +180,8 @@ app/components/icons/       Standalone icon components
 ```
 
 - `App.vue` owns the shared page frame, including the main content container, dark-mode initialization, scroll-to-top control, and footer. Nuxt renders the active route inside its `<NuxtPage />` element.
-- `pages/` maps URLs to Vue components. These files stay intentionally small: they define route metadata, read route parameters when necessary, and render the matching component from `views/`.
-- `views/` represents complete screens. A view assembles feature components and owns page-level concerns such as loading data, handling errors, and coordinating state. For example, `GamePage.vue` loads a game and composes its navigation, description, reports, processing state, and AI summary.
+- `pages/` maps URLs to complete screens. Pages define route metadata and own page-level concerns such as loading data, handling errors, and coordinating state. For example, `pages/game/[gameId].vue` loads a game and composes its navigation, description, reports, processing state, and AI summary.
+- `components/admin/` contains focused backoffice components such as job statistics, the job table, pagination, and the run-job dialog.
 - `components/ui/` contains components tied to DeckuDB features or game data, such as `GameSearch`, `PopularGames`, `GameReportsSection`, and `GameDescription`. These components may call browser services or stores and may compose other UI, common, and base components.
 - `components/common/` contains reusable widgets that combine behavior and presentation but are not tied to one screen, such as `SearchBar`, `Carousel`, `AskAICard`, and `SourceBadge`.
 - `components/base/` contains the lowest-level, domain-independent building blocks, such as `Button`, `Card`, `Spinner`, and `Tooltip`. Keep these components small and avoid coupling them to application services or game-specific data.
@@ -190,12 +190,12 @@ app/components/icons/       Standalone icon components
 Dependencies should generally flow downward through these layers:
 
 ```text
-App -> pages -> views -> ui -> common -> base
-                                  |
-                                icons
+App -> pages -> admin/ui -> common -> base
+                            |
+                          icons
 ```
 
-Components do not have to use every intermediate layer: views can use common or base components directly, and UI or common components can render icons. Shared browser behavior lives next to the component tree in `composables/`, state containers in `stores/`, API and analytics integrations in Nuxt `plugins/`, and framework-independent helpers in `utils/`.
+Components do not have to use every intermediate layer: pages can use common or base components directly, and UI or common components can render icons. Shared browser behavior lives next to the component tree in `composables/`, state containers in `stores/`, API and analytics integrations in Nuxt `plugins/`, and framework-independent helpers in `utils/`.
 
 ## Logging
 
