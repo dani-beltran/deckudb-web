@@ -12,6 +12,10 @@ const defaultedBoolean = (defaultValue: boolean) =>
     (value) => (value === '' ? undefined : value),
     booleanFromRuntimeConfig.default(defaultValue)
   )
+const defaultedTrustedProxyHops = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  nonNegativeInteger.max(10).default(0)
+)
 
 /** Validated, server-only values declared in Nuxt's runtimeConfig. */
 export const configSchema = z.object({
@@ -33,16 +37,14 @@ export const configSchema = z.object({
   sessionSecret: z.string().trim().min(10).max(100),
   // Session max age in milliseconds
   sessionMaxAgeMs: positiveInteger,
-  // Whether API rate limiting is enabled
-  rateLimitEnabled: defaultedBoolean(true),
-  // Maximum requests per session in the general API sliding window
-  rateLimitMaxRequests: defaultedPositiveInteger(100),
-  // General API sliding-window duration in milliseconds
-  rateLimitWindowMs: defaultedPositiveInteger(60_000),
-  // Maximum login attempts per session in the stricter login sliding window
+  // Whether IP-based admin login rate limiting is enabled
+  loginRateLimitEnabled: defaultedBoolean(true),
+  // Maximum login attempts per IP in the login sliding window
   loginRateLimitMaxRequests: defaultedPositiveInteger(5),
-  // Login sliding-window duration in milliseconds
+  // IP-based login sliding-window duration in milliseconds
   loginRateLimitWindowMs: defaultedPositiveInteger(15 * 60_000),
+  // Number of trusted reverse proxies that append to X-Forwarded-For for login requests
+  loginRateLimitTrustedProxyHops: defaultedTrustedProxyHops,
   // Single-user dashboard credentials (server-only)
   adminUsername: z.string().trim().min(1).max(128),
   adminPassword: z.string().min(12).max(1024),

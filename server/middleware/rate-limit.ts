@@ -1,82 +1,81 @@
 import { createHash } from 'node:crypto'
-import { createError, defineEventHandler, getRequestURL, setResponseHeader } from 'h3'
+import {
+  createError,
+  defineEventHandler,
+  getRequestHeader,
+  getRequestURL,
+  setResponseHeader,
+} from 'h3'
 import { getServerConfig, type ServerConfig } from '../config'
-import { loadSession } from '../utils/session'
 
-type RateLimitConfig = Pick<
+type LoginRateLimitConfig = Pick<
   ServerConfig,
+  | 'loginRateLimitEnabled'
   | 'loginRateLimitMaxRequests'
+  | 'loginRateLimitTrustedProxyHops'
   | 'loginRateLimitWindowMs'
-  | 'rateLimitEnabled'
-  | 'rateLimitMaxRequests'
-  | 'rateLimitWindowMs'
 >
 
-type RateLimitPolicy = {
-  limit: number
-  name: 'api' | 'login'
-  windowMs: number
-}
-
 const LOGIN_PATH = '/api/admin/auth/login'
-const EXEMPT_PATHS = new Set(['/api/health'])
 
-function getPolicy(pathname: string, config: RateLimitConfig): RateLimitPolicy {
-  if (pathname === LOGIN_PATH) {
-    return {
-      limit: config.loginRateLimitMaxRequests,
-      name: 'login',
-      windowMs: config.loginRateLimitWindowMs,
-    }
-  }
-
-  return {
-    limit: config.rateLimitMaxRequests,
-    name: 'api',
-    windowMs: config.rateLimitWindowMs,
-  }
+function getSocketAddress(event: Parameters<typeof getRequestURL>[0]) {
+  return event.node.req.socket.remoteAddress ?? 'unknown'
 }
 
-function getPartitionKey(policyName: string, sessionId: string) {
-  return createHash('sha256').update(`${policyName}:${sessionId}`).digest('hex')
-}
-
-function setRateLimitHeaders(
-  event: Parameters<typeof setResponseHeader>[0],
-  policy: RateLimitPolicy,
-  remaining: number,
-  resetSeconds: number
+/** Resolves a login client IP without trusting forwarding headers unless explicitly configured. */
+export function getLoginRateLimitClientAddress(
+  event: Parameters<typeof getRequestURL>[0],
+  trustedProxyHops: number
 ) {
-  const windowSeconds = Math.ceil(policy.windowMs / 1000)
-  setResponseHeader(
-    event,
-    'RateLimit-Policy',
-    `"${policy.name}";q=${policy.limit};w=${windowSeconds}`
-  )
-  setResponseHeader(event, 'RateLimit', `"${policy.name}";r=${remaining};t=${resetSeconds}`)
+  if (trustedProxyHops === 0) return getSocketAddress(event)
+
+  const forwardedAddresses = getRequestHeader(event, 'x-forwarded-for')
+    ?.split(',')
+    .map((address) => address.trim())
+    .filter(Boolean)
+
+  if (!forwardedAddresses || forwardedAddresses.length < trustedProxyHops) {
+    return getSocketAddress(event)
+  }
+
+  return forwardedAddresses[forwardedAddresses.length - trustedProxyHops] ?? getSocketAddress(event)
 }
 
-/** Creates the API limiter handler. Config injection keeps policy tests isolated from process env. */
-export function createRateLimitMiddleware(getConfig: () => RateLimitConfig = getServerConfig) {
+function getPartitionKey(clientAddress: string) {
+  return createHash('sha256').update(`login-ip:${clientAddress}`).digest('hex')
+}
+
+/** Creates the IP-based login limiter. Config injection keeps policy tests isolated from env. */
+export function createRateLimitMiddleware(getConfig: () => LoginRateLimitConfig = getServerConfig) {
   return defineEventHandler(async (event) => {
-    const pathname = getRequestURL(event).pathname
-    if (event.method === 'OPTIONS' || !pathname.startsWith('/api/') || EXEMPT_PATHS.has(pathname)) {
-      return
-    }
+    if (event.method !== 'POST' || getRequestURL(event).pathname !== LOGIN_PATH) return
 
     const config = getConfig()
-    if (!config.rateLimitEnabled) return
+    if (!config.loginRateLimitEnabled) return
 
-    const policy = getPolicy(pathname, config)
-    const session = await loadSession(event)
-    if (!session) throw new Error('Session middleware did not initialize an API session')
-
-    const result = await event.context.repositories.rateLimits.consume(
-      getPartitionKey(policy.name, session.id),
-      policy
+    const clientAddress = getLoginRateLimitClientAddress(
+      event,
+      config.loginRateLimitTrustedProxyHops
     )
+    const result = await event.context.repositories.rateLimits.consume(
+      getPartitionKey(clientAddress),
+      {
+        limit: config.loginRateLimitMaxRequests,
+        windowMs: config.loginRateLimitWindowMs,
+      }
+    )
+    const windowSeconds = Math.ceil(config.loginRateLimitWindowMs / 1000)
 
-    setRateLimitHeaders(event, policy, result.remaining, result.resetSeconds)
+    setResponseHeader(
+      event,
+      'RateLimit-Policy',
+      `"login-ip";q=${config.loginRateLimitMaxRequests};w=${windowSeconds}`
+    )
+    setResponseHeader(
+      event,
+      'RateLimit',
+      `"login-ip";r=${result.remaining};t=${result.resetSeconds}`
+    )
     if (result.allowed) return
 
     setResponseHeader(event, 'Cache-Control', 'private, no-store')
