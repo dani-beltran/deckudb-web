@@ -62,7 +62,7 @@ function setSignedSessionCookie(event: H3Event, sessionId: string) {
   setCookie(event, cookieName, `${sessionId}.${sign(sessionId, sessionSecret)}`, {
     path: '/',
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'strict',
     secure: nodeEnv === 'production',
     maxAge: Math.floor(sessionMaxAgeMs / 1000),
   })
