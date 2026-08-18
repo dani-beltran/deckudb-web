@@ -29,7 +29,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref } from 'vue'
 import { useNuxtApp, useRouter } from '#imports'
-import { trackSearch, trackSearchInput, trackSuggestionSelect } from '../../services/analytics'
 import recentGamesStore from '../../stores/recentGamesStore'
 import { isMobile } from '../../utils/deviceUtils'
 import SearchBar from '../common/SearchBar.vue'
@@ -56,7 +55,7 @@ const emit = defineEmits<{
   search: [value: string]
 }>()
 
-const { $backendApi } = useNuxtApp()
+const { $analytics, $backendApi } = useNuxtApp()
 const router = useRouter()
 
 const gameSearchSubmitted = ref(false)
@@ -129,7 +128,7 @@ const handleSearch = async (submitSource: SearchSubmitSource): Promise<void> => 
   hideSuggestions()
   if (debounceTimer.value) clearTimeout(debounceTimer.value)
   // Track the search event
-  trackSearch(props.modelValue, 'game_search', {
+  $analytics.trackSearch(props.modelValue, 'game_search', {
     search_source: submitSource,
   })
   emit('search', props.modelValue)
@@ -144,7 +143,11 @@ const debounceTrackInput = (): void => {
   // Set new timeout to track input after 1 second of inactivity
   inputTrackingTimeout.value = setTimeout(() => {
     if (props.modelValue && props.modelValue.trim().length > 0) {
-      trackSearchInput(props.modelValue.trim(), props.modelValue.trim().length, 'game_search_input')
+      $analytics.trackSearchInput(
+        props.modelValue.trim(),
+        props.modelValue.trim().length,
+        'game_search_input'
+      )
     }
   }, 1000)
 }
@@ -206,7 +209,11 @@ const saveRecentSearchedGameId = (gameId: GameId): void => {
 
 const selectSuggestion = async (suggestion: SearchGame): Promise<void> => {
   saveRecentSearchedGameId(suggestion.id)
-  trackSuggestionSelect(suggestion.name, selectedSuggestionIndex.value, props.modelValue.trim())
+  $analytics.trackSuggestionSelect(
+    suggestion.name,
+    selectedSuggestionIndex.value,
+    props.modelValue.trim()
+  )
   // Route directly to the game page using the suggestion ID
   await router.push(`/game/${suggestion.id}`)
 }

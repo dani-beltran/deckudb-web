@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { trackGameSelect, trackShowMoreResults } from '../../services/analytics'
+import { useNuxtApp } from '#imports'
 import recentGamesStore from '../../stores/recentGamesStore'
 import Button from '../base/Button.vue'
 import GameCard from './GameCard.vue'
@@ -59,6 +59,7 @@ const emit = defineEmits<{
   'game-selected': [game: SearchGame]
 }>()
 
+const { $analytics } = useNuxtApp()
 const showAllResults = ref(false)
 
 const displayedResults = computed<SearchGame[]>(() => {
@@ -82,12 +83,12 @@ watch(
 
 const selectGameCard = (game: SearchGame): void => {
   recentGamesStore.saveRecentSearchedGameId(game.id)
-  trackGameSelect(game, 'search_result')
+  $analytics.trackGameSelect(game, 'search_result')
   emit('game-selected', game)
 }
 
 const handleShowMore = (): void => {
-  trackShowMoreResults(props.searchTerm, props.results.length, props.initialResultsCount)
+  $analytics.trackShowMoreResults(props.searchTerm, props.results.length, props.initialResultsCount)
   showAllResults.value = true
 }
 </script>
