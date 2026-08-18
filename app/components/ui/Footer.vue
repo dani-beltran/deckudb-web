@@ -64,23 +64,14 @@
   </footer>
 </template>
 
-<script>
+<script setup lang="ts">
 import GitHubIcon from '../icons/GitHubIcon.vue'
 import LinkedInIcon from '../icons/LinkedInIcon.vue'
 import RedditIcon from '../icons/RedditIcon.vue'
 import WebsiteIcon from '../icons/WebsiteIcon.vue'
 import XIcon from '../icons/XIcon.vue'
 
-export default {
-  name: 'Footer',
-  components: {
-    RedditIcon,
-    LinkedInIcon,
-    GitHubIcon,
-    WebsiteIcon,
-    XIcon,
-  },
-}
+defineOptions({ name: 'Footer' })
 </script>
 
 <style scoped>

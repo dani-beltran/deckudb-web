@@ -34,12 +34,14 @@
     </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { type CSSProperties, defineComponent, type PropType } from 'vue'
+
+export default defineComponent({
   name: 'Carousel',
   props: {
     items: {
-      type: Array,
+      type: Array as PropType<unknown[]>,
       required: true,
     },
     itemsPerSlide: {
@@ -63,11 +65,14 @@ export default {
       default: 'Next items',
     },
   },
-  emits: ['index-changed', 'last-item-visible'],
+  emits: {
+    'index-changed': (_index: number) => true,
+    'last-item-visible': () => true,
+  },
   data() {
     return {
       currentIndex: 0,
-      intersectionObserver: null,
+      intersectionObserver: null as IntersectionObserver | null,
     }
   },
   computed: {
@@ -80,12 +85,12 @@ export default {
     maxIndex() {
       return this.totalSlides - 1
     },
-    itemStyle() {
+    itemStyle(): CSSProperties {
       return {
         flex: `0 0 ${100 / this.itemsPerSlide}%`,
       }
     },
-    trackStyle() {
+    trackStyle(): CSSProperties {
       const translateX = -(this.currentIndex * 100)
 
       return {
@@ -95,7 +100,7 @@ export default {
     },
   },
   watch: {
-    currentIndex(newIndex) {
+    currentIndex(newIndex: number) {
       this.saveCurrentIndex(newIndex)
       this.$emit('index-changed', newIndex)
     },
@@ -127,10 +132,10 @@ export default {
         this.currentIndex--
       }
     },
-    goToSlide(index) {
+    goToSlide(index: number) {
       this.currentIndex = index
     },
-    saveCurrentIndex(index) {
+    saveCurrentIndex(index: number) {
       try {
         localStorage.setItem(this.localStorageKey, index.toString())
       } catch (err) {
@@ -156,7 +161,7 @@ export default {
       this.intersectionObserver = new IntersectionObserver(
         (entries) => {
           const lastItem = entries[0]
-          if (lastItem.isIntersecting && !this.isLoadingMore) {
+          if (lastItem?.isIntersecting && !this.isLoadingMore) {
             this.$emit('last-item-visible')
           }
         },
@@ -179,10 +184,10 @@ export default {
       // Disconnect all previous observations
       this.intersectionObserver.disconnect()
 
-      const items = this.$el.querySelectorAll('.carousel-item')
+      const items = (this.$el as HTMLElement).querySelectorAll('.carousel-item')
       if (items.length > 0) {
         const lastItem = items[items.length - 1]
-        this.intersectionObserver.observe(lastItem)
+        if (lastItem) this.intersectionObserver.observe(lastItem)
       }
     },
     disconnectIntersectionObserver() {
@@ -192,7 +197,7 @@ export default {
       }
     },
   },
-}
+})
 </script>
 
 <style scoped>

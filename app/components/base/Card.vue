@@ -13,12 +13,14 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+
+export default defineComponent({
   name: 'Card',
   props: {
     title: {
-      type: String,
+      type: String as PropType<string | null>,
       default: null,
     },
     cardClass: {
@@ -30,7 +32,7 @@ export default {
       default: false,
     },
   },
-}
+})
 </script>
 
 <style scoped>

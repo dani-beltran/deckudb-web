@@ -69,85 +69,79 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, ref } from 'vue'
 import SourceBadge from '../common/SourceBadge.vue'
+import type { GameReportData, ReportMetric } from './types'
 
-export default {
-  name: 'GameReport',
-  components: {
-    SourceBadge,
-  },
-  props: {
-    report: {
-      type: Object,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      imageError: false,
-    }
-  },
-  computed: {
-    fps: function () {
-      return (
-        this.report?.steamdeck_settings?.frame_rate_cap ||
-        this.report?.steamdeck_experience?.average_frame_rate ||
-        null
-      )
-    },
-    tdp: function () {
-      return this.report?.steamdeck_settings?.tdp_limit || null
-    },
-  },
-  methods: {
-    openLink(url) {
-      if (url) {
-        window.open(url, '_blank', 'noopener,noreferrer')
-      }
-    },
-    cutText(text, maxLength) {
-      const trimmedText = text.trim()
-      if (trimmedText.length <= maxLength) return trimmedText
-      return `${trimmedText.slice(0, maxLength).replace(/\n/g, ' ')}...`
-    },
-    formatHardware(hardware) {
-      return hardware.toUpperCase()
-    },
-    formatDate(dateString) {
-      if (!dateString) return ''
-      const date = new Date(dateString)
-      const now = new Date()
-      const diffTime = Math.abs(now - date)
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+defineOptions({ name: 'GameReport' })
 
-      if (diffDays === 0) return 'Today'
-      if (diffDays === 1) return 'Yesterday'
-      if (diffDays < 7) return `${diffDays} days ago`
-      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
-      if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
-      return `${Math.floor(diffDays / 365)} years ago`
-    },
-    formatFullDate(dateString) {
-      if (!dateString) return ''
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    },
-    getInitials(username) {
-      if (!username) return '?'
-      const words = username.split(' ')
-      if (words.length >= 2) {
-        return (words[0][0] + words[1][0]).toUpperCase()
-      }
-      return username.substring(0, 2).toUpperCase()
-    },
-    handleImageError() {
-      this.imageError = true
-    },
-  },
+const props = defineProps<{
+  report: GameReportData
+}>()
+
+const imageError = ref(false)
+
+const fps = computed<ReportMetric | null>(
+  () =>
+    props.report.steamdeck_settings?.frame_rate_cap ||
+    props.report.steamdeck_experience?.average_frame_rate ||
+    null
+)
+
+const tdp = computed<ReportMetric | null>(() => props.report.steamdeck_settings?.tdp_limit || null)
+
+const openLink = (url?: string | null): void => {
+  if (url) {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+}
+
+const cutText = (text: string, maxLength: number): string => {
+  const trimmedText = text.trim()
+  if (trimmedText.length <= maxLength) return trimmedText
+  return `${trimmedText.slice(0, maxLength).replace(/\n/g, ' ')}...`
+}
+
+const formatHardware = (hardware: string): string => hardware.toUpperCase()
+
+const toDate = (date: string | Date): Date => (date instanceof Date ? date : new Date(date))
+
+const formatDate = (dateValue?: string | Date | null): string => {
+  if (!dateValue) return ''
+  const date = toDate(dateValue)
+  const now = new Date()
+  const diffTime = Math.abs(now.getTime() - date.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
+  return `${Math.floor(diffDays / 365)} years ago`
+}
+
+const formatFullDate = (dateValue?: string | Date | null): string => {
+  if (!dateValue) return ''
+  return toDate(dateValue).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+const getInitials = (username: string): string => {
+  if (!username) return '?'
+  const words = username.split(' ')
+  if (words.length >= 2) {
+    return `${words[0]?.charAt(0) ?? ''}${words[1]?.charAt(0) ?? ''}`.toUpperCase()
+  }
+  return username.substring(0, 2).toUpperCase()
+}
+
+const handleImageError = (): void => {
+  imageError.value = true
 }
 </script>
 

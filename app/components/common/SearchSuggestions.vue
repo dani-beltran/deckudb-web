@@ -25,7 +25,7 @@
           <div class="suggestion-text">
             <div class="suggestion-name">{{ suggestion.name }}</div>
             <div v-if="suggestion.release_date" class="suggestion-meta">
-              {{ suggestion.release_date.date || suggestion.release_date }}
+              {{ formatReleaseDate(suggestion.release_date) }}
             </div>
           </div>
         </div>
@@ -43,12 +43,24 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+
+type SuggestionReleaseDate = string | { date?: string | null }
+
+interface SearchSuggestion {
+  id: string | number
+  name: string
+  tiny_image?: string | null
+  release_date?: SuggestionReleaseDate | null
+  [key: string]: unknown
+}
+
+export default defineComponent({
   name: 'SearchSuggestions',
   props: {
     suggestions: {
-      type: Array,
+      type: Array as PropType<SearchSuggestion[]>,
       default: () => [],
     },
     loading: {
@@ -64,17 +76,25 @@ export default {
       default: 'Suggestions',
     },
   },
-  emits: ['select-suggestion', 'update-selected-index', 'close-suggestions'],
+  emits: {
+    'select-suggestion': (_suggestion: SearchSuggestion, _index: number) => true,
+    'update-selected-index': (_index: number) => true,
+    'close-suggestions': () => true,
+  },
   methods: {
-    selectSuggestion(suggestion, index) {
+    selectSuggestion(suggestion: SearchSuggestion, index: number) {
       this.$emit('select-suggestion', suggestion, index)
     },
 
-    updateSelectedIndex(index) {
+    updateSelectedIndex(index: number) {
       this.$emit('update-selected-index', index)
     },
 
-    handleKeyDown(event) {
+    formatReleaseDate(releaseDate: SuggestionReleaseDate) {
+      return typeof releaseDate === 'string' ? releaseDate : releaseDate.date || releaseDate
+    },
+
+    handleKeyDown(event: KeyboardEvent) {
       if (this.suggestions.length === 0) return
 
       switch (event.key) {
@@ -93,7 +113,8 @@ export default {
         case 'Enter':
           event.preventDefault()
           if (this.selectedIndex >= 0) {
-            this.selectSuggestion(this.suggestions[this.selectedIndex], this.selectedIndex)
+            const suggestion = this.suggestions[this.selectedIndex]
+            if (suggestion) this.selectSuggestion(suggestion, this.selectedIndex)
           }
           break
         case 'Escape':
@@ -110,7 +131,7 @@ export default {
     // Clean up event listener
     document.removeEventListener('keydown', this.handleKeyDown)
   },
-}
+})
 </script>
 
 <style scoped>

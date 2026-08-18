@@ -13,12 +13,14 @@
     </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+
+export default defineComponent({
   name: 'InfiniteScrollCollection',
   props: {
     items: {
-      type: Array,
+      type: Array as PropType<unknown[]>,
       required: true,
     },
     isLoadingMore: {
@@ -26,10 +28,12 @@ export default {
       default: false,
     },
   },
-  emits: ['last-item-visible'],
+  emits: {
+    'last-item-visible': () => true,
+  },
   data() {
     return {
-      intersectionObserver: null,
+      intersectionObserver: null as IntersectionObserver | null,
     }
   },
   mounted() {
@@ -45,7 +49,7 @@ export default {
       this.intersectionObserver = new IntersectionObserver(
         (entries) => {
           const lastItem = entries[0]
-          if (lastItem.isIntersecting && !this.isLoadingMore) {
+          if (lastItem?.isIntersecting && !this.isLoadingMore) {
             this.$emit('last-item-visible')
           }
         },
@@ -68,10 +72,10 @@ export default {
       // Disconnect all previous observations
       this.intersectionObserver.disconnect()
 
-      const items = this.$el.querySelectorAll('.list-item')
+      const items = (this.$el as HTMLElement).querySelectorAll('.list-item')
       if (items.length > 0) {
         const lastItem = items[items.length - 1]
-        this.intersectionObserver.observe(lastItem)
+        if (lastItem) this.intersectionObserver.observe(lastItem)
       }
     },
     disconnectIntersectionObserver() {
@@ -92,7 +96,7 @@ export default {
       deep: true,
     },
   },
-}
+})
 </script>
 
 <style scoped>

@@ -19,8 +19,31 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+
+type TooltipPosition =
+  | 'top'
+  | 'bottom'
+  | 'left'
+  | 'right'
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right'
+
+const TOOLTIP_POSITIONS: readonly TooltipPosition[] = [
+  'top',
+  'bottom',
+  'left',
+  'right',
+  'top-left',
+  'top-right',
+  'bottom-left',
+  'bottom-right',
+]
+
+export default defineComponent({
   name: 'Tooltip',
   data() {
     return {
@@ -40,19 +63,10 @@ export default {
       required: true,
     },
     position: {
-      type: String,
+      type: String as PropType<TooltipPosition>,
       default: 'top',
-      validator: (value) =>
-        [
-          'top',
-          'bottom',
-          'left',
-          'right',
-          'top-left',
-          'top-right',
-          'bottom-left',
-          'bottom-right',
-        ].includes(value),
+      validator: (value: unknown): value is TooltipPosition =>
+        typeof value === 'string' && TOOLTIP_POSITIONS.includes(value as TooltipPosition),
     },
     wrapperClass: {
       type: String,
@@ -67,7 +81,7 @@ export default {
     adjustPosition() {
       this.$nextTick(() => {
         requestAnimationFrame(() => {
-          const tooltip = this.$refs.tooltipContent
+          const tooltip = this.$refs.tooltipContent as HTMLElement | undefined
           if (!tooltip) return
 
           if (this.position !== 'top' && this.position !== 'bottom') {
@@ -96,7 +110,7 @@ export default {
       this.tooltipShiftX = 0
     },
   },
-}
+})
 </script>
 
 <style scoped>

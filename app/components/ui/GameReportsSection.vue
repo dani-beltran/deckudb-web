@@ -30,61 +30,60 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, ref } from 'vue'
 import Card from '../base/Card.vue'
 import GameReport from './GameReport.vue'
+import type { GameReportData } from './types'
 
-export default {
-  name: 'GameReportsSection',
-  components: {
-    Card,
-    GameReport,
-  },
-  props: {
-    reports: {
-      type: Array,
-      default: () => [],
-    },
-  },
-  data() {
-    return {
-      selectedFilter: 'all',
-      hardwareFilters: [
-        { label: 'All', value: 'all' },
-        { label: 'LCD', value: 'lcd' },
-        { label: 'OLED', value: 'oled' },
-        { label: '60 FPS', value: 'performance' },
-        { label: 'Low TDP', value: 'battery_saving' },
-      ],
-    }
-  },
-  computed: {
-    filteredReports() {
-      if (this.selectedFilter === 'all') {
-        return this.reports
-      }
-      if (this.selectedFilter === 'performance') {
-        return this.reports.filter((report) => {
-          const fps =
-            report.steamdeck_settings?.frame_rate_cap ||
-            report.steamdeck_experience?.average_frame_rate
-          return fps && parseInt(fps, 10) >= 60
-        })
-      }
-      if (this.selectedFilter === 'battery_saving') {
-        return this.reports.filter((report) => {
-          const tdp = report.steamdeck_settings?.tdp_limit
-          return tdp && parseInt(tdp, 10) < 10
-        })
-      }
-      return this.reports.filter(
-        (report) =>
-          report.steamdeck_hardware &&
-          report.steamdeck_hardware.toLowerCase() === this.selectedFilter
-      )
-    },
-  },
+defineOptions({ name: 'GameReportsSection' })
+
+type ReportFilter = 'all' | 'lcd' | 'oled' | 'performance' | 'battery_saving'
+
+interface HardwareFilter {
+  label: string
+  value: ReportFilter
 }
+
+const props = withDefaults(
+  defineProps<{
+    reports?: GameReportData[]
+  }>(),
+  {
+    reports: () => [],
+  }
+)
+
+const selectedFilter = ref<ReportFilter>('all')
+const hardwareFilters: HardwareFilter[] = [
+  { label: 'All', value: 'all' },
+  { label: 'LCD', value: 'lcd' },
+  { label: 'OLED', value: 'oled' },
+  { label: '60 FPS', value: 'performance' },
+  { label: 'Low TDP', value: 'battery_saving' },
+]
+
+const filteredReports = computed<GameReportData[]>(() => {
+  if (selectedFilter.value === 'all') {
+    return props.reports
+  }
+  if (selectedFilter.value === 'performance') {
+    return props.reports.filter((report) => {
+      const fps =
+        report.steamdeck_settings?.frame_rate_cap || report.steamdeck_experience?.average_frame_rate
+      return fps ? Number.parseInt(String(fps), 10) >= 60 : false
+    })
+  }
+  if (selectedFilter.value === 'battery_saving') {
+    return props.reports.filter((report) => {
+      const tdp = report.steamdeck_settings?.tdp_limit
+      return tdp ? Number.parseInt(String(tdp), 10) < 10 : false
+    })
+  }
+  return props.reports.filter(
+    (report) => report.steamdeck_hardware?.toLowerCase() === selectedFilter.value
+  )
+})
 </script>
 
 <style scoped>

@@ -4,7 +4,7 @@
         :aria-label="`View ${game.name} settings`">
         <div class="game-image-wrapper">
             <img v-if="game.header_image" :src="game.header_image" :alt="`${game.name} cover`"
-                class="popular-game-image" @error="$event.target.style.display = 'none'"
+                class="popular-game-image" @error="hideBrokenImage"
                 loading="lazy" />
             <div v-else class="image-placeholder">
                 <span>{{ game.name.charAt(0) }}</span>
@@ -17,16 +17,23 @@
     </div>
 </template>
 
-<script>
-export default {
-  name: 'PopularGameCard',
-  props: {
-    game: {
-      type: Object,
-      required: true,
-    },
-  },
-  emits: ['click'],
+<script setup lang="ts">
+import type { PopularGame } from './types'
+
+defineOptions({ name: 'PopularGameCard' })
+
+defineProps<{
+  game: PopularGame
+}>()
+
+defineEmits<{
+  click: [game: PopularGame]
+}>()
+
+const hideBrokenImage = (event: Event): void => {
+  if (event.target instanceof HTMLImageElement) {
+    event.target.style.display = 'none'
+  }
 }
 </script>
 

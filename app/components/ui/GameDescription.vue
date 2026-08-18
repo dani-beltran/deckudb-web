@@ -11,14 +11,14 @@
         </h1>
 
         <!-- Game Description -->
-        <div v-if="game.steam_app.short_description" class="summary-section">
+        <div v-if="game?.steam_app?.short_description" class="summary-section">
           <p class="summary-text">{{ game.steam_app.short_description }}</p>
         </div>
       </div>
     </div>
 
     <!-- Game Rating and Verification -->
-    <div class="game-badges" v-if="game.steamdeck_rating || game.steamdeck_verified">
+    <div class="game-badges" v-if="game?.steamdeck_rating || game?.steamdeck_verified">
       <Tooltip v-if="game.steamdeck_rating" :text="getRatingTooltip(game.steamdeck_rating)" position="top-right">
         <div class="rating-badge" :class="`rating-${game.steamdeck_rating}`">
           <RatingBadgeIcon class="rating-badge-icon" />
@@ -37,51 +37,41 @@
   </section>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed } from 'vue'
 import Tooltip from '../base/Tooltip.vue'
 import RatingBadgeIcon from '../icons/RatingBadgeIcon.vue'
 import VerifiedIcon from '../icons/VerifiedIcon.vue'
 import GameVideoPreview from './GameVideoPreview.vue'
+import type { GameDetails, SteamDeckRating } from './types'
 
-export default {
-  name: 'GameDescription',
-  components: {
-    RatingBadgeIcon,
-    VerifiedIcon,
-    Tooltip,
-    GameVideoPreview,
-  },
-  props: {
-    game: {
-      type: Object,
-      default: null,
-    },
-  },
-  computed: {
-    gameTitle() {
-      return this.game.steam_app?.name
-    },
-    gameId() {
-      return this.game?.game_id || ''
-    },
-    steamStoreUrl() {
-      return this.gameId ? `https://store.steampowered.com/app/${this.gameId}/` : '#'
-    },
-  },
-  methods: {
-    getRatingTooltip(rating) {
-      const tooltips = {
-        native: 'Game works natively on SteamOS, Proton is not required',
-        silver: 'Game works with minor issues using Proton on SteamOS, but generally playable',
-        gold: 'Game works flawlessly after a few changes using Proton on SteamOS',
-        platinum: 'Game works flawlessly out of the box using Proton on SteamOS',
-        unsupported: 'Game is not supported by Proton on SteamOS',
-        borked: 'Game is broken or is unplayable',
-      }
-      return tooltips[rating] || ''
-    },
-  },
+defineOptions({ name: 'GameDescription' })
+
+const props = withDefaults(
+  defineProps<{
+    game?: GameDetails | null
+  }>(),
+  {
+    game: null,
+  }
+)
+
+const ratingTooltips: Record<SteamDeckRating, string> = {
+  native: 'Game works natively on SteamOS, Proton is not required',
+  silver: 'Game works with minor issues using Proton on SteamOS, but generally playable',
+  gold: 'Game works flawlessly after a few changes using Proton on SteamOS',
+  platinum: 'Game works flawlessly out of the box using Proton on SteamOS',
+  unsupported: 'Game is not supported by Proton on SteamOS',
+  borked: 'Game is broken or is unplayable',
 }
+
+const gameTitle = computed(() => props.game?.steam_app?.name)
+const gameId = computed(() => props.game?.game_id || '')
+const steamStoreUrl = computed(() =>
+  gameId.value ? `https://store.steampowered.com/app/${gameId.value}/` : '#'
+)
+
+const getRatingTooltip = (rating: SteamDeckRating): string => ratingTooltips[rating]
 </script>
 
 <style scoped>

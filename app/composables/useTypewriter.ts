@@ -1,14 +1,17 @@
+import type { Ref } from 'vue'
 import { onBeforeUnmount, ref, watch } from 'vue'
+
+export interface TypewriterOptions {
+  text?: Ref<string>
+  typeSpeed?: number
+  startDelay?: number
+}
 
 /**
  * Composable for creating a typewriter animation effect
- * @param {Object} options - Configuration options
- * @param {import('vue').Ref<string>} options.text - Reactive text content to animate
- * @param {number} options.typeSpeed - Milliseconds per character (default: 50)
- * @param {number} options.startDelay - Delay before starting animation (default: 500)
- * @returns {Object} - Typewriter state and controls
+ * @param options - Configuration options
  */
-export function useTypewriter(options = {}) {
+export function useTypewriter(options: TypewriterOptions = {}) {
   const { text = ref(''), typeSpeed = 50, startDelay = 500 } = options
 
   const displayedText = ref('')
@@ -16,8 +19,8 @@ export function useTypewriter(options = {}) {
   const isTyping = ref(false)
   const isComplete = ref(false)
 
-  let typewriterInterval = null
-  let startTimeout = null
+  let typewriterInterval: ReturnType<typeof setInterval> | null = null
+  let startTimeout: ReturnType<typeof setTimeout> | null = null
 
   /**
    * Clear all active intervals and timeouts
@@ -50,7 +53,7 @@ export function useTypewriter(options = {}) {
   const start = () => {
     reset()
 
-    const textValue = typeof text.value === 'string' ? text.value : text
+    const textValue = text.value
 
     if (!textValue || textValue.length === 0) {
       isComplete.value = true
@@ -63,7 +66,7 @@ export function useTypewriter(options = {}) {
     startTimeout = setTimeout(() => {
       typewriterInterval = setInterval(() => {
         if (currentIndex.value < textValue.length) {
-          displayedText.value += textValue[currentIndex.value]
+          displayedText.value += textValue.charAt(currentIndex.value)
           currentIndex.value++
         } else {
           // Animation complete
@@ -80,7 +83,7 @@ export function useTypewriter(options = {}) {
    */
   const skip = () => {
     clearTimers()
-    const textValue = typeof text.value === 'string' ? text.value : text
+    const textValue = text.value
     displayedText.value = textValue
     currentIndex.value = textValue.length
     isTyping.value = false
@@ -104,13 +107,13 @@ export function useTypewriter(options = {}) {
   const resume = () => {
     if (isComplete.value) return
 
-    const textValue = typeof text.value === 'string' ? text.value : text
+    const textValue = text.value
 
     if (currentIndex.value < textValue.length) {
       isTyping.value = true
       typewriterInterval = setInterval(() => {
         if (currentIndex.value < textValue.length) {
-          displayedText.value += textValue[currentIndex.value]
+          displayedText.value += textValue.charAt(currentIndex.value)
           currentIndex.value++
         } else {
           clearTimers()

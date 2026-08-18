@@ -11,8 +11,15 @@
   </Transition>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+
+interface TransitionDuration {
+  enter: number
+  leave: number
+}
+
+export default defineComponent({
   name: 'ExpandTransition',
   props: {
     show: {
@@ -28,7 +35,7 @@ export default {
       default: '',
     },
     duration: {
-      type: Object,
+      type: Object as PropType<TransitionDuration>,
       default: () => ({
         enter: 400,
         leave: 300,
@@ -48,41 +55,44 @@ export default {
     },
   },
   methods: {
-    beforeEnter(el) {
-      el.style.height = '0'
-      el.style.opacity = '0'
-      el.style.transform = `translateY(-${this.translateDistance}px) scale(${this.scale})`
-      el.style.paddingTop = '0'
-      el.style.paddingBottom = '0'
+    beforeEnter(el: Element) {
+      const element = el as HTMLElement
+      element.style.height = '0'
+      element.style.opacity = '0'
+      element.style.transform = `translateY(-${this.translateDistance}px) scale(${this.scale})`
+      element.style.paddingTop = '0'
+      element.style.paddingBottom = '0'
     },
-    enter(el) {
-      el.offsetHeight // force reflow
-      const targetHeight = el.scrollHeight
-      el.style.transition = `height ${this.duration.enter}ms ${this.easing}, opacity ${Math.floor(this.duration.enter * 0.75)}ms ease-out ${Math.floor(this.duration.enter * 0.25)}ms, transform ${this.duration.enter}ms ${this.easing} ${Math.floor(this.duration.enter * 0.125)}ms, padding ${this.duration.enter}ms ${this.easing}`
-      el.style.height = `${targetHeight}px`
-      el.style.opacity = '1'
-      el.style.transform = 'translateY(0) scale(1)'
-      el.style.paddingTop = ''
-      el.style.paddingBottom = ''
+    enter(el: Element) {
+      const element = el as HTMLElement
+      element.offsetHeight // force reflow
+      const targetHeight = element.scrollHeight
+      element.style.transition = `height ${this.duration.enter}ms ${this.easing}, opacity ${Math.floor(this.duration.enter * 0.75)}ms ease-out ${Math.floor(this.duration.enter * 0.25)}ms, transform ${this.duration.enter}ms ${this.easing} ${Math.floor(this.duration.enter * 0.125)}ms, padding ${this.duration.enter}ms ${this.easing}`
+      element.style.height = `${targetHeight}px`
+      element.style.opacity = '1'
+      element.style.transform = 'translateY(0) scale(1)'
+      element.style.paddingTop = ''
+      element.style.paddingBottom = ''
 
       // Clean up after animation
       setTimeout(() => {
-        el.style.height = 'auto'
+        element.style.height = 'auto'
       }, this.duration.enter)
     },
-    leave(el) {
-      const currentHeight = el.offsetHeight
-      el.style.height = `${currentHeight}px`
-      el.offsetHeight // force reflow
-      el.style.transition = `height ${this.duration.leave}ms ${this.easing} ${Math.floor(this.duration.leave * 0.167)}ms, opacity ${Math.floor(this.duration.leave * 0.667)}ms ease-in, transform ${this.duration.leave}ms ${this.easing}, padding ${this.duration.leave}ms ${this.easing} ${Math.floor(this.duration.leave * 0.167)}ms`
-      el.style.height = '0'
-      el.style.opacity = '0'
-      el.style.transform = `translateY(-${this.translateDistance}px) scale(${this.scale})`
-      el.style.paddingTop = '0'
-      el.style.paddingBottom = '0'
+    leave(el: Element) {
+      const element = el as HTMLElement
+      const currentHeight = element.offsetHeight
+      element.style.height = `${currentHeight}px`
+      element.offsetHeight // force reflow
+      element.style.transition = `height ${this.duration.leave}ms ${this.easing} ${Math.floor(this.duration.leave * 0.167)}ms, opacity ${Math.floor(this.duration.leave * 0.667)}ms ease-in, transform ${this.duration.leave}ms ${this.easing}, padding ${this.duration.leave}ms ${this.easing} ${Math.floor(this.duration.leave * 0.167)}ms`
+      element.style.height = '0'
+      element.style.opacity = '0'
+      element.style.transform = `translateY(-${this.translateDistance}px) scale(${this.scale})`
+      element.style.paddingTop = '0'
+      element.style.paddingBottom = '0'
     },
   },
-}
+})
 </script>
 
 <style scoped>

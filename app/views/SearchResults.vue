@@ -30,19 +30,42 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import Spinner from '../components/base/Spinner.vue'
 import GameSearchResults from '../components/ui/GameSearchResults.vue'
 import NavigationHeader from '../components/ui/NavigationHeader.vue'
+import type { SearchGame, SearchGamesResponse } from '../components/ui/types'
 
-export default {
+interface SearchError {
+  title: string
+  message: string
+}
+
+interface SearchResultsState {
+  searchResults: SearchGame[]
+  searchLoading: boolean
+  searchError: SearchError | null
+  searchTerm: string
+  isWideScreen: boolean
+}
+
+function normalizeQueryValue(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (!Array.isArray(value)) return ''
+
+  const firstValue = value[0]
+  return typeof firstValue === 'string' ? firstValue : ''
+}
+
+export default defineComponent({
   name: 'SearchResults',
   components: {
     NavigationHeader,
     GameSearchResults,
     Spinner,
   },
-  data() {
+  data(): SearchResultsState {
     return {
       searchResults: [],
       searchLoading: false,
@@ -52,7 +75,7 @@ export default {
     }
   },
   computed: {
-    initialResultsCount() {
+    initialResultsCount(): number {
       return this.isWideScreen ? 8 : 4
     },
   },
@@ -60,7 +83,7 @@ export default {
     document.title = 'Search Results - DeckuDB'
 
     // Get search term from URL query parameter
-    this.searchTerm = this.$route.query.q || ''
+    this.searchTerm = normalizeQueryValue(this.$route.query.q)
 
     // Check screen width and set up listener
     this.checkScreenWidth()
@@ -78,7 +101,7 @@ export default {
     },
   },
   methods: {
-    async onSearch(term) {
+    async onSearch(term?: string) {
       if (!term?.trim()) {
         this.searchError = {
           title: 'No search term entered',
@@ -92,7 +115,9 @@ export default {
       this.searchResults = []
 
       try {
-        const results = await this.$backendApi.searchSteamGamesByName(term.trim())
+        const results = (await this.$backendApi.searchSteamGamesByName(
+          term.trim()
+        )) as SearchGamesResponse
         this.searchResults = results.items || []
         if (this.searchResults.length === 0) {
           this.searchError = {
@@ -110,14 +135,14 @@ export default {
         this.searchLoading = false
       }
     },
-    onGameSelected(game) {
+    onGameSelected(game: SearchGame) {
       this.$router.push({
         name: 'Game',
         params: { gameId: game.steam_appid ?? game.id },
       })
     },
     updateUrl() {
-      const currentQuery = this.$route.query.q || ''
+      const currentQuery = normalizeQueryValue(this.$route.query.q)
       if (this.searchTerm !== currentQuery) {
         this.$router.replace({
           name: 'SearchResults',
@@ -129,7 +154,7 @@ export default {
       this.isWideScreen = window.innerWidth > 768
     },
   },
-}
+})
 </script>
 
 <style scoped>

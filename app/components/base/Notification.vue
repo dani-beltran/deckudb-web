@@ -11,10 +11,10 @@
   </Transition>
 </template>
 
-<script>
-import { onUnmounted, ref, watch } from 'vue'
+<script lang="ts">
+import { defineComponent, onUnmounted, ref, watch } from 'vue'
 
-export default {
+export default defineComponent({
   name: 'Notification',
   props: {
     message: {
@@ -30,10 +30,12 @@ export default {
       default: 3000,
     },
   },
-  emits: ['hide'],
+  emits: {
+    hide: () => true,
+  },
   setup(props, { emit }) {
     const isVisible = ref(false)
-    let timeoutId = null
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
 
     const hideNotification = () => {
       isVisible.value = false
@@ -47,7 +49,7 @@ export default {
           isVisible.value = true
 
           // Clear existing timeout if any
-          if (timeoutId) {
+          if (timeoutId !== undefined) {
             clearTimeout(timeoutId)
           }
 
@@ -60,7 +62,7 @@ export default {
     )
 
     onUnmounted(() => {
-      if (timeoutId) {
+      if (timeoutId !== undefined) {
         clearTimeout(timeoutId)
       }
     })
@@ -69,7 +71,7 @@ export default {
       isVisible,
     }
   },
-}
+})
 </script>
 
 <style scoped>

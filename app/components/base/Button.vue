@@ -12,26 +12,37 @@
   </button>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+
+type ButtonVariant = 'primary' | 'secondary' | 'search'
+type ButtonSize = 'small' | 'medium' | 'large'
+type ButtonType = 'button' | 'submit' | 'reset'
+
+const BUTTON_VARIANTS: readonly ButtonVariant[] = ['primary', 'secondary', 'search']
+const BUTTON_SIZES: readonly ButtonSize[] = ['small', 'medium', 'large']
+
+export default defineComponent({
   name: 'Button',
   props: {
     variant: {
-      type: String,
+      type: String as PropType<ButtonVariant>,
       default: 'primary',
-      validator: (value) => ['primary', 'secondary', 'search'].includes(value),
+      validator: (value: unknown): value is ButtonVariant =>
+        typeof value === 'string' && BUTTON_VARIANTS.includes(value as ButtonVariant),
     },
     size: {
-      type: String,
+      type: String as PropType<ButtonSize>,
       default: 'medium',
-      validator: (value) => ['small', 'medium', 'large'].includes(value),
+      validator: (value: unknown): value is ButtonSize =>
+        typeof value === 'string' && BUTTON_SIZES.includes(value as ButtonSize),
     },
     disabled: {
       type: Boolean,
       default: false,
     },
     type: {
-      type: String,
+      type: String as PropType<ButtonType>,
       default: 'button',
     },
     label: {
@@ -39,7 +50,9 @@ export default {
       default: '',
     },
   },
-  emits: ['click'],
+  emits: {
+    click: () => true,
+  },
   computed: {
     buttonClasses() {
       return [
@@ -52,7 +65,7 @@ export default {
       ]
     },
   },
-}
+})
 </script>
 
 <style scoped>

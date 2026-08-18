@@ -11,11 +11,11 @@
     @keydown.space.prevent="$emit('select', game)"
   >
     <img 
-      v-if="game.tiny_image || game.header_image" 
-      :src="game.tiny_image || game.header_image" 
+      v-if="gameImage"
+      :src="gameImage"
       :alt="`${game.name} game cover`"
       class="game-image"
-      @error="$event.target.style.display = 'none'"
+      @error="hideBrokenImage"
       loading="lazy"
     />
     <div class="game-info">
@@ -30,24 +30,34 @@
   </article>
 </template>
 
-<script>
-export default {
-  name: 'GameCard',
-  props: {
-    game: {
-      type: Object,
-      required: true,
-    },
-    isSelected: {
-      type: Boolean,
-      default: false,
-    },
-    animationDelay: {
-      type: Number,
-      default: 0,
-    },
-  },
-  emits: ['select'],
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { SearchGame } from './types'
+
+defineOptions({ name: 'GameCard' })
+
+const props = withDefaults(
+  defineProps<{
+    game: SearchGame
+    isSelected?: boolean
+    animationDelay?: number
+  }>(),
+  {
+    isSelected: false,
+    animationDelay: 0,
+  }
+)
+
+const gameImage = computed(() => props.game.tiny_image || props.game.header_image || '')
+
+defineEmits<{
+  select: [game: SearchGame]
+}>()
+
+const hideBrokenImage = (event: Event): void => {
+  if (event.target instanceof HTMLImageElement) {
+    event.target.style.display = 'none'
+  }
 }
 </script>
 

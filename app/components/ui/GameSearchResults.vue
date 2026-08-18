@@ -8,7 +8,7 @@
           :key="game.id"
           :game="game"
           :is-selected="selectedGameId === game.id"
-          :animation-delay="index >= this.initialResultsCount ? (index - this.initialResultsCount) * 0.1 : 0"
+          :animation-delay="index >= initialResultsCount ? (index - initialResultsCount) * 0.1 : 0"
           @select="selectGameCard"
           role="listitem"
         />
@@ -23,78 +23,72 @@
           variant="primary" 
           size="medium"
         >
-          Show more results ({{ results.length - this.initialResultsCount }})
+          Show more results ({{ results.length - initialResultsCount }})
         </Button>
       </div>
     </transition>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
 import { trackGameSelect, trackShowMoreResults } from '../../services/analytics'
-import recentGamesStore from '../../stores/recentGamesStore.js'
+import recentGamesStore from '../../stores/recentGamesStore'
 import Button from '../base/Button.vue'
 import GameCard from './GameCard.vue'
+import type { GameId, SearchGame } from './types'
 
-export default {
-  name: 'GameSearchResults',
-  components: {
-    GameCard,
-    Button,
-  },
-  props: {
-    results: {
-      type: Array,
-      default: () => [],
-    },
-    selectedGameId: {
-      type: [String, Number],
-      default: null,
-    },
-    searchTerm: {
-      type: String,
-      default: '',
-    },
-    initialResultsCount: {
-      type: Number,
-      default: 4,
-    },
-  },
-  emits: ['game-selected'],
-  data() {
-    return {
-      showAllResults: false,
-    }
-  },
-  computed: {
-    displayedResults() {
-      if (this.showAllResults || this.results.length <= this.initialResultsCount) {
-        return this.results
-      }
-      return this.results.slice(0, this.initialResultsCount)
-    },
-    hasMoreResults() {
-      return this.results.length > this.initialResultsCount && !this.showAllResults
-    },
-  },
-  watch: {
-    results() {
-      // Reset show all when results change
-      this.showAllResults = false
-    },
-  },
-  methods: {
-    selectGameCard(game) {
-      recentGamesStore.saveRecentSearchedGameId(game.id)
-      trackGameSelect(game, 'search_result')
-      this.$emit('game-selected', game)
-    },
+defineOptions({ name: 'GameSearchResults' })
 
-    handleShowMore() {
-      trackShowMoreResults(this.searchTerm, this.results.length, this.initialResultsCount)
-      this.showAllResults = true
-    },
-  },
+const props = withDefaults(
+  defineProps<{
+    results?: SearchGame[]
+    selectedGameId?: GameId | null
+    searchTerm?: string
+    initialResultsCount?: number
+  }>(),
+  {
+    results: () => [],
+    selectedGameId: null,
+    searchTerm: '',
+    initialResultsCount: 4,
+  }
+)
+
+const emit = defineEmits<{
+  'game-selected': [game: SearchGame]
+}>()
+
+const showAllResults = ref(false)
+
+const displayedResults = computed<SearchGame[]>(() => {
+  if (showAllResults.value || props.results.length <= props.initialResultsCount) {
+    return props.results
+  }
+  return props.results.slice(0, props.initialResultsCount)
+})
+
+const hasMoreResults = computed(
+  () => props.results.length > props.initialResultsCount && !showAllResults.value
+)
+
+watch(
+  () => props.results,
+  () => {
+    // Reset show all when results change
+    showAllResults.value = false
+  }
+)
+
+const selectGameCard = (game: SearchGame): void => {
+  recentGamesStore.saveRecentSearchedGameId(game.id)
+  trackGameSelect(game, 'search_result')
+  emit('game-selected', game)
+}
+
+const handleShowMore = (): void => {
+  trackShowMoreResults(props.searchTerm, props.results.length, props.initialResultsCount)
+  showAllResults.value = true
 }
 </script>
 

@@ -22,10 +22,11 @@
   </button>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 
-export default {
+export default defineComponent({
   name: 'DarkModeToggle',
   setup() {
     const { isDarkMode, toggleDarkMode } = useDarkMode()
@@ -35,7 +36,7 @@ export default {
       toggleDarkMode,
     }
   },
-}
+})
 </script>
 
 <style scoped>

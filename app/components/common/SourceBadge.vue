@@ -5,14 +5,15 @@
     </span>
 </template>
 
-<script>
+<script lang="ts">
 import { Gamepad2 } from 'lucide-vue-next'
+import { type Component, defineComponent } from 'vue'
 import ProtonIcon from '@/components/icons/ProtonIcon.vue'
 import RedditIcon from '@/components/icons/RedditIcon.vue'
 import WebsiteIcon from '@/components/icons/WebsiteIcon.vue'
 import YoutubeIcon from '@/components/icons/YoutubeIcon.vue'
 
-const SOURCE_ICONS = {
+const SOURCE_ICONS: Partial<Record<string, Component>> = {
   reddit: RedditIcon,
   youtube: YoutubeIcon,
   protondb: ProtonIcon,
@@ -20,7 +21,7 @@ const SOURCE_ICONS = {
   other: WebsiteIcon,
 }
 
-export default {
+export default defineComponent({
   name: 'SourceBadge',
   props: {
     sourceName: {
@@ -47,7 +48,7 @@ export default {
       }
     },
   },
-}
+})
 </script>
 <style scoped>
 .source-badge {

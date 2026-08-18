@@ -8,10 +8,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 
-const artList = [
+interface Art {
+  file: string
+  caption_quote: string
+  caption_author: string
+}
+
+const artList: [Art, ...Art[]] = [
   {
     file: 'decku_jobs.jpg',
     caption_quote: '“Stay hungry. Stay foolish.”',
@@ -46,7 +52,7 @@ const artList = [
 ]
 
 const randomIndex = Math.floor(Math.random() * artList.length)
-const selectedArt = artList[randomIndex]
+const selectedArt = artList[randomIndex] ?? artList[0]
 
 const artImageUrl = computed(() => `/art/${selectedArt.file}`)
 </script>

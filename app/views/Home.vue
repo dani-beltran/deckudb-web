@@ -19,13 +19,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import GameSearch from '../components/ui/GameSearch.vue'
 import GameSearchResults from '../components/ui/GameSearchResults.vue'
 import HomeHeader from '../components/ui/HomeHeader.vue'
 import PopularGames from '../components/ui/PopularGames.vue'
+import type { PopularGame } from '../components/ui/types'
 
-export default {
+export default defineComponent({
   name: 'Home',
   components: {
     GameSearch,
@@ -53,7 +55,7 @@ export default {
         this.$router.push({ name: 'SearchResults', query: { q: this.searchTerm } })
       }, 300)
     },
-    onGameSelected(game) {
+    onGameSelected(game: PopularGame) {
       // Navigate to the game page
       this.$router.push({
         name: 'Game',
@@ -62,7 +64,7 @@ export default {
       })
     },
   },
-}
+})
 </script>
 
 <style scoped>

@@ -38,12 +38,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { Search } from 'lucide-vue-next'
+import { defineComponent } from 'vue'
 import Button from '../base/Button.vue'
 import Spinner from '../base/Spinner.vue'
 
-export default {
+type SearchSubmitSource = 'search_bar_button' | 'enter_key'
+
+export default defineComponent({
   name: 'SearchBar',
   components: {
     Button,
@@ -68,13 +71,19 @@ export default {
       default: false,
     },
   },
-  emits: ['update:modelValue', 'search', 'input', 'blur', 'focus'],
+  emits: {
+    'update:modelValue': (_value: string) => true,
+    search: (_source: SearchSubmitSource) => true,
+    input: (_value: string) => true,
+    blur: (_event: FocusEvent) => true,
+    focus: (_event: FocusEvent) => true,
+  },
   computed: {
     searchTerm: {
       get() {
         return this.modelValue
       },
-      set(value) {
+      set(value: string) {
         this.$emit('update:modelValue', value)
       },
     },
@@ -89,28 +98,27 @@ export default {
       this.$emit('input', this.searchTerm)
     },
 
-    handleKeyDown(event) {
+    handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Enter') {
         this.hideMobileKeyboard()
         this.$emit('search', 'enter_key')
       }
     },
 
-    handleBlur(event) {
+    handleBlur(event: FocusEvent) {
       this.$emit('blur', event)
     },
 
-    handleFocus(event) {
+    handleFocus(event: FocusEvent) {
       this.$emit('focus', event)
     },
 
     hideMobileKeyboard() {
-      if (this.$refs.searchInput) {
-        this.$refs.searchInput.blur()
-      }
+      const searchInput = this.$refs.searchInput as HTMLInputElement | undefined
+      searchInput?.blur()
     },
   },
-}
+})
 </script>
 
 <style scoped>

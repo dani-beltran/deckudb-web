@@ -40,9 +40,7 @@
         :content="aiCardContent"
         :type-speed="15"
         :start-delay="800"
-        @feedback="(feedback) => {
-          submitGameSummaryVote(game.game_id, feedback)
-        }"
+        @feedback="submitCurrentGameSummaryVote"
       >
       </AskAICard>
       <GameReportsSection v-if="game.reports" :reports="game.reports" />
@@ -60,7 +58,8 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue'
 import Spinner from '../components/base/Spinner.vue'
 import AskAICard from '../components/common/AskAICard.vue'
 import ErrorMessage from '../components/common/ErrorMessage.vue'
@@ -72,8 +71,39 @@ import GameDescription from '../components/ui/GameDescription.vue'
 import GameReportsSection from '../components/ui/GameReportsSection.vue'
 import NavigationHeader from '../components/ui/NavigationHeader.vue'
 import ProcessingWarning from '../components/ui/ProcessingWarning.vue'
+import type { GameDetails, GameId, GameReportData } from '../components/ui/types'
 
-export default {
+interface FetchGameResponse {
+  status: 'queued' | 'ready' | 'invalid'
+  game: GameDetails
+}
+
+interface GamePageState {
+  game: GameDetails | null
+  loading: boolean
+  error: string | null
+  searchPerformed: boolean
+  processingWarning: boolean
+  pendingGame: boolean
+  searchLoading: boolean
+  searchTerm: string
+}
+
+function getReportTimestamp(postedAt: GameReportData['posted_at']): number {
+  if (!postedAt) return 0
+  return postedAt instanceof Date ? postedAt.getTime() : new Date(postedAt).getTime()
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = error.message
+    if (typeof message === 'string') return message
+  }
+  return String(error)
+}
+
+export default defineComponent({
   name: 'GamePage',
   components: {
     AddReport,
@@ -94,25 +124,26 @@ export default {
       required: true,
     },
   },
-  data() {
+  data(): GamePageState {
     return {
       game: null,
       loading: false,
       error: null,
       searchPerformed: false,
       processingWarning: false,
+      pendingGame: false,
       searchLoading: false,
       searchTerm: '',
     }
   },
   computed: {
-    gameTitle() {
+    gameTitle(): string {
       return this.game?.steam_app?.name || `Game ID ${this.gameId}`
     },
-    isGameType() {
+    isGameType(): boolean {
       return this.game?.steam_app?.type === 'game'
     },
-    aiCardContent() {
+    aiCardContent(): string {
       if (!this.game?.game_performance_summary) return ''
 
       const summary = this.game.game_performance_summary
@@ -140,7 +171,7 @@ export default {
     document.removeEventListener('keydown', this.handleKeydown)
   },
   methods: {
-    handleKeydown(event) {
+    handleKeydown(event: KeyboardEvent) {
       // Check if backspace key is pressed and not in an input field
       if (event.key === 'Backspace' && !this.isInInputField(event.target)) {
         event.preventDefault()
@@ -158,8 +189,9 @@ export default {
       }, 300)
     },
 
-    isInInputField(target) {
+    isInInputField(target: EventTarget | null): boolean {
       // Check if the target element is an input field where backspace should work normally
+      if (!(target instanceof HTMLElement)) return false
       const inputTypes = ['INPUT', 'TEXTAREA', 'SELECT']
       return inputTypes.includes(target.tagName) || target.contentEditable === 'true'
     },
@@ -185,7 +217,7 @@ export default {
       this.pendingGame = false
 
       try {
-        const res = await this.$backendApi.fetchGame(this.gameId)
+        const res = (await this.$backendApi.fetchGame(this.gameId)) as FetchGameResponse
 
         if (res.status === 'queued') {
           this.pendingGame = true
@@ -193,20 +225,18 @@ export default {
           return
         }
 
-        const sortedReports = [...res.game.reports].sort((a, b) => {
-          const dateA = a.posted_at ? new Date(a.posted_at) : new Date(0)
-          const dateB = b.posted_at ? new Date(b.posted_at) : new Date(0)
-          return dateB - dateA
+        const sortedReports = [...(res.game.reports ?? [])].sort((a, b) => {
+          return getReportTimestamp(b.posted_at) - getReportTimestamp(a.posted_at)
         })
 
         this.game = { ...res.game, reports: sortedReports }
-      } catch (err) {
-        this.error = err.message
+      } catch (err: unknown) {
+        this.error = getErrorMessage(err)
       } finally {
         this.loading = false
       }
     },
-    async submitGameSummaryVote(gameId, feedback) {
+    async submitGameSummaryVote(gameId: GameId, feedback: unknown) {
       const voteType = feedback === 'positive' ? 'up' : feedback === 'negative' ? 'down' : null
       if (!voteType) return
 
@@ -216,8 +246,13 @@ export default {
         console.error('Error submitting game summary vote:', error)
       }
     },
+    async submitCurrentGameSummaryVote(feedback: unknown) {
+      const gameId = this.game?.game_id
+      if (gameId == null) return
+      await this.submitGameSummaryVote(gameId, feedback)
+    },
   },
-}
+})
 </script>
 
 <style scoped>

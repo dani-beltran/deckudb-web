@@ -9,8 +9,10 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { type CSSProperties, defineComponent, type PropType } from 'vue'
+
+export default defineComponent({
   name: 'LoadingDots',
   props: {
     message: {
@@ -18,7 +20,7 @@ export default {
       default: '',
     },
     size: {
-      type: [Number, String],
+      type: [Number, String] as PropType<number | string>,
       default: 8,
     },
     color: {
@@ -27,7 +29,7 @@ export default {
     },
   },
   computed: {
-    dotStyle() {
+    dotStyle(): CSSProperties {
       const sizeValue = typeof this.size === 'number' ? `${this.size}px` : this.size
       return {
         width: sizeValue,
@@ -36,7 +38,7 @@ export default {
       }
     },
   },
-}
+})
 </script>
 
 <style scoped>

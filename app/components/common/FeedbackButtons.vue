@@ -21,11 +21,13 @@
   </Transition>
 </template>
 
-<script>
+<script lang="ts">
 import { ThumbsDown, ThumbsUp } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { defineComponent, ref } from 'vue'
 
-export default {
+type FeedbackType = 'positive' | 'negative'
+
+export default defineComponent({
   name: 'FeedbackButtons',
   components: {
     ThumbsUp,
@@ -37,11 +39,13 @@ export default {
       default: true,
     },
   },
-  emits: ['feedback'],
+  emits: {
+    feedback: (_type: FeedbackType) => true,
+  },
   setup(_props, { emit }) {
-    const selectedFeedback = ref(null)
+    const selectedFeedback = ref<FeedbackType | null>(null)
 
-    const handleFeedback = (type) => {
+    const handleFeedback = (type: FeedbackType) => {
       selectedFeedback.value = type
       emit('feedback', type)
     }
@@ -51,7 +55,7 @@ export default {
       handleFeedback,
     }
   },
-}
+})
 </script>
 
 <style scoped>

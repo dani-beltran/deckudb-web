@@ -7,7 +7,7 @@ export function useDarkMode() {
     isDarkMode.value = !isDarkMode.value
   }
 
-  const setDarkMode = (value) => {
+  const setDarkMode = (value: boolean) => {
     isDarkMode.value = value
   }
 

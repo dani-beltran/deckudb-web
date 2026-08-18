@@ -8,13 +8,17 @@
   </Button>
 </template>
 
-<script>
+<script lang="ts">
 import { RotateCw } from 'lucide-vue-next'
+import { defineComponent } from 'vue'
 import Button from '@/components/base/Button.vue'
-export default {
+
+export default defineComponent({
   components: { Button, RotateCw },
   name: 'RefreshButton',
-  emits: ['refresh'],
+  emits: {
+    refresh: () => true,
+  },
   props: {
     countdownStart: {
       type: Number,
@@ -25,7 +29,7 @@ export default {
     return {
       countdown: this.countdownStart,
       isDisabled: true,
-      timer: null,
+      timer: null as ReturnType<typeof setInterval> | null,
       loading: false,
     }
   },
@@ -33,23 +37,24 @@ export default {
     this.startCountdown()
   },
   beforeUnmount() {
-    clearInterval(this.timer)
+    if (this.timer !== null) clearInterval(this.timer)
   },
   methods: {
     startCountdown() {
       this.isDisabled = true
       this.countdown = this.countdownStart
-      this.timer = setInterval(() => {
+      const timer = setInterval(() => {
         if (this.countdown > 1) {
           this.countdown--
         } else {
           this.isDisabled = false
-          clearInterval(this.timer)
+          clearInterval(timer)
         }
       }, 1000)
+      this.timer = timer
     },
     reset() {
-      clearInterval(this.timer)
+      if (this.timer !== null) clearInterval(this.timer)
       this.startCountdown()
     },
     handleClick() {
@@ -63,7 +68,7 @@ export default {
       }, 1000)
     },
   },
-}
+})
 </script>
 
 <style scoped>
