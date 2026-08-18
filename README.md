@@ -63,7 +63,7 @@ Server configuration is validated at startup. Nuxt runtime overrides use the `NU
 | --- | --- |
 | Database | `NUXT_MONGODB_URI`, `NUXT_MONGODB_DATABASE` |
 | AI and scraping | `NUXT_CLAUDE_API_KEY`, `NUXT_CLAUDE_AI_MODEL`, `NUXT_FIRECRAWL_API_KEY`, `NUXT_DAYS_BETWEEN_SCRAPES` |
-| Sessions and hosts | `NUXT_SESSION_SECRET`, `NUXT_SESSION_MAX_AGE_MS`, `NUXT_WEB_HOST`, `NUXT_DASHBOARD_HOST` |
+| Sessions | `NUXT_SESSION_SECRET`, `NUXT_SESSION_MAX_AGE_MS` |
 | Admin dashboard | `NUXT_ADMIN_USERNAME`, `NUXT_ADMIN_PASSWORD` |
 | Job execution | `NUXT_JOB_TIMEOUT_MINUTES`, `NUXT_JOB_MAX_ATTEMPTS`, `NUXT_WORKER_ENABLED` |
 | Worker polling | `NUXT_WORKER_POLL_INTERVAL_MS`, `NUXT_WORKER_POLL_JITTER_MS`, `NUXT_WORKER_REQUEUE_SWEEP_MS`, `NUXT_WORKER_IDLE_LOG_EVERY` |
@@ -97,8 +97,8 @@ to the login page, while unauthenticated job-management API requests return `401
 Use HTTPS and a strong, unique password in production. `NUXT_SESSION_SECRET` protects the signed
 session cookie and must also be a strong secret.
 
-The integrated dashboard uses the application's origin. `NUXT_DASHBOARD_HOST` remains available as
-an allowed API origin for compatibility with a separately hosted legacy dashboard.
+The integrated dashboard and API use the application's origin. Cross-origin API access is not
+allowed.
 
 ## API
 

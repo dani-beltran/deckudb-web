@@ -3,7 +3,8 @@ import { createApp, createRouter, toNodeListener } from 'h3'
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
 
-const allowedOrigin = 'http://localhost:3000'
+const requestHost = 'deckudb.test'
+const requestOrigin = `http://${requestHost}`
 
 const createCorsTestApp = () => {
   const app = createApp()
@@ -17,37 +18,40 @@ const createCorsTestApp = () => {
 }
 
 describe('Nuxt API CORS', () => {
-  it('allows credentialed requests from an approved origin', async () => {
+  it('allows credentialed requests from the request origin', async () => {
     const response = await request(createCorsTestApp())
       .get('/api/health')
-      .set('Origin', allowedOrigin)
+      .set('Host', requestHost)
+      .set('Origin', requestOrigin)
       .expect(200)
 
-    expect(response.headers['access-control-allow-origin']).toBe(allowedOrigin)
+    expect(response.headers['access-control-allow-origin']).toBe(requestOrigin)
     expect(response.headers['access-control-allow-credentials']).toBe('true')
     expect(response.headers.vary).toContain('origin')
     expect(response.body).toEqual({ status: 'OK' })
   })
 
-  it('does not grant CORS access to an unapproved origin', async () => {
+  it('does not grant CORS access to a different origin', async () => {
     const response = await request(createCorsTestApp())
       .get('/api/health')
-      .set('Origin', 'https://untrusted.example')
+      .set('Host', requestHost)
+      .set('Origin', `http://${requestHost}:4173`)
       .expect(200)
 
     expect(response.headers['access-control-allow-origin']).toBeUndefined()
     expect(response.headers['access-control-allow-credentials']).toBe('true')
   })
 
-  it('handles an approved origin preflight request', async () => {
+  it('handles a same-origin preflight request', async () => {
     const response = await request(createCorsTestApp())
       .options('/api/health')
-      .set('Origin', allowedOrigin)
+      .set('Host', requestHost)
+      .set('Origin', requestOrigin)
       .set('Access-Control-Request-Method', 'POST')
       .set('Access-Control-Request-Headers', 'content-type')
       .expect(204)
 
-    expect(response.headers['access-control-allow-origin']).toBe(allowedOrigin)
+    expect(response.headers['access-control-allow-origin']).toBe(requestOrigin)
     expect(response.headers['access-control-allow-credentials']).toBe('true')
     expect(response.headers['access-control-allow-methods']).toBe('GET,POST,DELETE')
     expect(response.headers['access-control-allow-headers']).toBe('Content-Type')

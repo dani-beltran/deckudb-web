@@ -12,10 +12,6 @@ export const configSchema = z.object({
   nodeEnv: z.string().trim().min(1),
   // Port to listen on for HTTP requests
   port: positiveInteger,
-  // Domain hosting the app
-  webHost: z.url(),
-  // Domain hosting the dashboard
-  dashboardHost: z.url(),
   // MongoDB connection string
   mongodbUri: z.string().trim().min(1),
   // MongoDB database name
