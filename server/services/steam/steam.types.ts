@@ -62,7 +62,11 @@ export type SteamApp = {
   type: string
   name: string
   steam_appid: number
-  required_age: string
+  fullgame?: {
+    appid: string
+    name: string
+  }
+  required_age: number
   is_free: boolean
   controller_support?: string
   dlc?: number[]
@@ -88,6 +92,7 @@ export type SteamApp = {
     recommended: string
   }
   legal_notice?: string
+  ext_user_account_notice?: string
   developers: string[]
   publishers: string[]
   price_overview?: {
@@ -144,18 +149,18 @@ export type SteamApp = {
     id: number
     name: string
     thumbnail: string
-    webm: {
+    highlight: boolean
+    webm?: {
       480: string
       max: string
     }
-    mp4: {
+    mp4?: {
       480: string
       max: string
     }
     dash_av1?: string
     dash_h264?: string
     hls_h264?: string
-    highlight: boolean
   }>
   recommendations?: {
     total: number
@@ -165,6 +170,10 @@ export type SteamApp = {
     highlighted: Array<{
       name: string
       path: string
+      icon?: string
+      localized_name?: string
+      archived?: number
+      hidden?: number
     }>
   }
   release_date: {
@@ -181,59 +190,10 @@ export type SteamApp = {
     ids: number[]
     notes: string | null
   }
-  ratings?: {
-    esrb?: {
-      rating: string
-      descriptors: string
-      required_age: string
-      use_age_gate: string
-      interactive_elements?: string
-    }
-    dejus?: {
-      rating: string
-      descriptors: string
-      use_age_gate: string
-      required_age: string
-    }
-    pegi?: {
-      rating: string
-      descriptors: string
-      use_age_gate: string
-      required_age: string
-    }
-    usk?: {
-      rating: string
-      required_age: string
-      use_age_gate: string
-    }
-    nzoflc?: {
-      rating: string
-      descriptors: string
-      required_age: string
-      use_age_gate: string
-    }
-    fpb?: {
-      rating: string
-      required_age: string
-      use_age_gate: string
-    }
-    csrr?: {
-      rating: string
-      use_age_gate: string
-      required_age: string
-    }
-    cero?: {
-      rating: string
-      descriptors: string
-      required_age: string
-      use_age_gate: string
-    }
-    crl?: {
-      rating: string
-      use_age_gate: string
-      required_age: string
-    }
-  }
+  ratings?: Record<
+    string,
+    { rating: string; descriptors?: string; required_age?: string; use_age_gate?: string }
+  >
 }
 
 export enum STEAMDECK_VERIFICATION_STATUS {

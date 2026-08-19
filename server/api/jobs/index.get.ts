@@ -1,8 +1,10 @@
 import { defineEventHandler } from 'h3'
 import z from 'zod'
-import { JOB_STATUS, JOB_TYPE } from '../../models/jobs.schema'
+import { JOB_STATUS, JOB_TYPE, type Job } from '../../models/jobs.schema'
 import { apiHandler, parseQuery, requireAdmin } from '../../utils/api'
-import { paginationSchema } from '../../utils/pagination'
+import { type PaginatedResult, paginationSchema } from '../../utils/pagination'
+
+export type JobsResponse = PaginatedResult<Job>
 
 const jobsQuerySchema = paginationSchema.extend({
   status: z.enum(JOB_STATUS).optional(),
@@ -13,7 +15,7 @@ const jobsQuerySchema = paginationSchema.extend({
 })
 
 export default defineEventHandler((event) =>
-  apiHandler(event, async () => {
+  apiHandler<JobsResponse>(event, async () => {
     requireAdmin(event)
     const { status, job_type, game_id, page, page_size, sort_by, sort_order } = await parseQuery(
       event,
