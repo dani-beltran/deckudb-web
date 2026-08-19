@@ -4,7 +4,7 @@
         <div v-if="items.length > 0" class="carousel-container">
             <button class="carousel-button prev" @click="previousSlide" :disabled="currentIndex === 0"
                 :aria-label="prevAriaLabel">
-                ‹
+                <ChevronLeft aria-hidden="true" />
             </button>
 
             <div class="carousel-track-wrapper">
@@ -21,7 +21,7 @@
 
             <button class="carousel-button next" @click="nextSlide" :disabled="currentIndex >= maxIndex"
                 :aria-label="nextAriaLabel">
-                ›
+                <ChevronRight aria-hidden="true" />
             </button>
         </div>
 
@@ -35,6 +35,7 @@
 </template>
 
 <script setup lang="ts">
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { type CSSProperties, computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 defineOptions({ name: 'Carousel' })
