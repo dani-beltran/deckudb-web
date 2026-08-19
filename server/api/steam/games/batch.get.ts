@@ -2,7 +2,10 @@ import { defineEventHandler } from 'h3'
 import z from 'zod'
 import { gameIdSchema } from '../../../models/games.schema'
 import { mapGamesToSearchItems } from '../../../services/steam/steam'
+import type { SteamSearch } from '../../../services/steam/steam.types'
 import { apiHandler, parseQuery } from '../../../utils/api'
+
+export type SteamGamesBatchResponse = SteamSearch
 
 const gameIdsQuerySchema = z.object({
   ids: z
@@ -23,7 +26,7 @@ const gameIdsQuerySchema = z.object({
 })
 
 export default defineEventHandler((event) =>
-  apiHandler(event, async () => {
+  apiHandler<SteamGamesBatchResponse>(event, async () => {
     const { ids } = await parseQuery(event, gameIdsQuerySchema)
     const { repositories } = event.context
     const games = await repositories.steamCache.getGamesDetails(ids)

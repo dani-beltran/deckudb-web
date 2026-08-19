@@ -62,6 +62,10 @@ export type SteamApp = {
   type: string
   name: string
   steam_appid: number
+  fullgame?: {
+    appid: number
+    name: string
+  }
   required_age: string
   is_free: boolean
   controller_support?: string
