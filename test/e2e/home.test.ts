@@ -16,8 +16,11 @@ const popularGamesResponse = {
     portal2SearchItem,
     createSteamSearchItem({ id: 413150, name: 'Stardew Valley' }),
     createSteamSearchItem({ id: 1086940, name: "Baldur's Gate 3" }),
+    createSteamSearchItem({ id: 1145360, name: 'Hades' }),
+    createSteamSearchItem({ id: 367520, name: 'Hollow Knight' }),
+    createSteamSearchItem({ id: 1245620, name: 'ELDEN RING' }),
   ],
-  total: 3,
+  total: 6,
 } satisfies MostPlayedSteamDeckGamesResponse
 
 describe('home page', async () => {
@@ -67,7 +70,91 @@ describe('home page', async () => {
     ).toBe(true)
   })
 
-  it('persists the selected color theme across reloads', async () => {
+  it('uses the popular games gallery in desktop mode', async () => {
+    const page = await createPage()
+    await page.setViewportSize({ width: 1280, height: 900 })
+
+    await page.route('**/api/steam/most-played-steam-deck-games?*', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(popularGamesResponse),
+      })
+    })
+
+    await page.goto(testUrl('/'))
+    await page.getByRole('button', { name: `View ${portal2SearchItem.name} settings` }).waitFor()
+
+    const popularGames = page.getByRole('region', { name: 'Popular Games' }).last()
+    const carouselTrack = popularGames.locator('.carousel-track')
+    expect(await popularGames.locator('.carousel-section').isVisible()).toBe(true)
+    expect(await popularGames.locator('.infinite-scroll-collection').count()).toBe(0)
+    expect(await carouselTrack.getAttribute('style')).toContain('translateX(0%)')
+
+    await popularGames.getByRole('button', { name: 'Next games' }).click()
+
+    expect(await carouselTrack.getAttribute('style')).toContain('translateX(-100%)')
+    expect(await page.evaluate(() => localStorage.getItem('popularGames_currentIndex'))).toBe('1')
+    expect(await popularGames.getByRole('button', { name: 'Previous games' }).isEnabled()).toBe(
+      true
+    )
+  })
+
+  it('loads more popular games with infinite scroll in mobile mode', async () => {
+    const page = await createPage()
+    await page.setViewportSize({ width: 390, height: 700 })
+
+    const mobilePages = new Map<number, MostPlayedSteamDeckGamesResponse['items']>([
+      [
+        1,
+        [
+          createSteamSearchItem({ id: 10, name: 'Mobile Game 1' }),
+          createSteamSearchItem({ id: 20, name: 'Mobile Game 2' }),
+        ],
+      ],
+      [
+        2,
+        [
+          createSteamSearchItem({ id: 30, name: 'Mobile Game 3' }),
+          createSteamSearchItem({ id: 40, name: 'Mobile Game 4' }),
+        ],
+      ],
+      [3, [createSteamSearchItem({ id: 50, name: 'Mobile Game 5' })]],
+    ])
+    const requestedPages: number[] = []
+
+    await page.route('**/api/steam/most-played-steam-deck-games?*', (route) => {
+      const pageNumber = Number(new URL(route.request().url()).searchParams.get('page'))
+      requestedPages.push(pageNumber)
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ items: mobilePages.get(pageNumber) ?? [], total: 35 }),
+      })
+    })
+
+    await page.goto(testUrl('/'))
+    await page.getByRole('button', { name: 'View Mobile Game 1 settings' }).waitFor()
+
+    const popularGames = page.getByRole('region', { name: 'Popular Games' }).last()
+    expect(await popularGames.locator('.infinite-scroll-collection').isVisible()).toBe(true)
+    expect(await popularGames.locator('.carousel-section').count()).toBe(0)
+
+    await popularGames
+      .getByRole('button', { name: 'Load More', exact: true })
+      .evaluate((button) => (button as HTMLElement).click())
+    const fourthGame = page.getByRole('button', { name: 'View Mobile Game 4 settings' })
+    await fourthGame.waitFor()
+    expect(requestedPages).toEqual([1, 2])
+
+    await fourthGame.scrollIntoViewIfNeeded()
+    await page.getByRole('button', { name: 'View Mobile Game 5 settings' }).waitFor()
+
+    expect(requestedPages).toEqual([1, 2, 3])
+    expect(await popularGames.locator('.list-item').count()).toBe(5)
+  })
+
+  it('activates and deactivates dark mode and persists the selection', async () => {
     const page = await createPage()
 
     await page.route('**/api/steam/most-played-steam-deck-games?*', (route) => {
@@ -85,9 +172,15 @@ describe('home page', async () => {
     await darkModeButton.click()
     expect(await page.locator('html').getAttribute('class')).toContain('dark-mode')
     expect(await page.evaluate(() => localStorage.getItem('darkMode'))).toBe('enabled')
+    expect(await page.getByRole('button', { name: 'Switch to light mode' }).isVisible()).toBe(true)
+
+    await page.getByRole('button', { name: 'Switch to light mode' }).click()
+    expect((await page.locator('html').getAttribute('class')) ?? '').not.toContain('dark-mode')
+    expect(await page.evaluate(() => localStorage.getItem('darkMode'))).toBe('disabled')
+    expect(await page.getByRole('button', { name: 'Switch to dark mode' }).isVisible()).toBe(true)
 
     await page.reload()
-    expect(await page.getByRole('button', { name: 'Switch to light mode' }).isVisible()).toBe(true)
-    expect(await page.locator('html').getAttribute('class')).toContain('dark-mode')
+    expect((await page.locator('html').getAttribute('class')) ?? '').not.toContain('dark-mode')
+    expect(await page.getByRole('button', { name: 'Switch to dark mode' }).isVisible()).toBe(true)
   })
 })
