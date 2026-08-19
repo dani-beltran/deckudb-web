@@ -202,7 +202,7 @@ describe('game search', async () => {
     await page.waitForURL((url) => url.pathname === gamePath)
 
     expect(
-      await page.evaluate(() => localStorage.getItem(STORAGE_KEY))
+      await page.evaluate((storageKey) => localStorage.getItem(storageKey), STORAGE_KEY)
     ).toBe('[620]')
 
     await page.reload()
