@@ -82,13 +82,18 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Cache test binaries
+      - name: Cache MongoDB binaries
         uses: actions/cache@v5
         with:
-          path: |
-            ~/.cache/mongodb-binaries
-            ~/.cache/ms-playwright
-          key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-test-binaries-${{ hashFiles('package-lock.json') }}
+          path: ~/.cache/mongodb-binaries
+          key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-mongodb-binaries-${{ hashFiles('package-lock.json') }}
+
+      - name: Cache Playwright Chromium
+        id: playwright-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-chromium-${{ hashFiles('package-lock.json') }}
 
       - name: Set up npm
         run: npm install --global npm@${NPM_VERSION}
@@ -99,8 +104,14 @@ jobs:
       - name: Prepare Nuxt
         run: npm exec -- nuxt prepare
 
+      # Hosted runners are ephemeral, so OS packages cannot be restored with the
+      # browser cache and must be installed on every run.
+      - name: Install Playwright system dependencies
+        run: npm exec -- playwright install-deps chromium
+
       - name: Install Playwright Chromium
-        run: npm exec -- playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npm exec -- playwright install chromium
 
       - name: Run test suite
         run: npm test
