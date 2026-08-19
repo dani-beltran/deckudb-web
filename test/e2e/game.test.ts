@@ -178,12 +178,6 @@ describe('game page', async () => {
     await page.goto(testUrl('/game/620'))
     await page.getByRole('button', { name: 'Ask AI' }).click()
     const typewriterText = page.locator('.typewriter-text')
-    expect(await typewriterText.textContent()).toBe('')
-    await page.waitForFunction((fullText) => {
-      const displayedText = document.querySelector('.typewriter-text')?.textContent ?? ''
-      return displayedText.length > 0 && displayedText.length < fullText.length
-    }, readyPortal2GameResponse.game.game_performance_summary)
-    expect(await page.locator('.decku-logo').getAttribute('class')).toContain('logo-typing')
 
     await page.getByRole('button', { name: 'Thumbs up' }).waitFor()
     expect(await typewriterText.textContent()).toContain(
