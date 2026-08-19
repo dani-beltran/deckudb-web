@@ -192,7 +192,7 @@ export type SteamApp = {
   }
   ratings?: Record<
     string,
-    { rating: string; descriptors: string; required_age: string; use_age_gate: string }
+    { rating: string; descriptors?: string; required_age?: string; use_age_gate?: string }
   >
 }
 
