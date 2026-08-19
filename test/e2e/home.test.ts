@@ -174,6 +174,10 @@ describe('home page', async () => {
     expect(await page.evaluate(() => localStorage.getItem('darkMode'))).toBe('enabled')
     expect(await page.getByRole('button', { name: 'Switch to light mode' }).isVisible()).toBe(true)
 
+    await page.reload()
+    expect(await page.locator('html').getAttribute('class')).toContain('dark-mode')
+    expect(await page.getByRole('button', { name: 'Switch to light mode' }).isVisible()).toBe(true)
+
     await page.getByRole('button', { name: 'Switch to light mode' }).click()
     expect((await page.locator('html').getAttribute('class')) ?? '').not.toContain('dark-mode')
     expect(await page.evaluate(() => localStorage.getItem('darkMode'))).toBe('disabled')
