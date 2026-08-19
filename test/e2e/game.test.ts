@@ -89,7 +89,7 @@ const nonGameResponse = {
       steam_appid: 123,
       name: 'Portal 2 Soundtrack',
       type: 'music',
-      fullgame: { appid: 620, name: 'Portal 2' },
+      fullgame: { appid: '620', name: 'Portal 2' },
     },
     reports: [],
   },
