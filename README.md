@@ -287,6 +287,13 @@ non-root user and includes Chromium for the background scraping worker. Pushing 
 tag such as `v1.2.3` publishes the image to `ghcr.io/<owner>/<repository>` with `1.2.3`, `1.2`, `1`,
 and `latest` tags.
 
+### Automated pull request review
+
+Pull requests targeting `main` are reviewed by Codex when they are opened, reopened, or receive a
+new commit. Add `OPENAI_API_KEY` as a GitHub Actions repository secret to enable the workflow. The
+workflow skips forked pull requests and Dependabot because secrets must not be exposed to
+untrusted pull request code. Its review criteria live in `.github/codex/prompts/review.md`.
+
 ## Disclaimer
 
 Community recommendations may not suit every system configuration. Use them at your own discretion.
