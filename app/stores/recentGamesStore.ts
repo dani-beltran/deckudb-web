@@ -10,7 +10,7 @@ interface RecentGamesState {
  * Recent Games Store
  * Manages recently searched games stored in localStorage
  */
-const STORAGE_KEY = 'recentSearchedGameIds'
+export const STORAGE_KEY = 'recentSearchedGameIds'
 const MAX_RECENT_GAMES = 10
 
 function isRecentGameId(value: unknown): value is RecentGameId {
