@@ -159,13 +159,13 @@ describe('game search', async () => {
     const gamePath = `/game/${portal2GameResponse.game.game_id}`
 
     await page.setViewportSize({ width: 1024, height: 768 })
-    await page.addInitScript(() => {
+    await page.addInitScript((storageKey) => {
       const initializationKey = 'e2eRecentGamesInitialized'
       if (sessionStorage.getItem(initializationKey)) return
 
-      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(storageKey)
       sessionStorage.setItem(initializationKey, 'true')
-    })
+    }, STORAGE_KEY)
     await page.route('**/api/steam/games?*', (route) => {
       if (!isSearchRequest(route.request().url())) return route.continue()
       return route.fulfill({
