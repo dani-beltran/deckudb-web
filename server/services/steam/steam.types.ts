@@ -190,7 +190,10 @@ export type SteamApp = {
     ids: number[]
     notes: string | null
   }
-  ratings?: Record<string, { rating: string; descriptors: string; required_age: string; use_age_gate: string }>
+  ratings?: Record<
+    string,
+    { rating: string; descriptors: string; required_age: string; use_age_gate: string }
+  >
 }
 
 export enum STEAMDECK_VERIFICATION_STATUS {
