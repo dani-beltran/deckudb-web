@@ -1,24 +1,11 @@
 name: Codex PR review
 
 on:
-  pull_request:
-    branches:
-      - main
-    types:
-      - opened
-      - reopened
-      - synchronize
-
-concurrency:
-  group: codex-pr-review-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  workflow_call:
 
 jobs:
   review:
     name: Review pull request
-    if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:

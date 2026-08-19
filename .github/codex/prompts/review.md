@@ -1,5 +1,6 @@
 Review the pull request changes against the base branch. Inspect the relevant implementation,
-tests, and configuration before reaching conclusions. Do not modify repository files.
+tests, and configuration before reaching conclusions. Do not modify repository files or execute
+project scripts, binaries, hooks, or tests; use read-only inspection and Git commands only.
 
 Focus on actionable problems introduced by the pull request, especially:
 
