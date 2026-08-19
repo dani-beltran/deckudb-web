@@ -11,6 +11,7 @@ import {
   serviceUnavailableResponse,
 } from './fixtures'
 import { getDebugConfig } from './helpers'
+import { STORAGE_KEY } from '~/stores/recentGamesStore'
 
 const DEBUG = process.env.E2E_TESTS_DEBUG === 'true'
 const SEARCH_ENDPOINT = '/api/steam/games'
@@ -43,6 +44,11 @@ const portalSearchResults = [
 const portalSuggestionsResponse = {
   items: [portal2SearchItem, portalSearchItem],
   total: 2,
+} satisfies SteamGamesResponse
+
+const recentPortal2Response = {
+  items: [portal2SearchItem],
+  total: 1,
 } satisfies SteamGamesResponse
 
 const portalSearchResponse = {
@@ -146,6 +152,79 @@ describe('game search', async () => {
     })
     await gameHeading.waitFor()
     expect(await gameHeading.isVisible()).toBe(true)
+  })
+
+  it('persists a selected result and restores it as a recent game after reload', async () => {
+    const page = await createPage()
+    const gamePath = `/game/${portal2GameResponse.game.game_id}`
+
+    await page.setViewportSize({ width: 1024, height: 768 })
+    await page.addInitScript(() => {
+      const initializationKey = 'e2eRecentGamesInitialized'
+      if (sessionStorage.getItem(initializationKey)) return
+
+      localStorage.removeItem(STORAGE_KEY)
+      sessionStorage.setItem(initializationKey, 'true')
+    })
+    await page.route('**/api/steam/games?*', (route) => {
+      if (!isSearchRequest(route.request().url())) return route.continue()
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(portalSuggestionsResponse),
+      })
+    })
+    await page.route('**/api/steam/games/batch?*', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(recentPortal2Response),
+      })
+    })
+    await page.route('**/api/steam/most-played-steam-deck-games?*', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(emptyMostPlayedGamesResponse),
+      })
+    })
+    await page.route(`**/api/games/${portal2GameResponse.game.game_id}`, (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(portal2GameResponse),
+      })
+    })
+
+    await page.goto(testUrl('/search?q=Portal'))
+    await page.getByRole('heading', { name: 'Found 2 Steam games:' }).waitFor()
+    await page.getByLabel('Select Portal 2 for Steam Deck settings').click()
+    await page.waitForURL((url) => url.pathname === gamePath)
+
+    expect(
+      await page.evaluate(() => localStorage.getItem(STORAGE_KEY))
+    ).toBe('[620]')
+
+    await page.reload()
+    await page.getByRole('heading', { name: portal2SearchItem.name }).waitFor()
+    await page.getByRole('link', { name: 'Go to home page' }).click()
+    await page.waitForURL((url) => url.pathname === '/')
+
+    const recentGamesRequest = page.waitForRequest(
+      (request) => new URL(request.url()).pathname === '/api/steam/games/batch'
+    )
+    await page.getByLabel('Enter search term').focus()
+    const requestUrl = new URL((await recentGamesRequest).url())
+
+    expect(requestUrl.searchParams.get('ids')).toBe(String(portal2SearchItem.id))
+    const recentGamesTitle = page.getByText('Recent Games Searched', { exact: true })
+    await recentGamesTitle.waitFor()
+    expect(await recentGamesTitle.isVisible()).toBe(true)
+
+    const recentGame = page.getByRole('option', { name: portal2SearchItem.name })
+    await recentGame.waitFor()
+    await recentGame.click()
+    await page.waitForURL((url) => url.pathname === gamePath)
   })
 
   it('reveals additional results and opens a selected game', async () => {
