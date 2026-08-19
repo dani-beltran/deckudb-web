@@ -24,7 +24,6 @@ import PopularGames from '../components/ui/PopularGames.vue'
 import type { PopularGame } from '../components/ui/types'
 
 definePageMeta({ name: 'Home' })
-useHead({ title: 'DeckuDB - Optimize Your Games for Steam Deck' })
 
 const router = useRouter()
 const searchTerm = ref('')
