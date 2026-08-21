@@ -20,6 +20,19 @@ export class YoutubeMiner implements Miner {
       headless: true,
       timeout: 30_000,
       plugin: async (page) => {
+        if (page.url().includes('/shorts/')) {
+          const videoLink = page.locator('button-view-model a[href]').first()
+          await videoLink.waitFor({ state: 'attached' })
+
+          const href = await videoLink.getAttribute('href')
+          if (!href) {
+            throw new Error('Could not find the YouTube video link for this Short')
+          }
+
+          await page.goto(new URL(href, page.url()).toString())
+          await page.waitForSelector('#owner')
+        }
+
         // Handle YouTube consent popup if it appears
         const consent = page.locator('ytd-consent-bump-v2-lightbox')
         const rejectBtn = consent.getByRole('button').nth(1)
