@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import { parseSteamdeckHardware } from './helpers/parsers'
 import type { MinedData, Miner } from './Miner'
 import { SCRAPE_SOURCES, type ScrapedContent } from './scrapes.schema'
+import type { Page } from 'playwright'
 
 export class YoutubeMiner implements Miner {
   private scraper: WebScraper
@@ -29,12 +30,12 @@ export class YoutubeMiner implements Miner {
       headless: true,
       timeout: 30_000,
       plugin: async (page) => {
-        // Handle YouTube consent popup if it appears
-        const consent = page.locator('ytd-consent-bump-v2-lightbox')
-        const rejectBtn = consent.getByRole('button').nth(1)
-        if (await rejectBtn.isVisible({ timeout: 2_000 })) {
-          await rejectBtn.click()
+        await this.handleConsentPopup(page)
+
+        if (page.url().includes('/shorts/')) {
+          await this.handleShortsRedirect(page)
         }
+
         // Expand the video description to ensure all content can be scraped
         const expandButton = page.locator('#primary #expand')
         await expandButton.waitFor({ state: 'visible' })
@@ -105,5 +106,25 @@ export class YoutubeMiner implements Miner {
     }
 
     return null
+  }
+
+  private async handleConsentPopup(page: Page): Promise<void> {
+    const consent = page.locator('ytd-consent-bump-v2-lightbox')
+    const rejectBtn = consent.getByRole('button').nth(1)
+    if (await rejectBtn.isVisible({ timeout: 2_000 })) {
+      await rejectBtn.click()
+    }
+  }
+
+  private async handleShortsRedirect(page: Page): Promise<void> {
+    const videoLink = page.locator('button-view-model a[href]').first()
+    await videoLink.waitFor({ state: 'attached' })
+
+    const href = await videoLink.getAttribute('href')
+    if (!href) {
+      throw new Error('Could not find the YouTube video link for this Short')
+    }
+
+    await page.goto(new URL(href, page.url()).toString())
   }
 }
