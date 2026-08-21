@@ -60,7 +60,7 @@ export const generateGameReports = async (job: Job, { repositories }: ServerDepe
     steamdeck_verification_status: steamdeckVerificationStatus ?? undefined,
   })
 
-  // Only replace reports if there are new reports to insert. 
+  // Only replace reports if there are new reports to insert.
   // This prevents accidental deletion of existing reports when a source fails to provide new reports during rescraping.
   if (reports.length > 0) {
     await repositories.gameReports.replaceGameReportsForGame(gameId, reports)
