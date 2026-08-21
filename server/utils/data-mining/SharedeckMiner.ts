@@ -1,4 +1,4 @@
-import { type SectionData, WebScraper } from '@danilidonbeltran/webscrapper'
+import { type GroupData, WebScraper } from '@danilidonbeltran/webscrapper'
 import { parseSteamdeckHardware } from './helpers/parsers'
 import type { Miner } from './Miner'
 import { type GameReportBody, SCRAPE_SOURCES, type ScrapedContent } from './scrapes.schema'
@@ -8,8 +8,8 @@ export class SharedeckMiner implements Miner {
 
   constructor() {
     this.scraper = new WebScraper({
-      sectionSelectors: ['#reports article'],
-      waitForSelector: '#reports',
+      // Selector for user reports. Sometimes there are no reports, so this group is not required.
+      groups: [{ name: 'reports', selector: '#reports article', wait: true, required: false }],
       browser: 'chromium',
       headless: true,
       timeout: 15_000,
@@ -30,30 +30,30 @@ export class SharedeckMiner implements Miner {
   }
 
   polish(result: ScrapedContent) {
-    if (!result.sections) {
+    if (!result.groups) {
       return { reports: [] }
     }
-    const filteredSections = result.sections.filter(
-      (section) => section.otherText && section.otherText.length > 0
+    const filteredSections = result.groups.filter(
+      (group) => group.otherText && group.otherText.length > 0
     )
-    const reports: GameReportBody[] = filteredSections.map((section) => {
-      return this.buildGameReport(section, result.url)
+    const reports: GameReportBody[] = filteredSections.map((group) => {
+      return this.buildGameReport(group, result.url)
     })
     return { reports }
   }
 
-  private buildGameReport(section: SectionData, url: string): GameReportBody {
-    const items = section.otherText
+  private buildGameReport(group: GroupData, url: string): GameReportBody {
+    const items = group.otherText
     const graphicsPreset = this.cleanValue(this.findValue(items, /graphics preset/i))
     const resolution = this.cleanValue(this.findValue(items, /resolution/i)).replace(/[\s]/g, '')
     return {
       title: `${graphicsPreset} - ${resolution}`,
       source: SCRAPE_SOURCES.SHAREDECK,
-      url: `${url}#${section.id}`,
+      url: `${url}#${group.id}`,
       reporter: {
         username: this.findValue(items, /to be able to vote/i) || 'Anonymous',
-        user_profile_url: section.links[0]?.href || '',
-        user_profile_avatar_url: section.images[0]?.src,
+        user_profile_url: group.links[0]?.href || '',
+        user_profile_avatar_url: group.images[0]?.src,
       },
       battery_performance: {
         life_span: (items[0] || '').replace(/[\n]/g, '').trim(),
@@ -76,7 +76,7 @@ export class SharedeckMiner implements Miner {
       steamdeck_experience: {
         average_frame_rate: this.extractInteger(items[2]),
       },
-      notes: this.getNotes(section),
+      notes: this.getNotes(group),
       posted_at: null,
     }
   }
@@ -111,13 +111,13 @@ export class SharedeckMiner implements Miner {
     return ''
   }
 
-  private getNotes(section: SectionData): string {
-    const notesStartindex = section.otherText.indexOf('Note')
+  private getNotes(group: GroupData): string {
+    const notesStartindex = group.otherText.indexOf('Note')
     if (notesStartindex === -1) {
       return ''
     }
-    const noteEndIndex = section.otherText.indexOf('Sign in with Steam')
-    return (section.otherText || [])
+    const noteEndIndex = group.otherText.indexOf('Sign in with Steam')
+    return (group.otherText || [])
       .slice(notesStartindex + 1, noteEndIndex)
       .join(' ')
       .replace(/[\n]/g, ' ')

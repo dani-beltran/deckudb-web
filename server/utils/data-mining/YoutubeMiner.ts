@@ -1,5 +1,6 @@
 import { type ScrapeStructuredResult, WebScraper } from '@danilidonbeltran/webscrapper'
 import dayjs from 'dayjs'
+import type { Page } from 'playwright'
 import { parseSteamdeckHardware } from './helpers/parsers'
 import type { MinedData, Miner } from './Miner'
 import { SCRAPE_SOURCES, type ScrapedContent } from './scrapes.schema'
@@ -9,23 +10,32 @@ export class YoutubeMiner implements Miner {
 
   constructor() {
     this.scraper = new WebScraper({
-      sectionSelectors: [
-        // Selector for user channel name
-        '#owner',
-        // Selector for video description
-        '#info',
+      groups: [
+        {
+          name: 'owner',
+          // Selector for user channel name
+          selector: '#owner',
+          wait: true,
+          required: true,
+        },
+        {
+          name: 'info',
+          selector: '#info',
+          wait: true,
+          required: true,
+        },
       ],
-      waitForSelector: '#owner', // Wait for the channel name to load as an indicator that the page is ready
+
       browser: 'chromium',
       headless: true,
       timeout: 30_000,
       plugin: async (page) => {
-        // Handle YouTube consent popup if it appears
-        const consent = page.locator('ytd-consent-bump-v2-lightbox')
-        const rejectBtn = consent.getByRole('button').nth(1)
-        if (await rejectBtn.isVisible({ timeout: 2_000 })) {
-          await rejectBtn.click()
+        await this.handleConsentPopup(page)
+
+        if (page.url().includes('/shorts/')) {
+          await this.handleShortsRedirect(page)
         }
+
         // Expand the video description to ensure all content can be scraped
         const expandButton = page.locator('#primary #expand')
         await expandButton.waitFor({ state: 'visible' })
@@ -41,13 +51,13 @@ export class YoutubeMiner implements Miner {
   }
 
   polish(result: ScrapedContent): MinedData {
-    if (!result.sections) {
+    if (!result.groups) {
       return { reports: [] }
     }
 
-    const channelName = result.sections[0]?.links?.[0]?.text || ''
-    const channelUrl = result.sections[0]?.links?.[0]?.href || ''
-    const avatar = result.sections[0]?.images?.[0]?.src || ''
+    const channelName = result.groups[0]?.links?.[0]?.text || ''
+    const channelUrl = result.groups[0]?.links?.[0]?.href || ''
+    const avatar = result.groups[0]?.images?.[0]?.src || ''
     const postedAt = this.findDate(result)
 
     return {
@@ -74,7 +84,7 @@ export class YoutubeMiner implements Miner {
   }
 
   private findDate(scrape: ScrapedContent): Date | null {
-    const infoSections = scrape.sections?.filter((s) => s.id === 'info')
+    const infoSections = scrape.groups?.filter((s) => s.id === 'info')
     if (!infoSections || infoSections.length === 0) {
       return null
     }
@@ -96,5 +106,25 @@ export class YoutubeMiner implements Miner {
     }
 
     return null
+  }
+
+  private async handleConsentPopup(page: Page): Promise<void> {
+    const consent = page.locator('ytd-consent-bump-v2-lightbox')
+    const rejectBtn = consent.getByRole('button').nth(1)
+    if (await rejectBtn.isVisible({ timeout: 2_000 })) {
+      await rejectBtn.click()
+    }
+  }
+
+  private async handleShortsRedirect(page: Page): Promise<void> {
+    const videoLink = page.locator('button-view-model a[href]').first()
+    await videoLink.waitFor({ state: 'attached' })
+
+    const href = await videoLink.getAttribute('href')
+    if (!href) {
+      throw new Error('Could not find the YouTube video link for this Short')
+    }
+
+    await page.goto(new URL(href, page.url()).toString())
   }
 }
