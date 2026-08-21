@@ -602,6 +602,7 @@ function confirmDelete(job: Job) {
 .status-tooltip:focus-within .status-message {
   opacity: 1;
   transform: translateY(0);
+  transition-delay: 0.8s;
 }
 
 @keyframes status-trigger-pulse {
