@@ -85,13 +85,14 @@
                 <button
                   type="button"
                   class="status-message-trigger"
-                  :aria-label="`Status message: ${job.status_message}`"
+                  :aria-label="`See issue for ${job.game_name ?? `job ${shortId(job.job_id)}`}`"
                   :aria-describedby="statusMessageId(job.job_id)"
+                  @click="openIssue(job, $event)"
                 >
                   <CircleAlert aria-hidden="true" />
                 </button>
                 <span :id="statusMessageId(job.job_id)" class="status-message" role="tooltip">
-                  {{ job.status_message }}
+                  See issue
                 </span>
               </span>
             </td>
@@ -127,14 +128,20 @@
       @page-change="goToPage"
       @page-size-change="changePageSize"
     />
+
+    <AdminStatusMessageDialog
+      :message="selectedIssue?.status_message ?? null"
+      @close="closeIssue"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
 import { ArrowDown, ArrowUp, CircleAlert, Trash2 } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import type { Job, JobStatus, JobType } from '../../plugins/api/types'
 import AdminPagination from './AdminPagination.vue'
+import AdminStatusMessageDialog from './AdminStatusMessageDialog.vue'
 
 type FilterStatus = JobStatus | 'all'
 type SortDirection = 'asc' | 'desc'
@@ -174,6 +181,9 @@ const filterStatus = ref<FilterStatus>('all')
 const sortDirection = ref<SortDirection>('desc')
 const currentPage = ref(1)
 const pageSize = ref(25)
+const selectedIssue = ref<Job | null>(null)
+
+let issueTrigger: HTMLButtonElement | null = null
 
 const filteredJobs = computed(() => {
   const query = search.value.trim().toLocaleLowerCase()
@@ -242,6 +252,19 @@ function formatDate(value: string | null) {
 
 function statusMessageId(jobId: string) {
   return `status-message-${jobId}`
+}
+
+function openIssue(job: Job, event: MouseEvent) {
+  if (!job.status_message) return
+  issueTrigger = event.currentTarget as HTMLButtonElement
+  selectedIssue.value = job
+}
+
+async function closeIssue() {
+  selectedIssue.value = null
+  await nextTick()
+  issueTrigger?.focus()
+  issueTrigger = null
 }
 
 function confirmDelete(job: Job) {
@@ -533,16 +556,24 @@ function confirmDelete(job: Job) {
   height: 1.6rem;
   padding: 0;
   color: var(--admin-danger);
-  background: transparent;
-  border: 0;
+  background: #fff4f5;
+  border: 1px solid rgba(200, 45, 58, 0.2);
   border-radius: 50%;
-  cursor: help;
+  cursor: pointer;
   place-items: center;
+  animation: status-trigger-pulse 2.4s ease-in-out infinite;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 
 .status-message-trigger svg {
   width: 1rem;
   height: 1rem;
+}
+
+.status-message-trigger:hover {
+  color: var(--admin-danger-hover);
+  background: #ffe8eb;
+  transform: translateY(-1px) scale(1.04);
 }
 
 .status-message {
@@ -571,6 +602,17 @@ function confirmDelete(job: Job) {
 .status-tooltip:focus-within .status-message {
   opacity: 1;
   transform: translateY(0);
+}
+
+@keyframes status-trigger-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(200, 45, 58, 0.08);
+  }
+
+  50% {
+    box-shadow: 0 0 0 0.25rem rgba(200, 45, 58, 0);
+  }
 }
 
 .date-cell {
@@ -650,5 +692,12 @@ function confirmDelete(job: Job) {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-message-trigger {
+    animation: none;
+    transition: none;
+  }
 }
 </style>
