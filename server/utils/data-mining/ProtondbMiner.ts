@@ -20,11 +20,10 @@ export class ProtondbMiner implements Miner {
 
   constructor() {
     this.scraper = new WebScraper({
-      sectionSelectors: [
-        // Selector for user reports
-        '.for-anchor-tags',
+      groups: [
+        // Selector for user reports. Sometimes there are no reports, so this group is not required.
+        { name: 'reports', selector: '.for-anchor-tags', wait: true, required: false },
       ],
-      waitForSelector: '.for-anchor-tags',
       browser: 'chromium',
       headless: true,
       timeout: 15_000,
@@ -41,23 +40,22 @@ export class ProtondbMiner implements Miner {
   }
 
   polish(result: ScrapedContent) {
-    if (!result.sections) {
+    if (!result.groups) {
       return { reports: [] }
     }
-    const articles = result.sections
-    const reports: GameReportBody[] = articles.map((section) => {
-      const notes = (section.paragraphs || []).join('\n\n')
+    const reports: GameReportBody[] = result.groups.map((group) => {
+      const notes = group.paragraphs.join('\n\n')
       return {
-        title: section.title,
+        title: group.title,
         source: SCRAPE_SOURCES.PROTONDB,
         reporter: {
-          username: section.otherText[0] || 'Anonymous',
-          user_profile_url: section.links[0]?.href || '',
-          user_profile_avatar_url: section.images[0]?.src,
+          username: group.otherText[0] || 'Anonymous',
+          user_profile_url: group.links[0]?.href || '',
+          user_profile_avatar_url: group.images[0]?.src,
         },
-        url: section.links[2]?.href || result.url,
+        url: group.links[2]?.href || result.url,
         notes,
-        posted_at: this.findPostedDate(section.links || []),
+        posted_at: this.findPostedDate(group.links),
         steamdeck_hardware: parseSteamdeckHardware(notes),
         steamdeck_settings: this.findSteamdeckConfig(notes),
       }

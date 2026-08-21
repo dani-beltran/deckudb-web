@@ -2,7 +2,7 @@ import z from 'zod'
 import { SCRAPE_SOURCES } from './game-sources.schema'
 import { gameIdSchema } from './games.schema'
 
-const sectionSchema = z.object({
+export const groupSchema = z.object({
   id: z.string(),
   title: z.string().nullable(),
   headings: z.record(z.string(), z.array(z.string())),
@@ -29,14 +29,14 @@ const sectionSchema = z.object({
   ),
 })
 
-const structuredScrapedContentSchema = sectionSchema
+const structuredScrapedContentSchema = groupSchema
   .omit({ id: true })
   .partial()
   .extend({
     title: z.string(),
     description: z.string().optional(),
     url: z.url(),
-    sections: z.array(sectionSchema).optional(),
+    groups: z.array(groupSchema).optional(),
   })
 
 export const scrapeSchema = z.object({

@@ -1,11 +1,9 @@
 import {
   RedirectError,
   type ScrapeStructuredResult,
-  SectionNotFoundError,
-  SelectorTimeoutError,
 } from '@danilidonbeltran/webscrapper/src/scraper.js'
 import { defineTask } from 'nitropack/runtime'
-import type { GameSource, SCRAPE_SOURCES } from '../models/game-sources.schema'
+import type { GameSource } from '../models/game-sources.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.schema'
 import type { ServerDependencies } from '../utils/bootstrap'
 import { buildMiner } from '../utils/data-mining/MinerFactory'
@@ -89,37 +87,18 @@ export async function scrapeGameSources(job: Job, { repositories }: ServerDepend
 }
 
 function handleScrapeError(error: unknown, entry: GameSource, warnings: string[]) {
-  // Ignore section not found errors when is expected because there are no reports in the page and is explicitly indicated in the page.
-  if (
-    error instanceof SectionNotFoundError &&
-    error.bodyText?.toLowerCase().includes('no reports')
-  ) {
-    logger.info(
-      `No reports found for game ${entry.game_id} from source ${entry.source}, which is expected. Skipping...`
-    )
-    return null
-  }
-  const msg = getFormattedErrMsg(error, entry.game_id, entry.source)
+  const msg = getFormattedErrMsg(error, entry)
   warnings.push(msg)
   logger.warn(msg)
   return null
 }
 
-function getFormattedErrMsg(error: unknown, gameId: number, source: SCRAPE_SOURCES) {
+function getFormattedErrMsg(error: unknown, entry: GameSource) {
+  const { game_id: gameId, source, url } = entry
   if (error instanceof RedirectError) {
-    return `Redirection ${error.status} to ${error.location} prevented while scraping game ${gameId} from source ${source}`
+    return `Redirection ${error.status} to ${error.location} prevented while scraping URL ${url} for game ${gameId} from source ${source}`
   }
-  if (error instanceof SectionNotFoundError) {
-    return `Section not found while scraping game ${gameId} from source ${source}: selectors ${JSON.stringify(
-      error.selectors
-    )}`
-  }
-  if (error instanceof SelectorTimeoutError) {
-    return `Selector timeout while scraping game ${gameId} from source ${source} with url ${error.url}: selectors ${JSON.stringify(
-      error.selectors
-    )}`
-  }
-  return `Unexpected error in scrape process for game ${gameId} from source ${source}: ${error}`
+  return `Unexpected error while scraping URL ${url} for game ${gameId} from source ${source}: ${error}`
 }
 
 export default defineTask({

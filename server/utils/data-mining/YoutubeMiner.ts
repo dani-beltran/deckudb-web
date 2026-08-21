@@ -9,13 +9,22 @@ export class YoutubeMiner implements Miner {
 
   constructor() {
     this.scraper = new WebScraper({
-      sectionSelectors: [
-        // Selector for user channel name
-        '#owner',
-        // Selector for video description
-        '#info',
+      groups: [
+        {
+          name: 'owner',
+          // Selector for user channel name
+          selector: '#owner',
+          wait: true,
+          required: true,
+        },
+        {
+          name: 'info',
+          selector: '#info',
+          wait: true,
+          required: true,
+        },
       ],
-      waitForSelector: '#owner', // Wait for the channel name to load as an indicator that the page is ready
+
       browser: 'chromium',
       headless: true,
       timeout: 30_000,
@@ -41,13 +50,13 @@ export class YoutubeMiner implements Miner {
   }
 
   polish(result: ScrapedContent): MinedData {
-    if (!result.sections) {
+    if (!result.groups) {
       return { reports: [] }
     }
 
-    const channelName = result.sections[0]?.links?.[0]?.text || ''
-    const channelUrl = result.sections[0]?.links?.[0]?.href || ''
-    const avatar = result.sections[0]?.images?.[0]?.src || ''
+    const channelName = result.groups[0]?.links?.[0]?.text || ''
+    const channelUrl = result.groups[0]?.links?.[0]?.href || ''
+    const avatar = result.groups[0]?.images?.[0]?.src || ''
     const postedAt = this.findDate(result)
 
     return {
@@ -74,7 +83,7 @@ export class YoutubeMiner implements Miner {
   }
 
   private findDate(scrape: ScrapedContent): Date | null {
-    const infoSections = scrape.sections?.filter((s) => s.id === 'info')
+    const infoSections = scrape.groups?.filter((s) => s.id === 'info')
     if (!infoSections || infoSections.length === 0) {
       return null
     }

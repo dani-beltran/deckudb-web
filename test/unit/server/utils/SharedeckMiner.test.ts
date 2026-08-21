@@ -2,8 +2,8 @@ import { SharedeckMiner } from '@server/utils/data-mining/SharedeckMiner'
 import { type ScrapedContent, STEAMDECK_HARDWARE } from '@server/utils/data-mining/scrapes.schema'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-// Helper to create a section with required fields
-const createSection = (overrides: Record<string, unknown> = {}) => ({
+// Helper to create a group with required fields
+const createGroup = (overrides: Record<string, unknown> = {}) => ({
   id: 'section-1',
   title: null,
   headings: {},
@@ -67,7 +67,7 @@ describe('SharedeckMiner', () => {
   })
 
   describe('polish', () => {
-    it('should return empty reports array when sections are missing', () => {
+    it('should return empty reports array when groups are missing', () => {
       const result = createScrapedContent()
 
       const polished = miner.polish(result)
@@ -75,9 +75,9 @@ describe('SharedeckMiner', () => {
       expect(polished.reports).toEqual([])
     })
 
-    it('should return empty reports array when sections have no otherText', () => {
+    it('should return empty reports array when groups have no otherText', () => {
       const result = createScrapedContent({
-        sections: [createSection({ otherText: [] })],
+        groups: [createGroup({ otherText: [] })],
       })
 
       const polished = miner.polish(result)
@@ -85,10 +85,10 @@ describe('SharedeckMiner', () => {
       expect(polished.reports).toEqual([])
     })
 
-    it('should convert sections to game reports', () => {
+    it('should convert groups to game reports', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             id: 'report-1',
             otherText: [
               'Battery Life\n4 hours 30 minutes',
@@ -134,8 +134,8 @@ describe('SharedeckMiner', () => {
 
     it('should extract reporter information', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: [
               'Battery Life\n4 hours',
               '11W',
@@ -162,8 +162,8 @@ describe('SharedeckMiner', () => {
 
     it("should use 'Anonymous' as username when not found", () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: ['Battery Life\n4 hours', '11W', '60 FPS', '', 'Steam Deck LCD'],
           }),
         ],
@@ -177,8 +177,8 @@ describe('SharedeckMiner', () => {
 
     it('should extract battery performance', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: [
               'Battery Life\n4 hours 30 minutes',
               '11W - 14W',
@@ -200,8 +200,8 @@ describe('SharedeckMiner', () => {
 
     it('should detect LCD hardware', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: ['Battery Life\n4 hours', '11W', '60 FPS', '', 'Steam Deck LCD'],
           }),
         ],
@@ -215,8 +215,8 @@ describe('SharedeckMiner', () => {
 
     it('should detect OLED hardware', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: ['Battery Life\n5 hours', '10W', '90 FPS', '', 'Steam Deck OLED'],
           }),
         ],
@@ -230,8 +230,8 @@ describe('SharedeckMiner', () => {
 
     it('should return undefined for unknown hardware', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: ['Battery Life\n4 hours', '11W', '60 FPS', '', 'Unknown Device'],
           }),
         ],
@@ -245,8 +245,8 @@ describe('SharedeckMiner', () => {
 
     it('should extract steamdeck settings', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: [
               'Battery Life\n4 hours',
               '11W',
@@ -281,8 +281,8 @@ describe('SharedeckMiner', () => {
 
     it('should clean values by removing units and unwanted text', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: [
               'Battery Life\n4 hours',
               '11W',
@@ -312,8 +312,8 @@ describe('SharedeckMiner', () => {
 
     it('should remove N/A values', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: [
               'Battery Life\n4 hours',
               '11W',
@@ -339,8 +339,8 @@ describe('SharedeckMiner', () => {
 
     it('should extract game settings', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: [
               'Battery Life\n4 hours',
               '11W',
@@ -369,8 +369,8 @@ describe('SharedeckMiner', () => {
 
     it('should extract steamdeck experience', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: ['Battery Life\n4 hours', '11W', '60 FPS', '', 'Steam Deck LCD'],
           }),
         ],
@@ -384,8 +384,8 @@ describe('SharedeckMiner', () => {
 
     it('should extract notes correctly', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: [
               'Battery Life\n4 hours',
               '11W',
@@ -409,8 +409,8 @@ describe('SharedeckMiner', () => {
 
     it('should return empty notes when Note is not found', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: ['Battery Life\n4 hours', '11W', '60 FPS', '', 'Steam Deck LCD'],
           }),
         ],
@@ -424,8 +424,8 @@ describe('SharedeckMiner', () => {
 
     it('should handle notes without Sign in delimiter', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: [
               'Battery Life\n4 hours',
               '11W',
@@ -447,12 +447,12 @@ describe('SharedeckMiner', () => {
 
     it('should handle multiple reports', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             id: 'report-1',
             otherText: ['Battery Life\n4 hours', '11W', '60 FPS', '', 'Steam Deck LCD'],
           }),
-          createSection({
+          createGroup({
             id: 'report-2',
             otherText: ['Battery Life\n5 hours', '10W', '90 FPS', '', 'Steam Deck OLED'],
           }),
@@ -470,8 +470,8 @@ describe('SharedeckMiner', () => {
 
     it('should handle resolution with newlines', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: [
               'Battery Life\n4 hours',
               '11W',
@@ -493,8 +493,8 @@ describe('SharedeckMiner', () => {
 
     it('should handle case-insensitive hardware detection', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: ['Battery Life\n4 hours', '11W', '60 FPS', '', 'steam deck oled'],
           }),
         ],
@@ -508,8 +508,8 @@ describe('SharedeckMiner', () => {
 
     it('should handle empty images and links arrays', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             otherText: ['Battery Life\n4 hours', '11W', '60 FPS', '', 'Steam Deck LCD'],
             links: [],
             images: [],

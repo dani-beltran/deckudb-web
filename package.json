@@ -18,7 +18,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@danilidonbeltran/webscrapper": "3.0.0",
+    "@danilidonbeltran/webscrapper": "4.0.0",
     "dayjs": "^1.11.20",
     "hls.js": "^1.6.15",
     "lucide-vue-next": "^0.544.0",

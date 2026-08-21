@@ -5,8 +5,8 @@ import { type ScrapedContent, STEAMDECK_HARDWARE, STEAMDECK_RATING } from '@serv
 // Mock fetch
 global.fetch = vi.fn()
 
-// Helper to create a section with required fields
-const createSection = (overrides: Record<string, unknown> = {}) => ({
+// Helper to create a group with required fields
+const createGroup = (overrides: Record<string, unknown> = {}) => ({
   id: 'section-1',
   title: 'Test Report',
   headings: {},
@@ -197,7 +197,7 @@ describe('ProtondbMiner', () => {
   })
 
   describe('polish', () => {
-    it('should return empty reports array when sections are missing', () => {
+    it('should return empty reports array when groups are missing', () => {
       const result = createScrapedContent()
 
       const polished = miner.polish(result)
@@ -205,10 +205,10 @@ describe('ProtondbMiner', () => {
       expect(polished.reports).toEqual([])
     })
 
-    it('should convert sections to game reports', () => {
+    it('should convert groups to game reports', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             title: 'Great performance!',
             paragraphs: ['Game runs smoothly', 'No issues found'],
             otherText: ['john_doe'],
@@ -238,10 +238,10 @@ describe('ProtondbMiner', () => {
 
     it('should filter out reports with empty notes and title', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({ title: '', paragraphs: [''] }),
-          createSection({ title: 'Valid report', paragraphs: ['Good game'] }),
-          createSection({ title: 'Still valid report', paragraphs: [''] }),
+        groups: [
+          createGroup({ title: '', paragraphs: [''] }),
+          createGroup({ title: 'Valid report', paragraphs: ['Good game'] }),
+          createGroup({ title: 'Still valid report', paragraphs: [''] }),
         ],
       })
 
@@ -256,7 +256,7 @@ describe('ProtondbMiner', () => {
 
     it('should detect LCD hardware from notes', () => {
       const result = createScrapedContent({
-        sections: [createSection({ paragraphs: ['Playing on LCD model'] })],
+        groups: [createGroup({ paragraphs: ['Playing on LCD model'] })],
       })
 
       const polished = miner.polish(result)
@@ -269,7 +269,7 @@ describe('ProtondbMiner', () => {
 
     it('should detect OLED hardware from notes', () => {
       const result = createScrapedContent({
-        sections: [createSection({ paragraphs: ['Testing on OLED screen'] })],
+        groups: [createGroup({ paragraphs: ['Testing on OLED screen'] })],
       })
 
       const polished = miner.polish(result)
@@ -282,7 +282,7 @@ describe('ProtondbMiner', () => {
 
     it('should detect frame rate from notes', () => {
       const result = createScrapedContent({
-        sections: [createSection({ paragraphs: ['Running at 60 fps'] })],
+        groups: [createGroup({ paragraphs: ['Running at 60 fps'] })],
       })
 
       const polished = miner.polish(result)
@@ -295,7 +295,7 @@ describe('ProtondbMiner', () => {
 
     it('should detect TDP limit from notes', () => {
       const result = createScrapedContent({
-        sections: [createSection({ paragraphs: ['TDP set to 10W'] })],
+        groups: [createGroup({ paragraphs: ['TDP set to 10W'] })],
       })
 
       const polished = miner.polish(result)
@@ -308,7 +308,7 @@ describe('ProtondbMiner', () => {
 
     it('should detect refresh rate from notes', () => {
       const result = createScrapedContent({
-        sections: [createSection({ paragraphs: ['Display set to 90 Hz'] })],
+        groups: [createGroup({ paragraphs: ['Display set to 90 Hz'] })],
       })
 
       const polished = miner.polish(result)
@@ -321,8 +321,8 @@ describe('ProtondbMiner', () => {
 
     it('should parse posted date from relative time', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             paragraphs: ['Test report'],
             links: [
               { href: 'https://protondb.com/users/user', text: '' },
@@ -344,7 +344,7 @@ describe('ProtondbMiner', () => {
 
     it('should handle missing posted date', () => {
       const result = createScrapedContent({
-        sections: [createSection({ paragraphs: ['Test report'] })],
+        groups: [createGroup({ paragraphs: ['Test report'] })],
       })
 
       const polished = miner.polish(result)
@@ -357,8 +357,8 @@ describe('ProtondbMiner', () => {
 
     it('should sort reports by posted date in descending order', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             id: '1',
             title: 'Old report',
             paragraphs: ['Old content'],
@@ -369,7 +369,7 @@ describe('ProtondbMiner', () => {
               { href: '', text: '2 days ago' },
             ],
           }),
-          createSection({
+          createGroup({
             id: '2',
             title: 'New report',
             paragraphs: ['New content'],
@@ -397,7 +397,7 @@ describe('ProtondbMiner', () => {
     it('should use result URL when report URL is missing', () => {
       const result = createScrapedContent({
         url: 'https://www.protondb.com/app/1091500',
-        sections: [createSection({ paragraphs: ['Content'] })],
+        groups: [createGroup({ paragraphs: ['Content'] })],
       })
 
       const polished = miner.polish(result)
@@ -410,7 +410,7 @@ describe('ProtondbMiner', () => {
 
     it('should handle complex TDP patterns', () => {
       const result = createScrapedContent({
-        sections: [createSection({ paragraphs: ['Watts: ~15'] })],
+        groups: [createGroup({ paragraphs: ['Watts: ~15'] })],
       })
 
       const polished = miner.polish(result)
@@ -423,8 +423,8 @@ describe('ProtondbMiner', () => {
 
     it('should handle multiple settings in one report', () => {
       const result = createScrapedContent({
-        sections: [
-          createSection({
+        groups: [
+          createGroup({
             paragraphs: ['Running on LCD at 60fps, 90Hz, TDP 12W'],
           }),
         ],
@@ -445,7 +445,7 @@ describe('ProtondbMiner', () => {
 
     it('should handle alternative fps pattern (fps at start)', () => {
       const result = createScrapedContent({
-        sections: [createSection({ paragraphs: ['fps ~40'] })],
+        groups: [createGroup({ paragraphs: ['fps ~40'] })],
       })
 
       const polished = miner.polish(result)
@@ -458,7 +458,7 @@ describe('ProtondbMiner', () => {
 
     it('should handle alternative TDP pattern (watts at start)', () => {
       const result = createScrapedContent({
-        sections: [createSection({ paragraphs: ['watts ~8'] })],
+        groups: [createGroup({ paragraphs: ['watts ~8'] })],
       })
 
       const polished = miner.polish(result)
@@ -471,7 +471,7 @@ describe('ProtondbMiner', () => {
 
     it('should handle alternative refresh rate pattern', () => {
       const result = createScrapedContent({
-        sections: [createSection({ paragraphs: ['hz ~40'] })],
+        groups: [createGroup({ paragraphs: ['hz ~40'] })],
       })
 
       const polished = miner.polish(result)
@@ -484,7 +484,7 @@ describe('ProtondbMiner', () => {
 
     it('should handle whitespace trimming in notes and title', () => {
       const result = createScrapedContent({
-        sections: [createSection({ title: '   ', paragraphs: ['   '] })],
+        groups: [createGroup({ title: '   ', paragraphs: ['   '] })],
       })
 
       const polished = miner.polish(result)
