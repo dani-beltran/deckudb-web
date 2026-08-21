@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body">
+  <Teleport to="#admin-overlay-root">
     <div v-if="open" class="dialog-backdrop" @mousedown.self="closeDialog">
       <section
         ref="dialogElement"
@@ -384,9 +384,9 @@ function gameOptionId(gameId: number) {
   max-height: calc(100vh - 2rem);
   box-sizing: border-box;
   padding: 1.5rem;
-  color: #172033;
-  background: #fff;
-  border: 1px solid #d8deea;
+  color: var(--admin-text);
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
   border-radius: 0.85rem;
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
 }
@@ -405,7 +405,7 @@ function gameOptionId(gameId: number) {
 
 .dialog-header p {
   margin: 0.4rem 0 0;
-  color: #667085;
+  color: var(--admin-text-muted);
   font-size: 0.875rem;
   line-height: 1.45;
 }
@@ -414,7 +414,7 @@ function gameOptionId(gameId: number) {
 .clear-search {
   display: inline-grid;
   padding: 0;
-  color: #667085;
+  color: var(--admin-text-muted);
   background: transparent;
   border: 0;
   border-radius: 0.35rem;
@@ -455,9 +455,9 @@ function gameOptionId(gameId: number) {
   min-height: 2.65rem;
   box-sizing: border-box;
   padding: 0.6rem 0.75rem;
-  color: #172033;
-  background: #fff;
-  border: 1px solid #d8deea;
+  color: var(--admin-text);
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
   border-radius: 0.5rem;
   font: inherit;
   font-size: 0.875rem;
@@ -473,7 +473,7 @@ function gameOptionId(gameId: number) {
 .close-button:focus-visible,
 .clear-search:focus-visible,
 .dialog-button:focus-visible {
-  border-color: #3154d8;
+  border-color: var(--admin-primary);
   outline: 3px solid rgba(49, 84, 216, 0.18);
   outline-offset: 1px;
 }
@@ -519,8 +519,8 @@ function gameOptionId(gameId: number) {
   z-index: 5;
   max-height: 15rem;
   overflow-y: auto;
-  background: #fff;
-  border: 1px solid #d8deea;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
   border-radius: 0.5rem;
   box-shadow: 0 10px 30px rgba(31, 42, 68, 0.16);
 }
@@ -544,7 +544,7 @@ function gameOptionId(gameId: number) {
 
 .search-results li:hover,
 .search-results li.highlighted {
-  background: #eef2ff;
+  background: var(--admin-surface-muted);
 }
 
 .game-id {
@@ -561,7 +561,7 @@ function gameOptionId(gameId: number) {
   min-height: 3rem;
   padding: 0.6rem;
   margin: 0;
-  color: #667085;
+  color: var(--admin-text-muted);
   font-size: 0.82rem;
   text-align: center;
 }
@@ -608,22 +608,22 @@ function gameOptionId(gameId: number) {
 
 .dialog-button.secondary {
   color: #344054;
-  background: #fff;
-  border: 1px solid #d8deea;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
 }
 
 .dialog-button.primary {
   color: #fff;
-  background: #3154d8;
-  border: 1px solid #3154d8;
+  background: var(--admin-primary);
+  border: 1px solid var(--admin-primary);
 }
 
 .dialog-button:hover:not(:disabled).secondary {
-  background: #f5f7fb;
+  background: var(--admin-surface-muted);
 }
 
 .dialog-button:hover:not(:disabled).primary {
-  background: #2745b9;
+  background: var(--admin-primary-hover);
 }
 
 .dialog-button:disabled,

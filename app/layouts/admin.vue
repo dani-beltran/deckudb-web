@@ -1,5 +1,6 @@
 <template>
   <div class="admin-layout">
+    <div id="admin-overlay-root" />
     <a href="#admin-main-content" class="admin-skip-link">Skip to admin content</a>
     <main id="admin-main-content" class="admin-main">
       <slot />
