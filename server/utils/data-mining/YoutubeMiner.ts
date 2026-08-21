@@ -1,9 +1,9 @@
 import { type ScrapeStructuredResult, WebScraper } from '@danilidonbeltran/webscrapper'
 import dayjs from 'dayjs'
+import type { Page } from 'playwright'
 import { parseSteamdeckHardware } from './helpers/parsers'
 import type { MinedData, Miner } from './Miner'
 import { SCRAPE_SOURCES, type ScrapedContent } from './scrapes.schema'
-import type { Page } from 'playwright'
 
 export class YoutubeMiner implements Miner {
   private scraper: WebScraper

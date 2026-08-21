@@ -33,8 +33,6 @@ export class GameReportsModel implements Repository {
 
   /**
    * Replace all game reports for a specific game with new ones.
-   * If a source has no reports, existing reports from that source are preserved.
-   * This prevents data loss when a source fails to provide reports during rescraping.
    */
   replaceGameReportsForGame = async (gameId: number, reports: GameReportBody[]) => {
     const gameReportsCollection = this.db.collection<GameReport>(collection)
