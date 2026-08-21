@@ -315,13 +315,20 @@ describe('admin page', async () => {
     await page.getByRole('button', { name: 'Failed', exact: true }).click()
     expect(await page.locator('.job-row').count()).toBe(1)
     expect(await page.getByText('ELDEN RING', { exact: true }).isVisible()).toBe(true)
-    expect(
-      await page
-        .getByRole('button', {
-          name: 'Status message: The scrape failed after three attempts',
-        })
-        .isVisible()
-    ).toBe(true)
+    const issueButton = page.getByRole('button', { name: 'See issue for ELDEN RING' })
+    expect(await issueButton.isVisible()).toBe(true)
+    await issueButton.hover()
+    expect((await page.getByRole('tooltip').textContent())?.trim()).toBe('See issue')
+
+    await issueButton.click()
+    const issueDialog = page.getByRole('dialog', { name: 'Job issue' })
+    await issueDialog.waitFor()
+    expect(await issueDialog.getByText('The scrape failed after three attempts').isVisible()).toBe(
+      true
+    )
+    await page.keyboard.press('Escape')
+    await issueDialog.waitFor({ state: 'hidden' })
+    expect(await issueButton.evaluate((element) => element === document.activeElement)).toBe(true)
 
     await page.getByRole('button', { name: 'All', exact: true }).click()
     await page.getByLabel('Search jobs').fill('portal')
