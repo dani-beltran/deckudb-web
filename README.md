@@ -283,16 +283,30 @@ starting the application.
 
 The application is available at [http://localhost:3000](http://localhost:3000). Stop the stack
 with `docker compose down`; this preserves the MongoDB volume. The application image runs as a
-non-root user and includes Chromium for the background scraping worker. Pushing a semantic version
-tag such as `v1.2.3` publishes the image to `ghcr.io/<owner>/<repository>` with `1.2.3`, `1.2`, `1`,
-and `latest` tags.
+non-root user and includes Chromium for the background scraping worker. 
 
-### Automated pull request review
+## Deployment
 
-Pull requests targeting `main` are reviewed by Codex when they are opened, reopened, or receive a
-new commit. Add `OPENAI_API_KEY` as a GitHub Actions repository secret to enable the workflow. The
-workflow skips forked pull requests and Dependabot because secrets must not be exposed to
-untrusted pull request code. Its review criteria live in `.github/codex/prompts/review.md`.
+Pushing a semantic version tag such as `v1.2.3` publishes the image to
+`ghcr.io/<owner>/<repository>` with `1.2.3`, `1.2`, `1`,
+and `latest` tags. Release tags must match `vMAJOR.MINOR.PATCH` or
+`vMAJOR.MINOR.PATCH-PRERELEASE`.
+
+Create a release with `npm version`, choosing the appropriate version increment, then push its
+version commit and generated `v`-prefixed tag:
+
+```bash
+npm version patch # Or: npm version minor / npm version major
+git push --follow-tags
+```
+
+To create or advance a prerelease, provide its identifier to `npm version`:
+
+```bash
+npm version prerelease --preid=rc
+git push --follow-tags
+```
+
 
 ## Disclaimer
 
