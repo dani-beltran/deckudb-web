@@ -8,8 +8,9 @@ jobs:
     name: Review pull request
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment:
-      name: ci/cd
+    # This environment requires approval before the review can access secrets or run.
+    environment: 
+      name: codex-pr-review
       deployment: false
     permissions:
       contents: read
