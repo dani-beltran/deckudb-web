@@ -1,5 +1,5 @@
 import { createRateLimitMiddleware } from '@server/middleware/rate-limit'
-import { AUDIT_LOGS_COLLECTION } from '@server/models/audit-logs.model'
+import { AUDIT_ACTION_TYPE } from '@server/models/audit-logs.schema'
 import { bootstrapDependencies, type ServerDependencies } from '@server/utils/bootstrap'
 import { createApp, createRouter, defineEventHandler, type NodeListener, toNodeListener } from 'h3'
 import request from 'supertest'
@@ -69,11 +69,9 @@ describe('login rate limiting', () => {
       retryAfter: Number(rejectedResponse.headers['retry-after']),
     })
 
-    const auditEntries = await dependencies.databaseClient
-      .getDB()
-      .collection(AUDIT_LOGS_COLLECTION)
-      .find({ action_type: 'login' })
-      .toArray()
+    const { items: auditEntries } = await dependencies.repositories.auditLogs.getAuditLogs({
+      action_type: AUDIT_ACTION_TYPE.LOGIN,
+    })
     expect(auditEntries).toEqual([
       expect.objectContaining({
         user_identity: 'anonymous',
