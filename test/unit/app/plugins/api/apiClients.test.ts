@@ -1,8 +1,8 @@
-import type { $Fetch } from 'nitropack/types'
-import { describe, expect, it, vi } from 'vitest'
 import { AdminApi } from '@app/plugins/api/AdminApi'
 import { ApiError } from '@app/plugins/api/ApiError'
 import { BackendApi } from '@app/plugins/api/BackendApi'
+import type { $Fetch } from 'nitropack/types'
+import { describe, expect, it, vi } from 'vitest'
 
 function createHttpError(status: number, message: string) {
   return Object.assign(new Error('Fetch failed'), {
@@ -50,6 +50,39 @@ describe('API clients', () => {
     const api = vi.fn().mockRejectedValue(createHttpError(401, 'Unauthorized'))
     await expect(new AdminApi(asFetch(api)).getAdminSession()).resolves.toEqual({
       authenticated: false,
+    })
+  })
+
+  it('sends audit-log pagination and filters to the protected viewer endpoint', async () => {
+    const response = { items: [], total: 0, page: 2, page_size: 50, total_pages: 0 }
+    const api = vi.fn().mockResolvedValue(response)
+    const signal = new AbortController().signal
+
+    await expect(
+      new AdminApi(asFetch(api)).fetchAuditLogs(
+        {
+          page: 2,
+          page_size: 50,
+          user_identity: 'admin',
+          action_type: 'job_delete',
+          date_from: '2026-08-01',
+          date_to: '2026-08-31',
+        },
+        signal
+      )
+    ).resolves.toEqual(response)
+
+    expect(api).toHaveBeenCalledWith('/admin/audit-logs', {
+      cache: 'no-store',
+      query: {
+        page: 2,
+        page_size: 50,
+        user_identity: 'admin',
+        action_type: 'job_delete',
+        date_from: '2026-08-01',
+        date_to: '2026-08-31',
+      },
+      signal,
     })
   })
 

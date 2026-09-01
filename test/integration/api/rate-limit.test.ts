@@ -1,4 +1,5 @@
 import { createRateLimitMiddleware } from '@server/middleware/rate-limit'
+import { AUDIT_LOGS_COLLECTION } from '@server/models/audit-logs.model'
 import { bootstrapDependencies, type ServerDependencies } from '@server/utils/bootstrap'
 import { createApp, createRouter, defineEventHandler, type NodeListener, toNodeListener } from 'h3'
 import request from 'supertest'
@@ -67,6 +68,20 @@ describe('login rate limiting', () => {
       error: 'Too Many Requests',
       retryAfter: Number(rejectedResponse.headers['retry-after']),
     })
+
+    const auditEntries = await dependencies.databaseClient
+      .getDB()
+      .collection(AUDIT_LOGS_COLLECTION)
+      .find({ action_type: 'login' })
+      .toArray()
+    expect(auditEntries).toEqual([
+      expect.objectContaining({
+        user_identity: 'anonymous',
+        action_type: 'login',
+        outcome: 'failure',
+        context: { reason: 'rate_limited', status_code: 429 },
+      }),
+    ])
   })
 
   it('ignores untrusted forwarding headers when enforcing the IP limit', async () => {

@@ -3,6 +3,8 @@ import { ApiError } from './ApiError'
 import { throwApiError } from './errorHelpers'
 import type {
   AdminSession,
+  AuditLogEntry,
+  AuditLogQuery,
   GameSearchResult,
   Job,
   JobType,
@@ -39,6 +41,23 @@ export class AdminApi {
 
   async logoutAdmin(): Promise<void> {
     await this.requestJson<void>('/admin/auth/logout', { method: 'POST' })
+  }
+
+  fetchAuditLogs(
+    { page = 1, page_size = 25, ...filters }: AuditLogQuery = {},
+    signal?: AbortSignal
+  ): Promise<PaginatedResult<AuditLogEntry>> {
+    const query: Record<string, number | string> = { page, page_size }
+
+    if (filters.user_identity) query.user_identity = filters.user_identity
+    if (filters.action_type) query.action_type = filters.action_type
+    if (filters.date_from) query.date_from = filters.date_from
+    if (filters.date_to) query.date_to = filters.date_to
+
+    return this.requestJson<PaginatedResult<AuditLogEntry>>('/admin/audit-logs', {
+      query,
+      signal,
+    })
   }
 
   async fetchAllJobs(signal?: AbortSignal): Promise<Job[]> {

@@ -8,6 +8,10 @@
       </div>
 
       <div class="header-actions">
+        <NuxtLink class="admin-button secondary" to="/admin/audit-logs">
+          <ScrollText aria-hidden="true" />
+          Audit logs
+        </NuxtLink>
         <button
           type="button"
           class="admin-button secondary icon-button"
@@ -74,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { CircleAlert, LoaderCircle, LogOut, Play, RefreshCw } from 'lucide-vue-next'
+import { CircleAlert, LoaderCircle, LogOut, Play, RefreshCw, ScrollText } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { definePageMeta, navigateTo, useHead, useNuxtApp } from '#imports'
 import AdminJobStats from '../../components/admin/AdminJobStats.vue'
@@ -248,6 +252,7 @@ async function handleUnauthorized() {
   font: inherit;
   font-size: 0.82rem;
   font-weight: 700;
+  text-decoration: none;
 }
 
 .admin-button svg {

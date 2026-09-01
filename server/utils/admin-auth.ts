@@ -15,6 +15,13 @@ export function isAdminAuthenticated(event: H3Event) {
   return event.context.session?.data.adminAuthenticated === true
 }
 
+/** Returns a stable, non-secret identity for admin audit records. */
+export function getAdminIdentity(event: H3Event) {
+  const sessionUsername = event.context.session?.data.adminUsername
+  if (typeof sessionUsername === 'string' && sessionUsername) return sessionUsername
+  return 'anonymous'
+}
+
 /** Validates both fields without short-circuiting either timing-safe comparison. */
 export function requireValidAdminCredentials(username: string, password: string) {
   const { adminPassword, adminUsername } = getServerConfig()
@@ -30,10 +37,11 @@ export function requireValidAdminCredentials(username: string, password: string)
   }
 }
 
-export async function authenticateAdmin(event: H3Event) {
+export async function authenticateAdmin(event: H3Event, username: string) {
   await rotateSession(event, {
     adminAuthenticated: true,
     adminAuthenticatedAt: Date.now(),
+    adminUsername: username,
   })
 }
 

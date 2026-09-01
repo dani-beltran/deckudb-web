@@ -12,6 +12,7 @@ const signaturePattern = /^[A-Za-z0-9_-]{43}$/
 export type SessionData = Record<string, unknown> & {
   adminAuthenticated?: boolean
   adminAuthenticatedAt?: number
+  adminUsername?: string
 }
 
 export type StoredSession = {
