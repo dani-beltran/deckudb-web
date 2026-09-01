@@ -1,11 +1,11 @@
 import {
   createError,
   defineEventHandler,
+  type EventHandlerRequest,
   getRequestURL,
   type H3Event,
   sendRedirect,
   setResponseHeader,
-  type EventHandlerRequest,
 } from 'h3'
 import { isAdminAuthenticated } from '../utils/admin-auth'
 import { loadSession } from '../utils/session'

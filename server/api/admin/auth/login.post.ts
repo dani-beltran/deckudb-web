@@ -19,12 +19,12 @@ export default defineEventHandler((event) =>
       )
       requireValidAdminCredentials(username, password)
       await authenticateAdmin(event, username)
-      return { authenticated: true }
+      return { authenticated: true, username }
     })
   )
 )
 
-function populateAuditUserIdentity(audit: { user_identity?: string }, body: unknown ) {
+function populateAuditUserIdentity(audit: { user_identity?: string }, body: unknown) {
   if (body && typeof body === 'object' && 'username' in body) {
     const attemptedUsername = body.username
     if (typeof attemptedUsername === 'string') audit.user_identity = attemptedUsername

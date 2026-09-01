@@ -8,10 +8,6 @@
       </div>
 
       <div class="header-actions">
-        <NuxtLink class="admin-button secondary" to="/admin">
-          <LayoutDashboard aria-hidden="true" />
-          Job dashboard
-        </NuxtLink>
         <button
           type="button"
           class="admin-button secondary icon-button"
@@ -22,19 +18,8 @@
         >
           <RefreshCw :class="{ spin: loading && loadedOnce }" aria-hidden="true" />
         </button>
-        <button
-          type="button"
-          class="admin-button secondary"
-          :disabled="loggingOut"
-          @click="handleLogout"
-        >
-          <LogOut aria-hidden="true" />
-          {{ loggingOut ? 'Signing out…' : 'Log out' }}
-        </button>
       </div>
     </header>
-
-    <p v-if="actionError" class="action-error" role="alert">{{ actionError }}</p>
 
     <form class="filter-card" aria-labelledby="filter-title" @submit.prevent="applyFilters">
       <div class="filter-heading">
@@ -156,15 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  CircleAlert,
-  LayoutDashboard,
-  ListFilter,
-  LoaderCircle,
-  LogOut,
-  RefreshCw,
-  X,
-} from 'lucide-vue-next'
+import { CircleAlert, ListFilter, LoaderCircle, RefreshCw, X } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { definePageMeta, navigateTo, useHead, useNuxtApp } from '#imports'
 import AdminAuditLogTable from '../../components/admin/AdminAuditLogTable.vue'
@@ -217,9 +194,7 @@ const currentPage = ref(1)
 const pageSize = ref(25)
 const loading = ref(true)
 const loadedOnce = ref(false)
-const loggingOut = ref(false)
 const loadError = ref<string | null>(null)
-const actionError = ref<string | null>(null)
 const filterError = ref<string | null>(null)
 
 let loadController: AbortController | undefined
@@ -304,25 +279,6 @@ function changePageSize(size: number) {
 
 function hasFilterValue(filters: FilterValues) {
   return Boolean(filters.userIdentity || filters.actionType || filters.dateFrom || filters.dateTo)
-}
-
-async function handleLogout() {
-  if (loggingOut.value) return
-  loggingOut.value = true
-  actionError.value = null
-
-  try {
-    await $adminApi.logoutAdmin()
-    await navigateTo('/admin/login')
-  } catch (logoutFailure) {
-    if (isUnauthorizedError(logoutFailure)) {
-      await handleUnauthorized()
-      return
-    }
-    actionError.value = getApiErrorMessage(logoutFailure, 'Failed to log out')
-  } finally {
-    loggingOut.value = false
-  }
 }
 
 async function handleUnauthorized() {
@@ -439,16 +395,6 @@ async function handleUnauthorized() {
   border: 1px solid var(--admin-border);
   border-radius: 0.85rem;
   box-shadow: 0 4px 18px rgba(31, 42, 68, 0.06);
-}
-
-.action-error {
-  padding: 0.75rem 0.9rem;
-  margin: 0 0 1rem;
-  color: #9f1d2a;
-  background: #fff0f1;
-  border: 1px solid #fac8cd;
-  border-radius: 0.55rem;
-  font-size: 0.85rem;
 }
 
 .filter-heading {

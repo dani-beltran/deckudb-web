@@ -8,10 +8,6 @@
       </div>
 
       <div class="header-actions">
-        <NuxtLink class="admin-button secondary" to="/admin/audit-logs">
-          <ScrollText aria-hidden="true" />
-          Audit logs
-        </NuxtLink>
         <button
           type="button"
           class="admin-button secondary icon-button"
@@ -25,15 +21,6 @@
         <button type="button" class="admin-button primary" @click="dialogOpen = true">
           <Play aria-hidden="true" />
           Run job
-        </button>
-        <button
-          type="button"
-          class="admin-button secondary"
-          :disabled="loggingOut"
-          @click="handleLogout"
-        >
-          <LogOut aria-hidden="true" />
-          {{ loggingOut ? 'Signing out…' : 'Log out' }}
         </button>
       </div>
     </header>
@@ -78,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { CircleAlert, LoaderCircle, LogOut, Play, RefreshCw, ScrollText } from 'lucide-vue-next'
+import { CircleAlert, LoaderCircle, Play, RefreshCw } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { definePageMeta, navigateTo, useHead, useNuxtApp } from '#imports'
 import AdminJobStats from '../../components/admin/AdminJobStats.vue'
@@ -102,7 +89,6 @@ const loadError = ref<string | null>(null)
 const actionError = ref<string | null>(null)
 const deletingJobIds = ref<string[]>([])
 const dialogOpen = ref(false)
-const loggingOut = ref(false)
 
 let loadController: AbortController | undefined
 
@@ -169,25 +155,6 @@ async function handleDeleteJob(job: Job) {
 function handleJobQueued() {
   dialogOpen.value = false
   void loadJobs()
-}
-
-async function handleLogout() {
-  if (loggingOut.value) return
-  loggingOut.value = true
-  actionError.value = null
-
-  try {
-    await $adminApi.logoutAdmin()
-    await navigateTo('/admin/login')
-  } catch (logoutFailure) {
-    if (isUnauthorizedError(logoutFailure)) {
-      await handleUnauthorized()
-      return
-    }
-    actionError.value = getApiErrorMessage(logoutFailure, 'Failed to log out')
-  } finally {
-    loggingOut.value = false
-  }
 }
 
 async function handleUnauthorized() {

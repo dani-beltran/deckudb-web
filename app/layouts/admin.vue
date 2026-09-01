@@ -2,11 +2,21 @@
   <div class="admin-layout">
     <div id="admin-overlay-root" />
     <a href="#admin-main-content" class="admin-skip-link">Skip to admin content</a>
+    <AdminTopNavigation v-if="showNavigation" />
     <main id="admin-main-content" class="admin-main">
       <slot />
     </main>
   </div>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from '#imports'
+import AdminTopNavigation from '../components/admin/AdminTopNavigation.vue'
+
+const route = useRoute()
+const showNavigation = computed(() => route.path.replace(/\/+$/, '') !== '/admin/login')
+</script>
 
 <style scoped>
 .admin-layout {
