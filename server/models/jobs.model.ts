@@ -254,7 +254,7 @@ export class JobsModel implements Repository {
     const job = await this.db
       .collection<Job>(COLLECTION)
       .findOneAndDelete({ job_id, status: { $ne: JOB_STATUS.IN_PROGRESS } })
-      
+
     if (!job) {
       throw new ConflictError(
         `Job with id ${job_id} not found or cannot be deleted because it is in progress.`

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { Db, Filter } from 'mongodb'
+import { getServerConfig } from '../config'
 import type { Repository } from '../utils/bootstrap'
 import type { PaginatedResult, PaginationParams } from '../utils/pagination'
 import {
@@ -10,7 +11,6 @@ import {
   createAuditLogSchema,
   sanitizeAuditContext,
 } from './audit-logs.schema'
-import { getServerConfig } from '../config'
 
 export const AUDIT_LOGS_COLLECTION = 'audit-logs'
 const { auditLogRetentionDays } = getServerConfig()
@@ -83,7 +83,10 @@ export class AuditLogsModel implements Repository {
   createIndexes = async () => {
     const collection = this.db.collection<AuditLog>(AUDIT_LOGS_COLLECTION)
     await collection.createIndex({ audit_id: 1 }, { unique: true })
-    await collection.createIndex({ created_at: 1 }, { expireAfterSeconds: auditLogRetentionDays * 24 * 60 * 60 })
+    await collection.createIndex(
+      { created_at: 1 },
+      { expireAfterSeconds: auditLogRetentionDays * 24 * 60 * 60 }
+    )
     await collection.createIndex({ created_at: -1, audit_id: -1 })
     await collection.createIndex({ user_identity: 1, created_at: -1, audit_id: -1 })
     await collection.createIndex({ action_type: 1, created_at: -1, audit_id: -1 })

@@ -119,7 +119,7 @@ export async function withAuditLog<TResult>(
     throw error
   }
 
-  let auditEntry: RecordAuditLogParams = { 
+  let auditEntry: RecordAuditLogParams = {
     ...details,
     action_type,
     user_identity: normalizeAuditIdentity(details.user_identity ?? initialUserIdentity),

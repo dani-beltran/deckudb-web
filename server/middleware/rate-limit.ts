@@ -80,7 +80,7 @@ export function createRateLimitMiddleware(getConfig: () => LoginRateLimitConfig 
 
     setResponseHeader(event, 'Cache-Control', 'private, no-store')
     setResponseHeader(event, 'Retry-After', result.resetSeconds)
-    
+
     throw createError({
       statusCode: 429,
       statusMessage: 'Too Many Requests',
