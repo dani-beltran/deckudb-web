@@ -65,7 +65,7 @@ export const configSchema = z.object({
   // Whether the worker is enabled to process jobs
   workerEnabled: booleanFromRuntimeConfig,
   // TTL for audit logs in days
-  auditLogsTTLDays: defaultedPositiveInteger(90),
+  auditLogRetentionDays: defaultedPositiveInteger(90),
 })
 
 export type ServerConfig = z.infer<typeof configSchema>
