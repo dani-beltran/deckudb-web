@@ -13,8 +13,9 @@ export type QueueJobRequest = z.infer<typeof queueJobBodySchema>
 export type QueueJobResponse = Job
 
 export default defineEventHandler((event) =>
-  apiHandler<QueueJobResponse>(event, () =>
-    withAuditLog(
+  apiHandler<QueueJobResponse>(event, async () => {
+    requireAdmin(event)
+    return withAuditLog(
       event,
       {
         action_type: AUDIT_ACTION_TYPE.JOB_RUN,
@@ -22,8 +23,6 @@ export default defineEventHandler((event) =>
         resolveSuccess: (job: Job) => ({ target_id: job.job_id }),
       },
       async (audit) => {
-        requireAdmin(event)
-
         const { game_id, job_type } = await parseBody(event, queueJobBodySchema)
         audit.context = { game_id, job_type }
         const { repositories } = event.context
@@ -37,5 +36,5 @@ export default defineEventHandler((event) =>
         return repositories.jobs.queueJob({ game_id, job_type, game_name: gameName })
       }
     )
-  )
+  })
 )
