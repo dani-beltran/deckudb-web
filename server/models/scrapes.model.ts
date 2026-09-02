@@ -1,10 +1,8 @@
 import { createHash } from 'node:crypto'
-import { type Db, ObjectId, type WithId } from 'mongodb'
+import { type Collection, type Db, ObjectId, type WithId } from 'mongodb'
 import type { Repository } from '../utils/bootstrap.js'
 import type { SCRAPE_SOURCES } from './game-sources.schema.js'
 import type { InputScrape, Scrape } from './scrapes.schema'
-
-const collection = 'scrapes'
 
 /**
  * ScrapesModel is responsible for managing scrape data in the database.
@@ -14,7 +12,11 @@ const collection = 'scrapes'
  * It will only save a new scrape if the content has changed.
  */
 export class ScrapesModel implements Repository {
-  constructor(private readonly db: Db) {}
+  private collection: Collection<Scrape>
+
+  constructor(private readonly db: Db) {
+    this.collection = this.db.collection<Scrape>('scrapes')
+  }
 
   saveScrapeData = async (data: InputScrape): Promise<WithId<Scrape>> => {
     const utcNow = new Date(Date.now())
@@ -24,7 +26,7 @@ export class ScrapesModel implements Repository {
     const hash = createHash('sha256').update(contentString).digest('hex')
 
     // If a record with same hash exists, overwrite it to avoid duplicates of same scraped data
-    const results = await this.db.collection<Scrape>(collection).findOneAndUpdate(
+    const results = await this.collection.findOneAndUpdate(
       { game_id: data.game_id, source: data.source, hash },
       {
         $set: {
@@ -44,13 +46,12 @@ export class ScrapesModel implements Repository {
   }
 
   getScrapeDataById = async (id: string) => {
-    return await this.db.collection<Scrape>(collection).findOne({ _id: new ObjectId(id) })
+    return await this.collection.findOne({ _id: new ObjectId(id) })
   }
 
   getScrapes = async (game_id: number, source?: SCRAPE_SOURCES) => {
     const query = source ? { source } : {}
-    return await this.db
-      .collection<Scrape>(collection)
+    return await this.collection
       .find({ game_id, ...query })
       .sort({ created_at: -1 })
       .toArray()
@@ -61,8 +62,7 @@ export class ScrapesModel implements Repository {
    * This ensures we get the latest scrape data without duplicates for the same URL.
    */
   getLastScrapedData = async (game_id: number, source: SCRAPE_SOURCES): Promise<Scrape[]> => {
-    return await this.db
-      .collection<Scrape>(collection)
+    return await this.collection
       .aggregate<Scrape>([
         { $match: { game_id, source } },
         { $sort: { created_at: -1 } },
@@ -76,20 +76,16 @@ export class ScrapesModel implements Repository {
    * Only for testing purposes - directly inserts scrapes without hashing or upsert logic.
    */
   insertTestScrapes = async (scrapes: Scrape[]) => {
-    await this.db.collection<Scrape>(collection).insertMany(scrapes)
+    await this.collection.insertMany(scrapes)
     return scrapes
   }
 
   createIndexes = async () => {
     // Create compound index for game_id, source, and hash (used in updateOne upsert)
-    await this.db
-      .collection<Scrape>(collection)
-      .createIndex({ game_id: 1, source: 1, hash: 1 }, { unique: true })
+    await this.collection.createIndex({ game_id: 1, source: 1, hash: 1 }, { unique: true })
 
     // Create compound index for game_id and source with created_at for sorting
     // This supports the getLastScrapedData query efficiently
-    await this.db
-      .collection<Scrape>(collection)
-      .createIndex({ game_id: 1, source: 1, created_at: -1 })
+    await this.collection.createIndex({ game_id: 1, source: 1, created_at: -1 })
   }
 }

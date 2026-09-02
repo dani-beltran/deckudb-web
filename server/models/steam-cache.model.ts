@@ -1,4 +1,4 @@
-import type { Db } from 'mongodb'
+import type { Collection, Db } from 'mongodb'
 import {
   getMostPlayedSteamDeckGameIds,
   getSteamGameDetails,
@@ -12,10 +12,6 @@ import type {
   SteamGameDetailsCache,
   SteamSearchCache,
 } from './steam-cache.schema'
-
-const SEARCH_CACHE_COLLECTION = 'steam_search_cache'
-const DETAILS_CACHE_COLLECTION = 'steam_details_cache'
-const MOST_PLAYED_CACHE_COLLECTION = 'steam_deck_most_played_cache'
 
 // Cache duration: 1 day (1 day in milliseconds)
 export const CACHE_DURATION_MS = 24 * 60 * 60 * 1000
@@ -34,7 +30,17 @@ export const CACHE_DURATION_MS = 24 * 60 * 60 * 1000
  * Each collection has a TTL index to automatically remove expired documents.
  */
 export class SteamCacheModel implements Repository {
-  constructor(private readonly db: Db) {}
+  private searchCacheCollection: Collection<SteamSearchCache>
+  private detailsCacheCollection: Collection<SteamGameDetailsCache>
+  private mostPlayedCacheCollection: Collection<SteamDeckMostPlayedCache>
+
+  constructor(private readonly db: Db) {
+    this.searchCacheCollection = this.db.collection<SteamSearchCache>('steam_search_cache')
+    this.detailsCacheCollection = this.db.collection<SteamGameDetailsCache>('steam_details_cache')
+    this.mostPlayedCacheCollection = this.db.collection<SteamDeckMostPlayedCache>(
+      'steam_deck_most_played_cache'
+    )
+  }
 
   /**
    * Try to get search results from cache, if not found or expired, fetch from Steam and cache the results
@@ -96,7 +102,7 @@ export class SteamCacheModel implements Repository {
   private getCachedSearchResults = async (term: string, limit: number) => {
     const now = new Date()
 
-    const cached = await this.db.collection<SteamSearchCache>(SEARCH_CACHE_COLLECTION).findOne({
+    const cached = await this.searchCacheCollection.findOne({
       term,
       limit,
       expires_at: { $gt: now },
@@ -109,7 +115,7 @@ export class SteamCacheModel implements Repository {
     const now = new Date()
     const expires_at = new Date(now.getTime() + CACHE_DURATION_MS)
 
-    await this.db.collection<SteamSearchCache>(SEARCH_CACHE_COLLECTION).updateOne(
+    await this.searchCacheCollection.updateOne(
       { term, limit },
       {
         $set: {
@@ -125,12 +131,10 @@ export class SteamCacheModel implements Repository {
   private getCachedGameDetails = async (gameId: number) => {
     const now = new Date()
 
-    const cached = await this.db
-      .collection<SteamGameDetailsCache>(DETAILS_CACHE_COLLECTION)
-      .findOne({
-        game_id: gameId,
-        expires_at: { $gt: now },
-      })
+    const cached = await this.detailsCacheCollection.findOne({
+      game_id: gameId,
+      expires_at: { $gt: now },
+    })
 
     return cached?.data || null
   }
@@ -138,12 +142,10 @@ export class SteamCacheModel implements Repository {
   private getCachedGamesDetails = async (gameIds: number[]) => {
     const now = new Date()
 
-    const cachedCursor = await this.db
-      .collection<SteamGameDetailsCache>(DETAILS_CACHE_COLLECTION)
-      .find({
-        game_id: { $in: gameIds },
-        expires_at: { $gt: now },
-      })
+    const cachedCursor = await this.detailsCacheCollection.find({
+      game_id: { $in: gameIds },
+      expires_at: { $gt: now },
+    })
     return (await cachedCursor.toArray()).map((doc) => doc.data)
   }
 
@@ -151,19 +153,17 @@ export class SteamCacheModel implements Repository {
     const now = new Date()
     const expires_at = new Date(now.getTime() + CACHE_DURATION_MS)
 
-    const results = await this.db
-      .collection<SteamGameDetailsCache>(DETAILS_CACHE_COLLECTION)
-      .updateOne(
-        { game_id: gameId },
-        {
-          $set: {
-            data,
-            created_at: now,
-            expires_at,
-          },
+    const results = await this.detailsCacheCollection.updateOne(
+      { game_id: gameId },
+      {
+        $set: {
+          data,
+          created_at: now,
+          expires_at,
         },
-        { upsert: true }
-      )
+      },
+      { upsert: true }
+    )
 
     if (results.modifiedCount === 0 && results.upsertedCount === 0) {
       throw new Error(`Failed to cache game details for game ID: ${gameId}`)
@@ -176,11 +176,9 @@ export class SteamCacheModel implements Repository {
   private getCachedMostPlayedGamesIds = async () => {
     const now = new Date()
 
-    const cached = await this.db
-      .collection<SteamDeckMostPlayedCache>(MOST_PLAYED_CACHE_COLLECTION)
-      .findOne({
-        expires_at: { $gt: now },
-      })
+    const cached = await this.mostPlayedCacheCollection.findOne({
+      expires_at: { $gt: now },
+    })
 
     return cached?.game_ids || null
   }
@@ -192,7 +190,7 @@ export class SteamCacheModel implements Repository {
     const now = new Date()
     const expires_at = new Date(now.getTime() + CACHE_DURATION_MS)
 
-    await this.db.collection<SteamDeckMostPlayedCache>(MOST_PLAYED_CACHE_COLLECTION).updateOne(
+    await this.mostPlayedCacheCollection.updateOne(
       {},
       {
         $set: {
@@ -210,28 +208,18 @@ export class SteamCacheModel implements Repository {
    */
   createIndexes = async () => {
     // Create TTL index on search cache
-    await this.db
-      .collection<SteamSearchCache>(SEARCH_CACHE_COLLECTION)
-      .createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
+    await this.searchCacheCollection.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
 
     // Create compound index for search queries
-    await this.db
-      .collection<SteamSearchCache>(SEARCH_CACHE_COLLECTION)
-      .createIndex({ term: 1, limit: 1 })
+    await this.searchCacheCollection.createIndex({ term: 1, limit: 1 })
 
     // Create TTL index on details cache
-    await this.db
-      .collection<SteamGameDetailsCache>(DETAILS_CACHE_COLLECTION)
-      .createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
+    await this.detailsCacheCollection.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
 
     // Create index on game_id
-    await this.db
-      .collection<SteamGameDetailsCache>(DETAILS_CACHE_COLLECTION)
-      .createIndex({ game_id: 1 })
+    await this.detailsCacheCollection.createIndex({ game_id: 1 })
 
     // Create TTL index on most played cache
-    await this.db
-      .collection<SteamDeckMostPlayedCache>(MOST_PLAYED_CACHE_COLLECTION)
-      .createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
+    await this.mostPlayedCacheCollection.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
   }
 }

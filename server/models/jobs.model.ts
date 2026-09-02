@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import type { Db } from 'mongodb'
+import type { Collection, Db } from 'mongodb'
 import { stripUndefined } from '../../shared/collection'
 import { getServerConfig } from '../config/index'
 import type { Sort } from '../types/mongo.types'
@@ -13,7 +13,6 @@ import {
   type Job,
 } from './jobs.schema'
 
-const COLLECTION = 'jobs'
 const jobMaxAttempts = getServerConfig().jobMaxAttempts
 
 import type { Repository } from '../utils/bootstrap'
@@ -24,10 +23,14 @@ import type { Repository } from '../utils/bootstrap'
  * They are intended to track and manage tasks like scraping game data or generating reports.
  */
 export class JobsModel implements Repository {
-  constructor(private readonly db: Db) {}
+  private collection: Collection<Job>
+
+  constructor(private readonly db: Db) {
+    this.collection = this.db.collection<Job>('jobs')
+  }
 
   getJobById = async (job_id: string) => {
-    return this.db.collection<Job>(COLLECTION).findOne({ job_id })
+    return this.collection.findOne({ job_id })
   }
 
   /**
@@ -39,15 +42,14 @@ export class JobsModel implements Repository {
     sort: Sort<Job> = { created_at: -1 },
     pagination?: PaginationParams
   ): Promise<PaginatedResult<Job>> => {
-    const collection = this.db.collection<Job>(COLLECTION)
     const { page = 1, page_size = 20 } = pagination ?? {}
     const skip = (page - 1) * page_size
     const curatedFilters = stripUndefined(filters)
     const curatedSort: Sort<Job> = stripUndefined(sort)
 
     const [items, total] = await Promise.all([
-      collection.find(curatedFilters).sort(curatedSort).skip(skip).limit(page_size).toArray(),
-      collection.countDocuments(curatedFilters),
+      this.collection.find(curatedFilters).sort(curatedSort).skip(skip).limit(page_size).toArray(),
+      this.collection.countDocuments(curatedFilters),
     ])
 
     return {
@@ -65,12 +67,7 @@ export class JobsModel implements Repository {
       job_type: jobType,
       status: { $ne: JOB_STATUS.FAILED },
     })
-    const jobs = await this.db
-      .collection<Job>(COLLECTION)
-      .find(filter)
-      .sort({ updated_at: -1 })
-      .limit(1)
-      .toArray()
+    const jobs = await this.collection.find(filter).sort({ updated_at: -1 }).limit(1).toArray()
     return jobs[0]
   }
 
@@ -118,9 +115,11 @@ export class JobsModel implements Repository {
       status: { $in: [JOB_STATUS.QUEUED, JOB_STATUS.IN_PROGRESS] },
     }
 
-    const results = await this.db
-      .collection<Job>(COLLECTION)
-      .updateOne(activeJobFilter, { $setOnInsert: job }, { upsert: true })
+    const results = await this.collection.updateOne(
+      activeJobFilter,
+      { $setOnInsert: job },
+      { upsert: true }
+    )
 
     if (!results.upsertedId) {
       throw new ConflictError(
@@ -156,7 +155,7 @@ export class JobsModel implements Repository {
   completeJob = async (job_id: string, statusMessage?: string) => {
     const utcNow = new Date(Date.now())
 
-    const results = await this.db.collection<Job>(COLLECTION).findOneAndUpdate(
+    const results = await this.collection.findOneAndUpdate(
       { job_id, status: JOB_STATUS.IN_PROGRESS },
       {
         $set: {
@@ -186,7 +185,7 @@ export class JobsModel implements Repository {
   failJob = async (job_id: string, errorMessage: string) => {
     const utcNow = new Date(Date.now())
 
-    const results = await this.db.collection<Job>(COLLECTION).updateOne(
+    const results = await this.collection.updateOne(
       { job_id, status: JOB_STATUS.IN_PROGRESS },
       {
         $set: {
@@ -208,7 +207,7 @@ export class JobsModel implements Repository {
    * Otherwise it is marked as FAILED permanently.
    */
   failOrRequeueJob = async (job_id: string, errorMessage: string) => {
-    const job = await this.db.collection<Job>(COLLECTION).findOne({
+    const job = await this.collection.findOne({
       job_id,
       status: JOB_STATUS.IN_PROGRESS,
     })
@@ -221,7 +220,7 @@ export class JobsModel implements Repository {
 
     if (attempts < maxAttempts) {
       const utcNow = new Date(Date.now())
-      const result = await this.db.collection<Job>(COLLECTION).updateOne(
+      const result = await this.collection.updateOne(
         { job_id, status: JOB_STATUS.IN_PROGRESS },
         {
           $set: {
@@ -251,9 +250,10 @@ export class JobsModel implements Repository {
    * @returns The deleted job.
    */
   deleteJob = async (job_id: string): Promise<Job> => {
-    const job = await this.db
-      .collection<Job>(COLLECTION)
-      .findOneAndDelete({ job_id, status: { $ne: JOB_STATUS.IN_PROGRESS } })
+    const job = await this.collection.findOneAndDelete({
+      job_id,
+      status: { $ne: JOB_STATUS.IN_PROGRESS },
+    })
 
     if (!job) {
       throw new ConflictError(
@@ -269,7 +269,7 @@ export class JobsModel implements Repository {
    * be used in test scenarios where you need to set up specific job states or conditions.
    */
   insertTestJobs = async (jobs: Job[]) => {
-    await this.db.collection<Job>(COLLECTION).insertMany(jobs)
+    await this.collection.insertMany(jobs)
   }
 
   /**
@@ -291,7 +291,7 @@ export class JobsModel implements Repository {
       job_type: jobType,
     })
 
-    return this.db.collection<Job>(COLLECTION).updateMany(filter, {
+    return this.collection.updateMany(filter, {
       $set: {
         status: JOB_STATUS.QUEUED,
         started_at: null,
@@ -303,26 +303,26 @@ export class JobsModel implements Repository {
   }
 
   getQueuedJobsCount = async () => {
-    return this.db.collection<Job>(COLLECTION).countDocuments({
+    return this.collection.countDocuments({
       status: JOB_STATUS.QUEUED,
     })
   }
 
   createIndexes = async () => {
     // Create index on job_id for fast lookups
-    await this.db.collection<Job>(COLLECTION).createIndex({ job_id: 1 }, { unique: true })
+    await this.collection.createIndex({ job_id: 1 }, { unique: true })
 
     // Create compound index for game_id with created_at for sorting
-    await this.db.collection<Job>(COLLECTION).createIndex({ game_id: 1, created_at: -1 })
+    await this.collection.createIndex({ game_id: 1, created_at: -1 })
 
     // Create compound index for status with created_at for getting next job in queue
-    await this.db.collection<Job>(COLLECTION).createIndex({ status: 1, created_at: 1 })
+    await this.collection.createIndex({ status: 1, created_at: 1 })
 
     // Create compound index for job_type with created_at
-    await this.db.collection<Job>(COLLECTION).createIndex({ job_type: 1, created_at: -1 })
+    await this.collection.createIndex({ job_type: 1, created_at: -1 })
 
     // Create compound index for job_type and status for filtered queries
-    await this.db.collection<Job>(COLLECTION).createIndex({ job_type: 1, status: 1, created_at: 1 })
+    await this.collection.createIndex({ job_type: 1, status: 1, created_at: 1 })
   }
 
   private createJob = (jobData: CreateJobParams): Job => {
@@ -347,7 +347,7 @@ export class JobsModel implements Repository {
     order: 'asc' | 'desc'
   ): Promise<Job | null> => {
     const utcNow = new Date(Date.now())
-    const results = await this.db.collection<Job>(COLLECTION).findOneAndUpdate(
+    const results = await this.collection.findOneAndUpdate(
       { ...filter, status: JOB_STATUS.QUEUED },
       [
         {

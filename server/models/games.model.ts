@@ -1,23 +1,24 @@
-import type { Db } from 'mongodb'
-import { type Game, type GameInput, gameInputSchema } from './games.schema'
-
-const COLLECTION = 'games'
-
+import type { Collection, Db } from 'mongodb'
 import type { Repository } from '../utils/bootstrap'
+import { type Game, type GameInput, gameInputSchema } from './games.schema'
 
 /**
  * GamesModel is responsible for managing game data in the database.
  */
 export class GamesModel implements Repository {
-  constructor(private readonly db: Db) {}
+  private collection: Collection<Game>
+
+  constructor(private readonly db: Db) {
+    this.collection = this.db.collection<Game>('games')
+  }
 
   fetchGameById = async (id: number) => {
-    return this.db.collection<Game>(COLLECTION).findOne({ game_id: id })
+    return this.collection.findOne({ game_id: id })
   }
 
   saveGame = async (id: number, game: GameInput) => {
     const validatedGame: GameInput = gameInputSchema.parse(game)
-    return this.db.collection<Game>(COLLECTION).updateOne(
+    return this.collection.updateOne(
       { game_id: id },
       {
         $set: {
@@ -40,11 +41,11 @@ export class GamesModel implements Repository {
    * be used in test scenarios where you need to set up specific game states or conditions.
    */
   insertTestGames = async (games: Game[]) => {
-    await this.db.collection<Game>(COLLECTION).insertMany(games)
+    await this.collection.insertMany(games)
   }
 
   createIndexes = async () => {
     // Create unique index on game_id (primary key)
-    await this.db.collection<Game>(COLLECTION).createIndex({ game_id: 1 }, { unique: true })
+    await this.collection.createIndex({ game_id: 1 }, { unique: true })
   }
 }
