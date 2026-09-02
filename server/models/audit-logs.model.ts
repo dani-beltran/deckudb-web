@@ -101,7 +101,7 @@ export class AuditLogsModel implements Repository {
       created_at: -1,
       audit_id: -1,
     })
-    this.ensureTTLIndex()
+    await this.ensureTTLIndex()
   }
 
   /**
