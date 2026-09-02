@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto'
-import { AUDIT_LOGS_COLLECTION } from '@server/models/audit-logs.model'
 import { AUDIT_ACTION_TYPE, AUDIT_OUTCOME, type AuditLog } from '@server/models/audit-logs.schema'
 import { JOB_STATUS, JOB_TYPE, type Job } from '@server/models/jobs.schema'
 import * as steamService from '@server/services/steam/steam'
@@ -91,10 +90,7 @@ describe('audit logs API', () => {
   }
 
   async function seedAuditLogs(logs: AuditLog[]) {
-    await dependencies.databaseClient
-      .getDB()
-      .collection<AuditLog>(AUDIT_LOGS_COLLECTION)
-      .insertMany(logs)
+    await dependencies.repositories.auditLogs.insertTestAuditLogs(logs)
   }
 
   async function getActionLogs(client: TestClient, actionType: AuditLog['action_type']) {

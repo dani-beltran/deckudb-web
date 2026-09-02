@@ -13,7 +13,7 @@ import {
 
 /** Append-only repository used to record and inspect dashboard audit events. */
 export class AuditLogsModel implements Repository {
-  collection: Collection<AuditLog>;
+  collection: Collection<AuditLog>
 
   constructor(
     private readonly db: Db,
@@ -80,6 +80,14 @@ export class AuditLogsModel implements Repository {
       page_size,
       total_pages: Math.ceil(total / page_size),
     }
+  }
+
+  /**
+   * Inserts audit logs directly into the database for testing purposes.
+   * This bypasses generated IDs and timestamps so tests can set up exact audit-log fixtures.
+   */
+  insertTestAuditLogs = async (auditLogs: AuditLog[]) => {
+    await this.collection.insertMany(auditLogs)
   }
 
   createIndexes = async () => {
