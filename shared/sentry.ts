@@ -35,7 +35,8 @@ export function parseSentryTracesSampleRate(
   value: unknown,
   fallback = DEFAULT_SENTRY_TRACES_SAMPLE_RATE
 ): number {
-  if (value === undefined || value === null || value === '') return fallback
+  if (typeof value !== 'number' && typeof value !== 'string') return fallback
+  if (typeof value === 'string' && value.trim() === '') return fallback
 
   const sampleRate = typeof value === 'number' ? value : Number(value)
   return Number.isFinite(sampleRate) && sampleRate >= 0 && sampleRate <= 1 ? sampleRate : fallback
@@ -117,7 +118,17 @@ function redactSpanAttributeValue(value: SentrySpan['data'][string]): SentrySpan
 function getHttpStatusCode(value: unknown, depth = 0): number | undefined {
   if (!value || typeof value !== 'object' || depth > 3) return undefined
   const error = value as { cause?: unknown; status?: unknown; statusCode?: unknown }
-  const statusCode = Number(error.statusCode ?? error.status)
-  if (Number.isInteger(statusCode)) return statusCode
+  const statusCode = parseHttpStatusCode(error.statusCode) ?? parseHttpStatusCode(error.status)
+  if (statusCode !== undefined) return statusCode
   return getHttpStatusCode(error.cause, depth + 1)
+}
+
+function parseHttpStatusCode(value: unknown): number | undefined {
+  if (typeof value !== 'number' && typeof value !== 'string') return undefined
+  if (typeof value === 'string' && value.trim() === '') return undefined
+
+  const statusCode = Number(value)
+  return Number.isInteger(statusCode) && statusCode >= 100 && statusCode <= 599
+    ? statusCode
+    : undefined
 }
