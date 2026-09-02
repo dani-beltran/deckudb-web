@@ -70,6 +70,7 @@
 </template>
 
 <script setup lang="ts">
+import { normalizePath } from '@shared/uri'
 import { ChevronDown, LogOut } from 'lucide-vue-next'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { navigateTo, useNuxtApp, useRoute } from '#imports'
@@ -88,7 +89,7 @@ const menuOpen = ref(false)
 const loggingOut = ref(false)
 const logoutError = ref<string | null>(null)
 
-const normalizedPath = computed(() => route.path.replace(/\/+$/, '') || '/')
+const normalizedPath = computed(() => normalizePath(route.path))
 const isJobsActive = computed(() => normalizedPath.value === '/admin')
 const isAuditActive = computed(() => normalizedPath.value === '/admin/audit-logs')
 const displayName = computed(() => adminSession.value.username?.trim() || 'Admin')

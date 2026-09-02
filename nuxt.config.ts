@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     '@server': fileURLToPath(new URL('./server', import.meta.url)),
     '@app': fileURLToPath(new URL('./app', import.meta.url)),
     '@assets': fileURLToPath(new URL('./app/assets', import.meta.url)),
+    '@shared': fileURLToPath(new URL('./shared', import.meta.url)),
   },
   typescript: {
     tsConfig: {

@@ -1,7 +1,6 @@
+import { normalizePath } from '@shared/uri'
 import { defineNuxtRouteMiddleware, navigateTo, useNuxtApp } from '#imports'
 import { useAdminSession } from '../composables/useAdminSession'
-
-const normalizePath = (path: string) => (path.length > 1 ? path.replace(/\/+$/, '') : path)
 
 const isAdminRoute = (path: string) => path === '/admin' || path.startsWith('/admin/')
 

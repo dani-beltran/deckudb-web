@@ -1,3 +1,4 @@
+import { normalizePath } from '@shared/uri'
 import {
   createError,
   defineEventHandler,
@@ -25,8 +26,7 @@ function isAdminApi(pathname: string) {
 }
 
 function isLoginPage(pathname: string) {
-  const normalizedPathname = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
-  return normalizedPathname === '/admin/login'
+  return normalizePath(pathname) === '/admin/login'
 }
 
 async function handleSessionForPage(event: H3Event<EventHandlerRequest>) {
