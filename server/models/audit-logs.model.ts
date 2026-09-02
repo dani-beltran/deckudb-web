@@ -1,6 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import type { Db, Filter } from 'mongodb'
-import { getServerConfig } from '../config'
+import type { Collection, Db, Filter } from 'mongodb'
 import type { Repository } from '../utils/bootstrap'
 import type { PaginatedResult, PaginationParams } from '../utils/pagination'
 import {
@@ -12,12 +11,16 @@ import {
   sanitizeAuditContext,
 } from './audit-logs.schema'
 
-export const AUDIT_LOGS_COLLECTION = 'audit-logs'
-const { auditLogRetentionDays } = getServerConfig()
-
 /** Append-only repository used to record and inspect dashboard audit events. */
 export class AuditLogsModel implements Repository {
-  constructor(private readonly db: Db) {}
+  collection: Collection<AuditLog>;
+
+  constructor(
+    private readonly db: Db,
+    private readonly retentionDays: number
+  ) {
+    this.collection = this.db.collection<AuditLog>('audit-logs')
+  }
 
   /** Creates an audit entry; IDs and timestamps are always owned by the repository. */
   recordAuditLog = async (params: CreateAuditLogParams): Promise<AuditLog> => {
@@ -34,7 +37,7 @@ export class AuditLogsModel implements Repository {
     })
 
     // Insert a copy so the MongoDB driver cannot attach its internal `_id` to the public result.
-    await this.db.collection<AuditLog>(AUDIT_LOGS_COLLECTION).insertOne({ ...auditLog })
+    await this.collection.insertOne({ ...auditLog })
     return auditLog
   }
 
@@ -59,16 +62,15 @@ export class AuditLogsModel implements Repository {
       }
     }
 
-    const collection = this.db.collection<AuditLog>(AUDIT_LOGS_COLLECTION)
     const skip = (page - 1) * page_size
     const [items, total] = await Promise.all([
-      collection
+      this.collection
         .find(mongoFilters, { projection: { _id: 0 } })
         .sort({ created_at: -1, audit_id: -1 })
         .skip(skip)
         .limit(page_size)
         .toArray(),
-      collection.countDocuments(mongoFilters),
+      this.collection.countDocuments(mongoFilters),
     ])
 
     return {
@@ -81,20 +83,48 @@ export class AuditLogsModel implements Repository {
   }
 
   createIndexes = async () => {
-    const collection = this.db.collection<AuditLog>(AUDIT_LOGS_COLLECTION)
-    await collection.createIndex({ audit_id: 1 }, { unique: true })
-    await collection.createIndex(
-      { created_at: 1 },
-      { expireAfterSeconds: auditLogRetentionDays * 24 * 60 * 60 }
-    )
-    await collection.createIndex({ created_at: -1, audit_id: -1 })
-    await collection.createIndex({ user_identity: 1, created_at: -1, audit_id: -1 })
-    await collection.createIndex({ action_type: 1, created_at: -1, audit_id: -1 })
-    await collection.createIndex({
+    await this.collection.createIndex({ audit_id: 1 }, { unique: true })
+    await this.collection.createIndex({ created_at: -1, audit_id: -1 })
+    await this.collection.createIndex({ user_identity: 1, created_at: -1, audit_id: -1 })
+    await this.collection.createIndex({ action_type: 1, created_at: -1, audit_id: -1 })
+    await this.collection.createIndex({
       user_identity: 1,
       action_type: 1,
       created_at: -1,
       audit_id: -1,
     })
+    this.ensureTTLIndex()
+  }
+
+  /**
+   * Creates or Updates the TLL index securely.
+   */
+  private ensureTTLIndex = async () => {
+    const AUDIT_TTL_INDEX_NAME = 'audit_logs_created_at_ttl'
+    const expireAfterSeconds = this.retentionDays * 24 * 60 * 60
+
+    const indexes = await this.collection.listIndexes().toArray()
+    const existing = indexes.find((index) => index.name === AUDIT_TTL_INDEX_NAME)
+
+    if (!existing) {
+      await this.collection.createIndex(
+        { created_at: 1 },
+        {
+          name: AUDIT_TTL_INDEX_NAME,
+          expireAfterSeconds,
+        }
+      )
+      return
+    }
+
+    if (Number(existing.expireAfterSeconds) !== expireAfterSeconds) {
+      await this.db.command({
+        collMod: this.collection.collectionName,
+        index: {
+          keyPattern: { created_at: 1 },
+          expireAfterSeconds,
+        },
+      })
+    }
   }
 }
