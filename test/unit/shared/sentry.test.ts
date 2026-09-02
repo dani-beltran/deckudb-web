@@ -35,6 +35,27 @@ describe('redactText', () => {
   )
 })
 
+describe('compound credential keys', () => {
+  it.each(['access_token', 'refresh_token', 'accessToken', 'client_secret'])(
+    'redacts %s values in log and exception inputs',
+    (key) => {
+      const input = `${key}=sensitive-value`
+      const expected = `${key}=[Filtered]`
+
+      expect(scrubSentryLog({ message: input }).message).toBe(expected)
+      expect(
+        scrubSentryEvent({
+          type: undefined,
+          exception: { values: [{ value: input }] },
+        })
+      ).toEqual({
+        type: undefined,
+        exception: { values: [{ value: expected }] },
+      })
+    }
+  )
+})
+
 describe('parseSentryTracesSampleRate', () => {
   it.each([
     [0, 0],
