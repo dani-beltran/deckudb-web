@@ -14,6 +14,10 @@ describe('redactText', () => {
     ['authorization=Basic basic-credential', 'authorization=[Filtered]'],
     ['password=unquoted-value', 'password=[Filtered]'],
     [`token: 'quoted value'`, 'token: [Filtered]'],
+    [
+      '{"password":"escaped \\"secret\\" value","safe":"visible"}',
+      '{"password":[Filtered],"safe":"visible"}',
+    ],
   ])('redacts sensitive text in %s', (value, expected) => {
     expect(redactText(value)).toBe(expected)
   })
