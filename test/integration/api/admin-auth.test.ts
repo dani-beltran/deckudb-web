@@ -125,12 +125,12 @@ describe('admin authentication', () => {
       .expect(200)
     const authenticatedCookie = cookieValue(loginResponse.headers['set-cookie'], 'decku.sid')
 
-    expect(loginResponse.body).toEqual({ authenticated: true })
+    expect(loginResponse.body).toEqual({ authenticated: true, username: ADMIN_USERNAME })
     expect(authenticatedCookie).toBeDefined()
     expect(authenticatedCookie).not.toBe(anonymousCookie)
 
     const sessionResponse = await client.get('/api/admin/auth/session').expect(200)
-    expect(sessionResponse.body).toEqual({ authenticated: true })
+    expect(sessionResponse.body).toEqual({ authenticated: true, username: ADMIN_USERNAME })
 
     const oldSessionResponse = await request(testServer)
       .get('/api/admin/auth/session')

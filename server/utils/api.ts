@@ -23,9 +23,15 @@ function invalidRequest(error: ZodError, target: string) {
   }
 }
 
-export async function parseBody<T>(event: Parameters<typeof readBody>[0], schema: ZodType<T>) {
+export async function parseBody<T>(
+  event: Parameters<typeof readBody>[0],
+  schema: ZodType<T>,
+  inspectBody?: (body: unknown) => void
+) {
   try {
-    return await schema.parseAsync(await readBody(event))
+    const body: unknown = await readBody(event)
+    inspectBody?.(body)
+    return await schema.parseAsync(body)
   } catch (error) {
     if (error instanceof ZodError) {
       throw createHttpError(400, invalidRequest(error, 'body'))

@@ -177,6 +177,35 @@ describe('admin page', async () => {
     await expectDashboard(page)
   })
 
+  it('shows the shared admin navigation, active page, and account menu', async () => {
+    const page = await createPage('/admin')
+
+    await login(page)
+
+    const homeLink = page.getByRole('link', { name: 'DeckuDB home' })
+    const jobsLink = page.getByRole('link', { name: 'Jobs', exact: true })
+    const auditLink = page.getByRole('link', { name: 'Audit logs' })
+    const accountButton = page.getByRole('button', { name: ADMIN_USERNAME, exact: true })
+
+    expect(await homeLink.getAttribute('href')).toBe('/')
+    expect(await jobsLink.getAttribute('aria-current')).toBe('page')
+    expect(await auditLink.getAttribute('aria-current')).toBeNull()
+    expect(await accountButton.getAttribute('aria-expanded')).toBe('false')
+    expect(await page.getByRole('button', { name: 'Log out' }).count()).toBe(0)
+
+    await accountButton.click()
+    expect(await accountButton.getAttribute('aria-expanded')).toBe('true')
+    expect(await page.getByRole('button', { name: 'Log out' }).isVisible()).toBe(true)
+
+    await page.keyboard.press('Escape')
+    expect(await accountButton.getAttribute('aria-expanded')).toBe('false')
+
+    await auditLink.click()
+    await page.waitForURL((url) => url.pathname === '/admin/audit-logs')
+    expect(await jobsLink.getAttribute('aria-current')).toBeNull()
+    expect(await auditLink.getAttribute('aria-current')).toBe('page')
+  })
+
   it('logs out and prevents the old session from reopening the admin page', async () => {
     const page = await createPage('/admin')
     await login(page)
@@ -184,6 +213,7 @@ describe('admin page', async () => {
       isResponseFor(response.url(), '/api/admin/auth/logout')
     )
 
+    await page.getByRole('button', { name: ADMIN_USERNAME, exact: true }).click()
     await page.getByRole('button', { name: 'Log out' }).click()
     const logoutResponse = await logoutResponsePromise
     await page.waitForURL((url) => url.pathname === '/admin/login')

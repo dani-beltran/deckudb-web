@@ -11,6 +11,7 @@ The browser app, API, database bootstrap, and the job worker all live in this re
 - Generate concise AI summaries from collected reports.
 - Vote on the usefulness of a game summary with an anonymous session.
 - Monitor, queue, and remove processing jobs from the session-protected admin dashboard.
+- Review an immutable audit trail of admin sign-ins, job actions, and sign-outs.
 
 ## Tech stack
 
@@ -80,6 +81,7 @@ Keep all API keys, admin credentials, and the session secret out of version cont
 | `/game/:gameId` | Game reports, settings, and summary |
 | `/admin/login` | Admin sign-in |
 | `/admin` | Authenticated job dashboard |
+| `/admin/audit-logs` | Authenticated, filterable dashboard audit trail |
 
 Unknown routes render the application's not-found view.
 
@@ -101,6 +103,12 @@ session cookie and must also be a strong secret.
 The integrated dashboard and API use the application's origin. Cross-origin API access is not
 allowed.
 
+Dashboard login attempts, job runs, job deletions, and logouts are written to an append-only audit
+collection with the acting user, outcome, affected job when available, and a small allow-list of
+investigation context. The dashboard audit page lists newest entries first and filters by exact
+user identity, action type, and inclusive UTC date range. Passwords, tokens, cookies, session IDs,
+request bodies, headers, and raw error messages are never stored in audit entries.
+
 ## API
 
 Nitro maps files in `server/api` directly to `/api` endpoints.
@@ -111,6 +119,7 @@ Nitro maps files in `server/api` directly to `/api` endpoints.
 | `GET` | `/api/admin/auth/session` | Report whether the current session is authenticated |
 | `POST` | `/api/admin/auth/login` | Authenticate the admin session |
 | `POST` | `/api/admin/auth/logout` | Invalidate the admin session |
+| `GET` | `/api/admin/audit-logs` | List and filter immutable dashboard audit entries |
 | `GET` | `/api/games/:id` | Return a game and its reports; queue stale or missing data |
 | `POST` | `/api/games/:id/summary-vote` | Record an anonymous `up` or `down` summary vote |
 | `GET` | `/api/steam/games?term=...&limit=...` | Search Steam games |

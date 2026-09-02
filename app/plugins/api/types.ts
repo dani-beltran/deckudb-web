@@ -2,6 +2,10 @@ export type JobStatus = 'queued' | 'in_progress' | 'completed' | 'failed'
 
 export type JobType = 'search' | 'scrape' | 'reports' | 'summary' | 'full'
 
+export type AuditActionType = 'login' | 'logout' | 'job_run' | 'job_delete'
+
+export type AuditOutcome = 'success' | 'failure'
+
 export interface Job {
   job_id: string
   job_type: JobType
@@ -38,6 +42,34 @@ export interface SearchResult<T> {
 export interface AdminSession {
   authenticated: boolean
   username?: string
+}
+
+export interface AuditLogContext {
+  game_id?: number
+  game_name?: string
+  job_type?: JobType
+  reason?: string
+  status_code?: number
+}
+
+export interface AuditLogEntry {
+  audit_id: string
+  created_at: string
+  user_identity: string
+  action_type: AuditActionType
+  outcome: AuditOutcome
+  target_resource?: 'job' | null
+  target_id?: string | null
+  context?: AuditLogContext | null
+}
+
+export interface AuditLogQuery {
+  page?: number
+  page_size?: number
+  user_identity?: string
+  action_type?: AuditActionType
+  date_from?: string
+  date_to?: string
 }
 
 export type ApiErrorBody = {

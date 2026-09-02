@@ -1,6 +1,6 @@
+import { normalizePath } from '@shared/uri'
 import { defineNuxtRouteMiddleware, navigateTo, useNuxtApp } from '#imports'
-
-const normalizePath = (path: string) => (path.length > 1 ? path.replace(/\/+$/, '') : path)
+import { useAdminSession } from '../composables/useAdminSession'
 
 const isAdminRoute = (path: string) => path === '/admin' || path.startsWith('/admin/')
 
@@ -8,13 +8,16 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const normalizedPath = normalizePath(to.path)
   if (!isAdminRoute(normalizedPath)) return
   const { $adminApi } = useNuxtApp()
+  const adminSession = useAdminSession()
 
   let authenticated = false
   try {
     const session = await $adminApi.getAdminSession()
+    adminSession.value = session
     authenticated = session.authenticated
   } catch {
     // Authentication checks fail closed.
+    adminSession.value = { authenticated: false }
   }
 
   if (normalizedPath === '/admin/login') {

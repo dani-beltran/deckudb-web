@@ -2,7 +2,7 @@
   <div class="pagination-footer">
     <p class="pagination-count">
       Showing {{ rangeStart }}–{{ rangeEnd }} of {{ totalItems }}
-      {{ totalItems === 1 ? 'job' : 'jobs' }}
+      {{ totalItems === 1 ? itemLabel : itemLabelPlural }}
     </p>
 
     <div class="pagination-controls">
@@ -11,7 +11,7 @@
         class="pagination-button"
         :disabled="currentPage === 1"
         aria-label="First page"
-        @click="$emit('page-change', 1)"
+        @click="requestPage(1, $event)"
       >
         «
       </button>
@@ -20,19 +20,21 @@
         class="pagination-button"
         :disabled="currentPage === 1"
         aria-label="Previous page"
-        @click="$emit('page-change', currentPage - 1)"
+        @click="requestPage(currentPage - 1, $event)"
       >
         ‹
       </button>
 
-      <span class="page-info" aria-live="polite">Page {{ currentPage }} of {{ totalPages }}</span>
+      <span ref="pageInfo" class="page-info" tabindex="-1" aria-live="polite">
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
 
       <button
         type="button"
         class="pagination-button"
         :disabled="currentPage === totalPages"
         aria-label="Next page"
-        @click="$emit('page-change', currentPage + 1)"
+        @click="requestPage(currentPage + 1, $event)"
       >
         ›
       </button>
@@ -41,7 +43,7 @@
         class="pagination-button"
         :disabled="currentPage === totalPages"
         aria-label="Last page"
-        @click="$emit('page-change', totalPages)"
+        @click="requestPage(totalPages, $event)"
       >
         »
       </button>
@@ -64,14 +66,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
-const props = defineProps<{
-  currentPage: number
-  totalPages: number
-  pageSize: number
-  totalItems: number
-}>()
+const props = withDefaults(
+  defineProps<{
+    currentPage: number
+    totalPages: number
+    pageSize: number
+    totalItems: number
+    itemLabel?: string
+    itemLabelPlural?: string
+  }>(),
+  {
+    itemLabel: 'job',
+    itemLabelPlural: 'jobs',
+  }
+)
 
 const emit = defineEmits<{
   'page-change': [page: number]
@@ -79,6 +89,10 @@ const emit = defineEmits<{
 }>()
 
 const pageSizeOptions = [10, 25, 50, 100]
+const pageInfo = ref<HTMLElement | null>(null)
+
+let pageChangeTrigger: HTMLButtonElement | null = null
+
 const rangeStart = computed(() =>
   props.totalItems === 0 ? 0 : (props.currentPage - 1) * props.pageSize + 1
 )
@@ -87,6 +101,24 @@ const rangeEnd = computed(() => Math.min(props.currentPage * props.pageSize, pro
 function changePageSize(event: Event) {
   emit('page-size-change', Number((event.target as HTMLSelectElement).value))
 }
+
+function requestPage(page: number, event: MouseEvent) {
+  pageChangeTrigger = event.currentTarget as HTMLButtonElement
+  emit('page-change', page)
+}
+
+watch(
+  () => props.currentPage,
+  async () => {
+    const trigger = pageChangeTrigger
+    pageChangeTrigger = null
+    if (!trigger) return
+
+    await nextTick()
+    if (!trigger.disabled && trigger.isConnected) trigger.focus()
+    else pageInfo.value?.focus()
+  }
+)
 </script>
 
 <style scoped>
@@ -136,9 +168,11 @@ function changePageSize(event: Event) {
 }
 
 .pagination-button:focus-visible,
-.page-size-select:focus-visible {
+.page-size-select:focus-visible,
+.page-info:focus-visible {
   border-color: var(--admin-primary);
   outline: 3px solid rgba(49, 84, 216, 0.16);
+  outline-offset: 2px;
 }
 
 .pagination-button:disabled {

@@ -1,3 +1,4 @@
+import adminAuditLogsHandler from '@server/api/admin/audit-logs.get'
 import adminLoginHandler from '@server/api/admin/auth/login.post'
 import adminLogoutHandler from '@server/api/admin/auth/logout.post'
 import adminSessionHandler from '@server/api/admin/auth/session.get'
@@ -25,6 +26,7 @@ import { createApp, createRouter, defineEventHandler, toNodeListener } from 'h3'
  */
 export const createNuxtTestServer = (dependencies: ServerDependencies) => {
   const router = createRouter()
+  router.get('/api/admin/audit-logs', adminAuditLogsHandler)
   router.get('/api/admin/auth/session', adminSessionHandler)
   router.post('/api/admin/auth/login', adminLoginHandler)
   router.post('/api/admin/auth/logout', adminLogoutHandler)

@@ -1,10 +1,12 @@
 import { defineEventHandler, setResponseHeader } from 'h3'
-import { isAdminAuthenticated } from '../../../utils/admin-auth'
+import { getAdminIdentity, isAdminAuthenticated } from '../../../utils/admin-auth'
 import { apiHandler } from '../../../utils/api'
 
 export default defineEventHandler((event) =>
   apiHandler(event, async () => {
     setResponseHeader(event, 'Cache-Control', 'no-store')
-    return { authenticated: isAdminAuthenticated(event) }
+    if (!isAdminAuthenticated(event)) return { authenticated: false }
+
+    return { authenticated: true, username: getAdminIdentity(event) }
   })
 )

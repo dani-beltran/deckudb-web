@@ -1,4 +1,5 @@
 import { getServerConfig } from '../config/index'
+import { AuditLogsModel } from '../models/audit-logs.model'
 import { GameReportsModel } from '../models/game-reports.model'
 import { GameSourcesModel } from '../models/game-sources.model'
 import { GameSummaryVotesModel } from '../models/game-summary-votes.model'
@@ -13,6 +14,7 @@ import logger from './logger'
 export type ServerDependencies = {
   databaseClient: DatabaseClient
   repositories: {
+    auditLogs: AuditLogsModel
     gameSources: GameSourcesModel
     gameReports: GameReportsModel
     gameSummaryVotes: GameSummaryVotesModel
@@ -58,6 +60,7 @@ export const bootstrapDependencies = async (
   return {
     databaseClient,
     repositories: {
+      auditLogs: new AuditLogsModel(db, config.auditLogRetentionDays),
       gameSources: new GameSourcesModel(db),
       gameReports: new GameReportsModel(db),
       gameSummaryVotes: new GameSummaryVotesModel(db),

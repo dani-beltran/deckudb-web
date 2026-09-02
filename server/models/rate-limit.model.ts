@@ -1,7 +1,5 @@
-import type { Db } from 'mongodb'
+import type { Collection, Db } from 'mongodb'
 import type { Repository } from '../utils/bootstrap'
-
-const RATE_LIMIT_COLLECTION = 'rate_limits'
 
 type RateLimitDocument = {
   _id: string
@@ -30,7 +28,11 @@ type ConsumeRateLimitOptions = {
  * configured limit even when a client continues sending traffic after exhausting its quota.
  */
 export class RateLimitModel implements Repository {
-  constructor(private readonly db: Db) {}
+  private collection: Collection<RateLimitDocument>
+
+  constructor(private readonly db: Db) {
+    this.collection = this.db.collection<RateLimitDocument>('rate_limits')
+  }
 
   async consume(
     partitionKey: string,
@@ -39,42 +41,40 @@ export class RateLimitModel implements Repository {
     const cutoff = new Date(now.getTime() - windowMs)
     const expiresAt = new Date(now.getTime() + windowMs)
 
-    const document = await this.db
-      .collection<RateLimitDocument>(RATE_LIMIT_COLLECTION)
-      .findOneAndUpdate(
-        { _id: partitionKey },
-        [
-          {
-            $set: {
-              request_times: {
-                $filter: {
-                  input: { $ifNull: ['$request_times', []] },
-                  as: 'request_time',
-                  cond: { $gt: ['$$request_time', cutoff] },
-                },
+    const document = await this.collection.findOneAndUpdate(
+      { _id: partitionKey },
+      [
+        {
+          $set: {
+            request_times: {
+              $filter: {
+                input: { $ifNull: ['$request_times', []] },
+                as: 'request_time',
+                cond: { $gt: ['$$request_time', cutoff] },
               },
             },
           },
-          {
-            $set: {
-              last_request_allowed: { $lt: [{ $size: '$request_times' }, limit] },
+        },
+        {
+          $set: {
+            last_request_allowed: { $lt: [{ $size: '$request_times' }, limit] },
+          },
+        },
+        {
+          $set: {
+            expires_at: expiresAt,
+            request_times: {
+              $cond: [
+                '$last_request_allowed',
+                { $concatArrays: ['$request_times', [now]] },
+                '$request_times',
+              ],
             },
           },
-          {
-            $set: {
-              expires_at: expiresAt,
-              request_times: {
-                $cond: [
-                  '$last_request_allowed',
-                  { $concatArrays: ['$request_times', [now]] },
-                  '$request_times',
-                ],
-              },
-            },
-          },
-        ],
-        { returnDocument: 'after', upsert: true }
-      )
+        },
+      ],
+      { returnDocument: 'after', upsert: true }
+    )
 
     if (!document) throw new Error('Rate limit counter update did not return a document')
 
@@ -90,8 +90,6 @@ export class RateLimitModel implements Repository {
   }
 
   createIndexes = async () => {
-    await this.db
-      .collection<RateLimitDocument>(RATE_LIMIT_COLLECTION)
-      .createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
+    await this.collection.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 })
   }
 }

@@ -5,6 +5,7 @@ import { defineConfig } from 'vitest/config'
 const aliases = {
   '@server': fileURLToPath(new URL('./server', import.meta.url)),
   '@app': fileURLToPath(new URL('./app', import.meta.url)),
+  '@shared': fileURLToPath(new URL('./shared', import.meta.url)),
 }
 
 export default defineConfig({

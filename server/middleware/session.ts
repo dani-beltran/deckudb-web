@@ -1,4 +1,13 @@
-import { createError, defineEventHandler, getRequestURL, sendRedirect, setResponseHeader } from 'h3'
+import { normalizePath } from '@shared/uri'
+import {
+  createError,
+  defineEventHandler,
+  type EventHandlerRequest,
+  getRequestURL,
+  type H3Event,
+  sendRedirect,
+  setResponseHeader,
+} from 'h3'
 import { isAdminAuthenticated } from '../utils/admin-auth'
 import { loadSession } from '../utils/session'
 
@@ -16,18 +25,19 @@ function isAdminApi(pathname: string) {
   return pathname === '/api/admin' || pathname.startsWith('/api/admin/')
 }
 
-/** Initializes API sessions and protects admin pages and API routes. */
-export default defineEventHandler(async (event) => {
-  if (event.method === 'OPTIONS') return
+function isLoginPage(pathname: string) {
+  return normalizePath(pathname) === '/admin/login'
+}
 
+async function handleSessionForPage(event: H3Event<EventHandlerRequest>) {
   const requestUrl = getRequestURL(event)
   const pathname = requestUrl.pathname
-  const normalizedPathname = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
-  if ((event.method === 'GET' || event.method === 'HEAD') && isAdminPage(normalizedPathname)) {
+
+  if ((event.method === 'GET' || event.method === 'HEAD') && isAdminPage(pathname)) {
     setResponseHeader(event, 'Cache-Control', 'no-store')
     await loadSession(event, false)
 
-    if (normalizedPathname === '/admin/login') {
+    if (isLoginPage(pathname)) {
       if (isAdminAuthenticated(event)) return sendRedirect(event, '/admin', 302)
       return
     }
@@ -38,9 +48,16 @@ export default defineEventHandler(async (event) => {
     }
     return
   }
+}
+
+async function handleSessionForApiRequest(event: H3Event<EventHandlerRequest>) {
+  const requestUrl = getRequestURL(event)
+  const pathname = requestUrl.pathname
 
   if (!pathname.startsWith('/api/')) return
-  await loadSession(event)
+
+  const isLogoutRequest = event.method === 'POST' && pathname === '/api/admin/auth/logout'
+  await loadSession(event, !isLogoutRequest)
 
   if (!isAdminApi(pathname)) return
   setResponseHeader(event, 'Cache-Control', 'no-store')
@@ -51,5 +68,18 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Unauthorized',
       data: { error: 'Unauthorized' },
     })
+  }
+}
+
+/** Initializes API sessions and protects admin pages and API routes. */
+export default defineEventHandler(async (event) => {
+  if (event.method === 'OPTIONS') return
+
+  const pathname = getRequestURL(event).pathname
+
+  if (pathname.startsWith('/api/')) {
+    return handleSessionForApiRequest(event)
+  } else {
+    return handleSessionForPage(event)
   }
 })
