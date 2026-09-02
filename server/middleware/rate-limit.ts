@@ -7,9 +7,6 @@ import {
   setResponseHeader,
 } from 'h3'
 import { getServerConfig, type ServerConfig } from '../config'
-import { AUDIT_ACTION_TYPE, AUDIT_FAILURE_REASON, AUDIT_OUTCOME } from '../models/audit-logs.schema'
-import { recordAuditLog } from '../utils/audit-log'
-import logger from '../utils/logger'
 
 type LoginRateLimitConfig = Pick<
   ServerConfig,
@@ -83,20 +80,7 @@ export function createRateLimitMiddleware(getConfig: () => LoginRateLimitConfig 
 
     setResponseHeader(event, 'Cache-Control', 'private, no-store')
     setResponseHeader(event, 'Retry-After', result.resetSeconds)
-    try {
-      await recordAuditLog(event, {
-        action_type: AUDIT_ACTION_TYPE.LOGIN,
-        // Rejected credential bodies are deliberately not read just to enrich audit metadata.
-        user_identity: 'anonymous',
-        outcome: AUDIT_OUTCOME.FAILURE,
-        context: {
-          reason: AUDIT_FAILURE_REASON.RATE_LIMITED,
-          status_code: 429,
-        },
-      })
-    } catch (error) {
-      logger.error('Failed to record rate-limited login audit entry:', error)
-    }
+    
     throw createError({
       statusCode: 429,
       statusMessage: 'Too Many Requests',
