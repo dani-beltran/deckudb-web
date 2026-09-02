@@ -57,8 +57,7 @@ function enforceAuditTargetInvariant(auditLog: AuditTargetInput, context: z.Refi
   const isJobAction =
     auditLog.action_type === AUDIT_ACTION_TYPE.JOB_RUN ||
     auditLog.action_type === AUDIT_ACTION_TYPE.JOB_DELETE
-  const isCreateJobAction =
-    auditLog.action_type === AUDIT_ACTION_TYPE.JOB_RUN
+  const isCreateJobAction = auditLog.action_type === AUDIT_ACTION_TYPE.JOB_RUN
 
   if (isJobAction) {
     if (auditLog.target_resource !== AUDIT_TARGET_RESOURCE.JOB) {
@@ -78,7 +77,7 @@ function enforceAuditTargetInvariant(auditLog: AuditTargetInput, context: z.Refi
     return
   }
 
-  const isAuthAction = 
+  const isAuthAction =
     auditLog.action_type === AUDIT_ACTION_TYPE.LOGIN ||
     auditLog.action_type === AUDIT_ACTION_TYPE.LOGOUT
 
