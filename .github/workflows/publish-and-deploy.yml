@@ -1,0 +1,131 @@
+name: Publish and Deploy
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  release-tag:
+    name: Validate release tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+
+    steps:
+      - name: Validate release tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          release_pattern='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+
+          if [[ ! "$RELEASE_TAG" =~ $release_pattern ]]; then
+            echo "::error title=Invalid release tag::'$RELEASE_TAG' must match vMAJOR.MINOR.PATCH[-PRERELEASE]."
+            exit 1
+          fi
+
+          if [[ "$RELEASE_TAG" == *-* ]]; then
+            prerelease=${RELEASE_TAG#*-}
+            IFS='.' read -ra identifiers <<< "$prerelease"
+
+            for identifier in "${identifiers[@]}"; do
+              if [[ "$identifier" =~ ^0[0-9]+$ ]]; then
+                echo "::error title=Invalid release tag::Numeric prerelease identifier '$identifier' must not contain a leading zero."
+                exit 1
+              fi
+            done
+          fi
+
+  validation:
+    name: Validation
+    needs: release-tag
+    uses: ./.github/workflows/validation.yml
+    with:
+      skip_docker_build: true
+
+  publish:
+    name: Publish Docker image
+    needs:
+      - release-tag
+      - validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Generate Docker metadata
+        id: metadata
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix=sha-
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          pull: true
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          annotations: ${{ steps.metadata.outputs.annotations }}
+          cache-from: type=gha,scope=production-image
+          cache-to: type=gha,mode=max,scope=production-image
+          provenance: true
+          sbom: true
+
+  deploy:
+    name: Trigger cloud deployment
+    needs:
+      - release-tag
+      - publish
+    if: ${{ github.event.created == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: production
+      deployment: true
+
+    steps:
+      - name: Trigger deployment webhook
+        env:
+          DEPLOYMENT_WEBHOOK_URL: ${{ secrets.DEPLOYMENT_WEBHOOK_URL }}
+        run: |
+          if [[ -z "$DEPLOYMENT_WEBHOOK_URL" ]]; then
+            echo '::error::The DEPLOYMENT_WEBHOOK_URL secret is not configured.'
+            exit 1
+          fi
+
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --url "$DEPLOYMENT_WEBHOOK_URL"
