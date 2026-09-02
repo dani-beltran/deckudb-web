@@ -1,5 +1,5 @@
+import { type ClaudeResponse, ClaudeService } from '@server/services/claude'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ClaudeService, type ClaudeResponse } from '@server/services/claude'
 
 // Mock fetch
 global.fetch = vi.fn()

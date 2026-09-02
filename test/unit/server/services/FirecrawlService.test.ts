@@ -1,5 +1,5 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FirecrawlService, type FirecrawlWebResult } from '@server/services/firecrawl'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const makeMockResult = (overrides: Partial<FirecrawlWebResult> = {}): FirecrawlWebResult => ({
   title: 'Test Page',

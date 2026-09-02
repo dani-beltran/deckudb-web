@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Analytics } from '@app/plugins/analytics/analytics'
 import type { Gtag } from '@app/plugins/analytics/analytics.types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 describe('analytics plugin', () => {
   let gtag: ReturnType<typeof vi.fn<Gtag>>

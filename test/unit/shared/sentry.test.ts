@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest'
 import {
   parseSentryTracesSampleRate,
   scrubSentryEvent,
@@ -6,6 +5,7 @@ import {
   scrubSentrySpan,
   scrubServerSentryEvent,
 } from '@shared/sentry'
+import { describe, expect, it } from 'vitest'
 
 describe('parseSentryTracesSampleRate', () => {
   it.each([
@@ -95,9 +95,7 @@ describe('scrubSentryEvent', () => {
         originalException: { cause: { status: 429 } },
       })
     ).toBeNull()
-    expect(scrubServerSentryEvent(event, { originalException: { statusCode: 500 } })).toEqual(
-      event
-    )
+    expect(scrubServerSentryEvent(event, { originalException: { statusCode: 500 } })).toEqual(event)
   })
 })
 

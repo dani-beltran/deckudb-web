@@ -1,6 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProtondbMiner } from '@server/utils/data-mining/ProtondbMiner'
-import { type ScrapedContent, STEAMDECK_HARDWARE, STEAMDECK_RATING } from '@server/utils/data-mining/scrapes.schema'
+import {
+  type ScrapedContent,
+  STEAMDECK_HARDWARE,
+  STEAMDECK_RATING,
+} from '@server/utils/data-mining/scrapes.schema'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock fetch
 global.fetch = vi.fn()
@@ -286,7 +290,7 @@ describe('ProtondbMiner', () => {
       })
 
       const polished = miner.polish(result)
-      
+
       expect(polished.reports).toHaveLength(1)
 
       // biome-ignore lint/style/noNonNullAssertion: Non-null assertion is safe here

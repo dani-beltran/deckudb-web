@@ -1,7 +1,7 @@
+import { getEnvConfig } from '@server/config/env'
 import { createStorage, prefixStorage } from 'unstorage'
 import memoryDriver from 'unstorage/drivers/memory'
 import { vi } from 'vitest'
-import { getEnvConfig } from '@server/config/env'
 
 // Mock the useRuntimeConfig for testing the server-side code.
 // Server side tests don't use Nuxt's context and thus don't have access to
