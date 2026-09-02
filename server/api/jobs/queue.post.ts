@@ -33,7 +33,9 @@ export default defineEventHandler((event) =>
         audit.context = { ...audit.context, game_name: gameName }
 
         setResponseStatus(event, 201)
-        return repositories.jobs.queueJob({ game_id, job_type, game_name: gameName })
+        const job = await repositories.jobs.queueJob({ game_id, job_type, game_name: gameName })
+        audit.target_id = job.job_id
+        return job
       }
     )
   })

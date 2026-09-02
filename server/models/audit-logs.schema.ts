@@ -47,13 +47,70 @@ const auditLogInputShape = {
   context: auditContextSchema.optional(),
 }
 
-export const createAuditLogSchema = z.strictObject(auditLogInputShape)
+type AuditTargetInput = {
+  action_type: AUDIT_ACTION_TYPE
+  target_resource?: AUDIT_TARGET_RESOURCE
+  target_id?: string
+}
 
-export const auditLogSchema = z.strictObject({
-  created_at: z.date(),
-  audit_id: z.uuid({ version: 'v4' }),
-  ...auditLogInputShape,
-})
+function enforceAuditTargetInvariant(auditLog: AuditTargetInput, context: z.RefinementCtx) {
+  const isJobAction =
+    auditLog.action_type === AUDIT_ACTION_TYPE.JOB_RUN ||
+    auditLog.action_type === AUDIT_ACTION_TYPE.JOB_DELETE
+  const isCreateJobAction =
+    auditLog.action_type === AUDIT_ACTION_TYPE.JOB_RUN
+
+  if (isJobAction) {
+    if (auditLog.target_resource !== AUDIT_TARGET_RESOURCE.JOB) {
+      context.addIssue({
+        code: 'custom',
+        path: ['target_resource'],
+        message: 'Job audit actions must target a job',
+      })
+    }
+    if (auditLog.target_id === undefined && !isCreateJobAction) {
+      context.addIssue({
+        code: 'custom',
+        path: ['target_id'],
+        message: 'Job audit actions must include a target ID',
+      })
+    }
+    return
+  }
+
+  const isAuthAction = 
+    auditLog.action_type === AUDIT_ACTION_TYPE.LOGIN ||
+    auditLog.action_type === AUDIT_ACTION_TYPE.LOGOUT
+
+  if (isAuthAction) {
+    if (auditLog.target_resource !== undefined) {
+      context.addIssue({
+        code: 'custom',
+        path: ['target_resource'],
+        message: 'Authentication audit actions cannot include a target resource',
+      })
+    }
+    if (auditLog.target_id !== undefined) {
+      context.addIssue({
+        code: 'custom',
+        path: ['target_id'],
+        message: 'Authentication audit actions cannot include a target ID',
+      })
+    }
+  }
+}
+
+export const createAuditLogSchema = z
+  .strictObject(auditLogInputShape)
+  .superRefine(enforceAuditTargetInvariant)
+
+export const auditLogSchema = z
+  .strictObject({
+    created_at: z.date(),
+    audit_id: z.uuid({ version: 'v4' }),
+    ...auditLogInputShape,
+  })
+  .superRefine(enforceAuditTargetInvariant)
 
 export type AuditContext = z.infer<typeof auditContextSchema>
 export type CreateAuditLogParams = z.infer<typeof createAuditLogSchema>
