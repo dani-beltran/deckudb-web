@@ -27,16 +27,13 @@ export default defineEventHandler((event) =>
         audit.target_id = job_id
 
         const { repositories } = event.context
-        const job = await repositories.jobs.getJobById(job_id).catch(() => null)
-        if (job) {
-          audit.context = {
-            game_id: job.game_id,
-            game_name: job.game_name,
-            job_type: job.job_type,
-          }
+        const job = await repositories.jobs.deleteJob(job_id)
+
+        audit.context = {
+          game_id: job.game_id,
+          game_name: job.game_name,
+          job_type: job.job_type,
         }
-        
-        await repositories.jobs.deleteJob(job_id)
       }
     )
   })

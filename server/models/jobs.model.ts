@@ -248,16 +248,19 @@ export class JobsModel implements Repository {
   /**
    * Deletes a job from the database.
    * @param job_id - The unique identifier of the job to delete.
+   * @returns The deleted job.
    */
-  deleteJob = async (job_id: string) => {
-    const results = await this.db
+  deleteJob = async (job_id: string): Promise<Job> => {
+    const job = await this.db
       .collection<Job>(COLLECTION)
-      .deleteOne({ job_id, status: { $ne: JOB_STATUS.IN_PROGRESS } })
-    if (results.deletedCount === 0) {
+      .findOneAndDelete({ job_id, status: { $ne: JOB_STATUS.IN_PROGRESS } })
+      
+    if (!job) {
       throw new ConflictError(
         `Job with id ${job_id} not found or cannot be deleted because it is in progress.`
       )
     }
+    return job
   }
 
   /**
