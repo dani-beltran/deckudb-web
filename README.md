@@ -62,6 +62,8 @@ Server configuration is validated at startup. Nuxt runtime overrides use the `NU
 
 | Area | Variables |
 | --- | --- |
+| Sentry runtime | `NUXT_PUBLIC_SENTRY_DSN`, `NUXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` |
+| Sentry builds | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`, `SENTRY_RELEASE` |
 | Database | `NUXT_MONGODB_URI`, `NUXT_MONGODB_DATABASE` |
 | AI and scraping | `NUXT_CLAUDE_API_KEY`, `NUXT_CLAUDE_AI_MODEL`, `NUXT_FIRECRAWL_API_KEY`, `NUXT_DAYS_BETWEEN_SCRAPES` |
 | Sessions | `NUXT_SESSION_SECRET`, `NUXT_SESSION_MAX_AGE_MS` |
@@ -71,6 +73,10 @@ Server configuration is validated at startup. Nuxt runtime overrides use the `NU
 | Worker polling | `NUXT_WORKER_POLL_INTERVAL_MS`, `NUXT_WORKER_POLL_JITTER_MS`, `NUXT_WORKER_REQUEUE_SWEEP_MS`, `NUXT_WORKER_IDLE_LOG_EVERY` |
 
 Keep all API keys, admin credentials, and the session secret out of version control.
+
+The Sentry DSN is safe to expose to the browser and Sentry stays disabled when it is empty. The
+trace sample rate accepts values from `0` through `1` and defaults to `0.1`. Use the
+`NUXT_PUBLIC_SENTRY_*` variables for both browser and server monitoring.
 
 ## Application routes
 
@@ -217,6 +223,30 @@ Development enables `debug` and higher-priority messages; other non-test environ
 
 Each log file rotates daily or when it reaches 20 MB. Archives are compressed and retained for 14 days. The `logs/` directory and `*.log` files are ignored by Git, so local log output is not committed to the repository.
 
+### Sentry observability
+
+The official `@sentry/nuxt` integration monitors uncaught browser and Nitro errors, page loads,
+route changes, same-origin `/api` requests, server request performance, and supported downstream
+operations such as MongoDB calls. Frontend and backend spans are joined with Sentry trace headers.
+The `/api/health` transaction is excluded so container health checks do not consume trace volume.
+
+Server `info`, `warn`, and `error` messages are also forwarded from Winston to Sentry Logs while
+remaining in the console and rotating files. Repetitive worker-idle and audit-payload fallback
+messages stay local. Browser console warnings and errors are captured as Sentry Logs, and logged
+`Error` objects are captured as Sentry Issues. Expected HTTP `3xx` and `4xx` responses are excluded
+from Issues. Automatic
+collection of users, cookies, headers, bodies, query strings, AI prompts and responses, database
+values, and stack-frame variables is disabled; application-authored events and logs receive an
+additional credential, identity, and URL-query scrub before they are sent, as do performance span
+attributes.
+
+For readable production stack traces, set `SENTRY_ORG`, `SENTRY_PROJECT`, and the
+`SENTRY_AUTH_TOKEN` secret during the build. Source maps are generated, uploaded, and removed from
+the output only when all three are present. The release workflow reads the organization and project
+from GitHub repository variables and the token from a GitHub Actions secret. See the
+[Sentry Nuxt manual setup guide](https://docs.sentry.io/platforms/javascript/guides/nuxt/manual-setup/)
+for creating these values.
+
 ## Testing
 
 The test suite is configured in `vitest.config.mts` as three named Vitest projects:
@@ -262,10 +292,11 @@ npm run generate     # Generate a static build
 npm run preview      # Preview the production build
 ```
 
-For production, run the generated Nitro entry point after building:
+For production, preload the generated Sentry server configuration when starting Nitro. Sentry's
+server-side monitoring requires a production build and does not run under `npm run dev`:
 
 ```bash
-node .output/server/index.mjs
+npm run start
 ```
 
 ### Docker

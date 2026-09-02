@@ -27,7 +27,7 @@ export default defineConfig({
           },
           include: ['test/**/*.test.ts'],
           exclude: ['test/integration/**/*.test.ts', 'test/e2e/**/*.test.ts'],
-        },        
+        },
       },
       {
         resolve: {
@@ -42,7 +42,7 @@ export default defineConfig({
           },
           include: ['test/integration/api/**/*.test.ts'],
           setupFiles: ['test/server.setup.ts'],
-        },        
+        },
       },
       await defineVitestProject({
         test: {

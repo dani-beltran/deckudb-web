@@ -8,6 +8,7 @@ import type { ServerDependencies } from '../utils/bootstrap'
 import type { MinerConstructor } from '../utils/data-mining/Miner'
 import { ProtondbMiner } from '../utils/data-mining/ProtondbMiner'
 import { SharedeckMiner } from '../utils/data-mining/SharedeckMiner'
+import { toError } from '../utils/errors/toError'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 
@@ -116,10 +117,7 @@ export default defineTask({
       await runJob(JOB_TYPE.SEARCH, searchGameSources)
       return { result: 'Source search job completed' }
     } catch (error) {
-      logger.error(
-        'Error running search-sources job:',
-        error instanceof Error ? error.message : String(error)
-      )
+      logger.error('Error running search-sources job:', toError(error))
       throw error
     }
   },

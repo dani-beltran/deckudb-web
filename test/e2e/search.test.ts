@@ -2,6 +2,7 @@ import { createPage, setup, url as testUrl } from '@nuxt/test-utils/e2e'
 import type { GameResponse } from '@server/api/games/[id].get'
 import type { SteamGamesResponse } from '@server/api/steam/games/index.get'
 import { describe, expect, it } from 'vitest'
+import { STORAGE_KEY } from '~/stores/recentGamesStore'
 import {
   createSteamSearchItem,
   emptyMostPlayedGamesResponse,
@@ -11,7 +12,6 @@ import {
   serviceUnavailableResponse,
 } from './fixtures'
 import { getDebugConfig } from './helpers'
-import { STORAGE_KEY } from '~/stores/recentGamesStore'
 
 const DEBUG = process.env.E2E_TESTS_DEBUG === 'true'
 const SEARCH_ENDPOINT = '/api/steam/games'
@@ -201,9 +201,9 @@ describe('game search', async () => {
     await page.getByLabel('Select Portal 2 for Steam Deck settings').click()
     await page.waitForURL((url) => url.pathname === gamePath)
 
-    expect(
-      await page.evaluate((storageKey) => localStorage.getItem(storageKey), STORAGE_KEY)
-    ).toBe('[620]')
+    expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), STORAGE_KEY)).toBe(
+      '[620]'
+    )
 
     await page.reload()
     await page.getByRole('heading', { name: portal2SearchItem.name }).waitFor()

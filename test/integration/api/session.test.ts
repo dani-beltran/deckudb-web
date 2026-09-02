@@ -1,7 +1,7 @@
+import sessionMiddleware from '@server/middleware/session'
 import { createApp, createRouter, toNodeListener } from 'h3'
 import request from 'supertest'
 import { describe, expect, it } from 'vitest'
-import sessionMiddleware from '@server/middleware/session'
 
 const createSessionTestApp = () => {
   const app = createApp()

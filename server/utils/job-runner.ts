@@ -53,9 +53,9 @@ export const runJob = async (
     const errMsg = error instanceof Error ? error.message : String(error)
     if (deps && job) {
       await deps.repositories.jobs.failJob(job.job_id, errMsg)
-      throw new Error(`Error running ${jobType} job ${job.job_id}: ${errMsg}`)
+      throw new Error(`Error running ${jobType} job ${job.job_id}: ${errMsg}`, { cause: error })
     } else {
-      throw new Error(`Error running ${jobType} job: ${errMsg}`)
+      throw new Error(`Error running ${jobType} job: ${errMsg}`, { cause: error })
     }
   } finally {
     await databaseClient?.disconnect()

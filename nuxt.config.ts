@@ -1,12 +1,34 @@
 import { fileURLToPath } from 'node:url'
-import { getEnvConfig } from './server/config/env'
 import { defineNuxtConfig } from 'nuxt/config'
+import { getEnvConfig } from './server/config/env'
+import { parseSentryTracesSampleRate } from './shared/sentry'
+
+const sentryDsn = process.env.NUXT_PUBLIC_SENTRY_DSN ?? ''
+const sentryEnvironment = process.env.NUXT_NODE_ENV ?? process.env.NODE_ENV ?? 'development'
+const sentryTracesSampleRate = parseSentryTracesSampleRate(
+  process.env.NUXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE
+)
+const uploadSentrySourceMaps = Boolean(
+  process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT
+)
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-30',
   devtools: { enabled: true },
   srcDir: 'app/',
   ssr: false,
+  modules: ['@sentry/nuxt/module'],
+  sourcemap: uploadSentrySourceMaps ? { client: 'hidden', server: 'hidden' } : false,
+  sentry: {
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    release: process.env.SENTRY_RELEASE ? { name: process.env.SENTRY_RELEASE } : undefined,
+    sourcemaps: {
+      disable: !uploadSentrySourceMaps,
+      filesToDeleteAfterUpload: uploadSentrySourceMaps ? ['.output/**/*.map'] : undefined,
+    },
+  },
   css: ['normalize.css', '~/styles/global.css'],
   alias: {
     '@server': fileURLToPath(new URL('./server', import.meta.url)),
@@ -67,7 +89,17 @@ export default defineNuxtConfig({
       ],
     },
   },
-  runtimeConfig: { ...getEnvConfig(), public: { apiBase: '/api' } },
+  runtimeConfig: {
+    ...getEnvConfig(),
+    public: {
+      apiBase: '/api',
+      sentry: {
+        dsn: sentryDsn,
+        environment: sentryEnvironment,
+        tracesSampleRate: sentryTracesSampleRate,
+      },
+    },
+  },
   nitro: {
     experimental: {
       tasks: true,

@@ -10,6 +10,7 @@ import { ZodError, type ZodType } from 'zod'
 import { isAdminAuthenticated } from './admin-auth'
 import { ConflictError } from './errors/ConflictError'
 import { NotFoundError } from './errors/NotFoundError'
+import { toError } from './errors/toError'
 import { ValidationError } from './errors/ValidationError'
 import logger from './logger'
 
@@ -80,8 +81,8 @@ export function noContent(event: Parameters<typeof setResponseStatus>[0]) {
   return null
 }
 
-function createHttpError(statusCode: number, data: Record<string, unknown>) {
-  return createError({ statusCode, statusMessage: data.error as string, data })
+function createHttpError(statusCode: number, data: Record<string, unknown>, cause?: unknown) {
+  return createError({ statusCode, statusMessage: data.error as string, data, cause })
 }
 
 export async function apiHandler<T>(
@@ -102,7 +103,9 @@ export async function apiHandler<T>(
     if (error instanceof ConflictError) throw createHttpError(409, { error: error.message })
     if (typeof error === 'object' && error && 'statusCode' in error) throw error
 
-    logger.error('Server error:', error)
-    throw createHttpError(500, { error: 'Internal server error' })
+    const exception = toError(error)
+    logger.error('Server error:', exception)
+    // Keep the API response generic while retaining the captured original as the cause.
+    throw createHttpError(500, { error: 'Internal server error' }, exception)
   }
 }
