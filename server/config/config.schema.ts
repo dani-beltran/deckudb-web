@@ -60,8 +60,6 @@ export const configSchema = z.object({
   workerPollJitterMs: nonNegativeInteger,
   // Job requeue sweep interval in milliseconds for the worker to check for stuck jobs
   workerRequeueSweepMs: positiveInteger,
-  // Job idle log interval in milliseconds for the worker to log when it is idle
-  workerIdleLogEvery: positiveInteger,
   // Whether the worker is enabled to process jobs
   workerEnabled: booleanFromRuntimeConfig,
   // TTL for audit logs in days

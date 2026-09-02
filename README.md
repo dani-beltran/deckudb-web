@@ -70,7 +70,7 @@ Server configuration is validated at startup. Nuxt runtime overrides use the `NU
 | Login rate limiting | `NUXT_LOGIN_RATE_LIMIT_ENABLED`, `NUXT_LOGIN_RATE_LIMIT_MAX_REQUESTS`, `NUXT_LOGIN_RATE_LIMIT_WINDOW_MS`, `NUXT_LOGIN_RATE_LIMIT_TRUSTED_PROXY_HOPS` |
 | Admin dashboard | `NUXT_ADMIN_USERNAME`, `NUXT_ADMIN_PASSWORD` |
 | Job execution | `NUXT_JOB_TIMEOUT_MINUTES`, `NUXT_JOB_MAX_ATTEMPTS`, `NUXT_WORKER_ENABLED` |
-| Worker polling | `NUXT_WORKER_POLL_INTERVAL_MS`, `NUXT_WORKER_POLL_JITTER_MS`, `NUXT_WORKER_REQUEUE_SWEEP_MS`, `NUXT_WORKER_IDLE_LOG_EVERY` |
+| Worker polling | `NUXT_WORKER_POLL_INTERVAL_MS`, `NUXT_WORKER_POLL_JITTER_MS`, `NUXT_WORKER_REQUEUE_SWEEP_MS` |
 
 Keep all API keys, admin credentials, and the session secret out of version control.
 

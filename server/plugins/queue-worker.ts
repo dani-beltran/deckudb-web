@@ -14,15 +14,8 @@ import { toError } from '../utils/errors/toError'
 import logger from '../utils/logger'
 
 const MIN_POLL_INTERVAL_MS = 100
-const MIN_IDLE_LOG_EVERY = 1
 const config = getServerConfig()
-const {
-  jobTimeoutMinutes,
-  workerIdleLogEvery,
-  workerPollIntervalMs,
-  workerPollJitterMs,
-  workerRequeueSweepMs,
-} = config
+const { jobTimeoutMinutes, workerPollIntervalMs, workerPollJitterMs, workerRequeueSweepMs } = config
 
 /**
  * This plugin starts a background queue worker that processes jobs from the database.
@@ -30,7 +23,7 @@ const {
  * It handles job processing, re-queuing of timed-out jobs, and logging of worker activity.
  
  * The worker also implements a polling mechanism with jitter to avoid overwhelming the database with requests.
- * If the worker is idle for a certain number of polls, it will log the number of queued jobs for monitoring purposes.
+ * It logs once when it becomes idle, then stays quiet until it has started another job.
  */
 export default defineNitroPlugin((nitroApp: NitroApp) => {
   if (!config.workerEnabled) {
@@ -63,7 +56,7 @@ async function runQueueWorker(signal: AbortSignal) {
 
   await runTimedOutSweep(deps)
   let nextSweepAt = Date.now() + workerRequeueSweepMs
-  let idlePollCount = 0
+  let isIdle = false
 
   while (!signal.aborted) {
     try {
@@ -74,18 +67,16 @@ async function runQueueWorker(signal: AbortSignal) {
 
       const job = await deps.repositories.jobs.startNextQueuedJob('asc')
       if (!job) {
-        idlePollCount += 1
-        const idleLogEvery = Math.max(MIN_IDLE_LOG_EVERY, workerIdleLogEvery)
-        if (idlePollCount % idleLogEvery === 0) {
-          const queued = await deps.repositories.jobs.getQueuedJobsCount()
-          logger.info(`Worker idle. Queued jobs: ${queued}`)
+        if (!isIdle) {
+          logger.info('Worker idle.')
+          isIdle = true
         }
 
         await sleep(getPollingDelayMs(), signal)
         continue
       }
 
-      idlePollCount = 0
+      isIdle = false
       await processJob(job, deps)
     } catch (error) {
       if (signal.aborted) {
