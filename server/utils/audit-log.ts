@@ -119,16 +119,19 @@ export async function withAuditLog<TResult>(
     throw error
   }
 
-  const successDetails = resolveSuccess?.(result)
-  const auditEntry: RecordAuditLogParams = {
+  let auditEntry: RecordAuditLogParams = { 
     ...details,
-    ...successDetails,
     action_type,
     user_identity: normalizeAuditIdentity(details.user_identity ?? initialUserIdentity),
     outcome: AUDIT_OUTCOME.SUCCESS,
-    context: mergeAuditContext(details.context, successDetails?.context),
   }
   try {
+    const successDetails = resolveSuccess?.(result)
+    auditEntry = {
+      ...auditEntry,
+      ...successDetails,
+      context: mergeAuditContext(details.context, successDetails?.context),
+    }
     await recordAuditLog(event, auditEntry)
   } catch (auditError) {
     logger.error(
