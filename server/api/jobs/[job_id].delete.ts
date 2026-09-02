@@ -5,8 +5,9 @@ import { apiHandler, parseParams, requireAdmin } from '../../utils/api'
 import { withAuditLog } from '../../utils/audit-log'
 
 export default defineEventHandler((event) =>
-  apiHandler(event, () =>
-    withAuditLog(
+  apiHandler(event, async () => {
+    requireAdmin(event)
+    return withAuditLog(
       event,
       {
         action_type: AUDIT_ACTION_TYPE.JOB_DELETE,
@@ -19,7 +20,6 @@ export default defineEventHandler((event) =>
           if (normalizedJobId && normalizedJobId.length <= 255) audit.target_id = normalizedJobId
         }
 
-        requireAdmin(event)
         const { job_id } = await parseParams(
           event.context.params,
           z.object({ job_id: z.uuid({ version: 'v4' }) })
@@ -27,7 +27,7 @@ export default defineEventHandler((event) =>
         audit.target_id = job_id
 
         const { repositories } = event.context
-        const job = await repositories.jobs.getJobById(job_id)
+        const job = await repositories.jobs.getJobById(job_id).catch(() => null)
         if (job) {
           audit.context = {
             game_id: job.game_id,
@@ -35,8 +35,9 @@ export default defineEventHandler((event) =>
             job_type: job.job_type,
           }
         }
+        
         await repositories.jobs.deleteJob(job_id)
       }
     )
-  )
+  })
 )
