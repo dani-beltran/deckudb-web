@@ -1,3 +1,4 @@
+import { redactText } from '@shared/redaction'
 import {
   parseSentryTracesSampleRate,
   scrubSentryEvent,
@@ -6,6 +7,29 @@ import {
   scrubServerSentryEvent,
 } from '@shared/sentry'
 import { describe, expect, it } from 'vitest'
+
+describe('redactText', () => {
+  it.each([
+    ['authorization: Bearer bearer-token', 'authorization: [Filtered]'],
+    ['authorization=Basic basic-credential', 'authorization=[Filtered]'],
+    ['password=unquoted-value', 'password=[Filtered]'],
+    [`token: 'quoted value'`, 'token: [Filtered]'],
+  ])('redacts sensitive text in %s', (value, expected) => {
+    expect(redactText(value)).toBe(expected)
+  })
+
+  it.each(['http', 'https', 'mongodb', 'mongodb+srv'])(
+    'redacts username-only and password-bearing %s URL credentials',
+    (scheme) => {
+      expect(redactText(`${scheme}://token@example.com/path`)).toBe(
+        `${scheme}://[Filtered]@example.com/path`
+      )
+      expect(redactText(`${scheme}://user:password@example.com/path`)).toBe(
+        `${scheme}://[Filtered]@example.com/path`
+      )
+    }
+  )
+})
 
 describe('parseSentryTracesSampleRate', () => {
   it.each([

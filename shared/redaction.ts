@@ -2,8 +2,8 @@ const REDACTED_VALUE = '[Filtered]'
 const SENSITIVE_ATTRIBUTE_PATTERN =
   /(?:authorization|cookie|credential|password|passwd|secret|session|token|api[-_]?key|query(?:[-_]?string|[-_]?params)?)|^(?:user(?:[-_]?(?:id|identity|name))?|email(?:[-_]?address)?|(?:client[-_]?)?ip(?:[-_]?address)?|remote[-_]?address)$/i
 const SENSITIVE_TEXT_PATTERN =
-  /(\b(?:authorization|cookie|credential|password|passwd|secret|session(?:[-_]?id)?|token|api[-_]?key|user(?:[-_]?(?:id|identity|name))?|email(?:[-_]?address)?|(?:client[-_]?)?ip(?:[-_]?address)?|remote[-_]?address)\b\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi
-const URL_CREDENTIALS_PATTERN = /(\b(?:https?|mongodb(?:\+srv)?):\/\/)[^/\s:@]+:[^@\s/]+@/gi
+  /(\b(?:authorization|cookie|credential|password|passwd|secret|session(?:[-_]?id)?|token|api[-_]?key|user(?:[-_]?(?:id|identity|name))?|email(?:[-_]?address)?|(?:client[-_]?)?ip(?:[-_]?address)?|remote[-_]?address)\b\s*[:=]\s*)(?:"[^"]*"|'[^']*'|(?:basic|bearer)\s+[^\s,;]+|[^\s,;]+)/gi
+const URL_CREDENTIALS_PATTERN = /(\b(?:https?|mongodb(?:\+srv)?):\/\/)[^/\s:@]+(?::[^@\s/]+)?@/gi
 const URL_QUERY_PATTERN = /((?:[a-z][a-z0-9+.-]*:\/\/|\/)[^\s"'<>?]+)\?[^\s"'<>]*/gi
 
 /** Redacts sensitive information from a given record. */
