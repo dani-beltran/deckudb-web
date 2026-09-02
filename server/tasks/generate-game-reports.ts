@@ -9,6 +9,7 @@ import type { ServerDependencies } from '../utils/bootstrap'
 import { buildMiner } from '../utils/data-mining/MinerFactory'
 import { ProtondbMiner } from '../utils/data-mining/ProtondbMiner'
 import { SCRAPE_SOURCES, type Scrape } from '../utils/data-mining/scrapes.schema'
+import { toError } from '../utils/errors/toError'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 
@@ -171,10 +172,7 @@ export default defineTask({
       await runJob(JOB_TYPE.REPORTS, generateGameReports)
       return { result: 'Game reports job completed' }
     } catch (error) {
-      logger.error(
-        'Error running generate-game-reports job:',
-        error instanceof Error ? error.message : String(error)
-      )
+      logger.error('Error running generate-game-reports job:', toError(error))
       throw error
     }
   },

@@ -7,6 +7,7 @@ import type { GameSource } from '../models/game-sources.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.schema'
 import type { ServerDependencies } from '../utils/bootstrap'
 import { buildMiner } from '../utils/data-mining/MinerFactory'
+import { toError } from '../utils/errors/toError'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 
@@ -111,10 +112,7 @@ export default defineTask({
       await runJob(JOB_TYPE.SCRAPE, scrapeGameSources)
       return { result: 'Game scrape job completed' }
     } catch (error) {
-      logger.error(
-        'Error running scrape-game job:',
-        error instanceof Error ? error.message : String(error)
-      )
+      logger.error('Error running scrape-game job:', toError(error))
       throw error
     }
   },

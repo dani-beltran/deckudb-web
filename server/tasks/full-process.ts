@@ -1,5 +1,6 @@
 import { defineTask } from 'nitropack/runtime'
 import { JOB_TYPE } from '../models/jobs.schema'
+import { toError } from '../utils/errors/toError'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 import { generateGameReports } from './generate-game-reports'
@@ -22,10 +23,7 @@ export default defineTask({
       ])
       return { result: 'Full-process job completed' }
     } catch (error) {
-      logger.error(
-        'Error running full-process job:',
-        error instanceof Error ? error.message : String(error)
-      )
+      logger.error('Error running full-process job:', toError(error))
       throw error
     }
   },

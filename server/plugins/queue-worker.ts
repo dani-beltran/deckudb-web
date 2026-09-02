@@ -10,6 +10,7 @@ import { scrapeGameSources } from '../tasks/scrape-game'
 import { searchGameSources } from '../tasks/search-sources'
 import type { ServerDependencies } from '../utils/bootstrap'
 import { bootstrapDependencies } from '../utils/bootstrap'
+import { toError } from '../utils/errors/toError'
 import logger from '../utils/logger'
 
 const MIN_POLL_INTERVAL_MS = 100
@@ -91,10 +92,7 @@ async function runQueueWorker(signal: AbortSignal) {
         logger.info('Worker stopping due to signal abort')
         break
       }
-      logger.error(
-        'Error in worker iteration:',
-        error instanceof Error ? error.message : String(error)
-      )
+      logger.error('Error in worker iteration:', toError(error))
     }
   }
 
@@ -128,7 +126,7 @@ async function processJob(job: Job, deps: ServerDependencies) {
       logger.warn(`Job ${job.job_id} failed and was re-queued (${attemptCount}/${maxAttempts})`)
       return
     }
-    logger.error(`Job ${job.job_id} failed permanently after retries`, errMsg)
+    logger.error(`Job ${job.job_id} failed permanently after retries`, toError(error))
   } finally {
     const timeTakenMs =
       job.completed_at && job.started_at

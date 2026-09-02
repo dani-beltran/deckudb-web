@@ -5,6 +5,7 @@ import { JOB_TYPE, type Job } from '../models/jobs.schema'
 import { ClaudeService } from '../services/claude'
 import type { ServerDependencies } from '../utils/bootstrap'
 import { SCRAPE_SOURCES } from '../utils/data-mining/scrapes.schema'
+import { toError } from '../utils/errors/toError'
 import { runJob } from '../utils/job-runner'
 import logger from '../utils/logger'
 
@@ -106,10 +107,7 @@ export default defineTask({
       await runJob(JOB_TYPE.SUMMARY, generateGameSummary)
       return { result: 'Game summary job completed' }
     } catch (error) {
-      logger.error(
-        'Error running generate-game-summary job:',
-        error instanceof Error ? error.message : String(error)
-      )
+      logger.error('Error running generate-game-summary job:', toError(error))
       throw error
     }
   },
