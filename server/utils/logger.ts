@@ -1,6 +1,9 @@
 import { formatWithOptions } from 'node:util'
+// Keep this server-only bridge on the Node entry so Nuxt's generated preload stays independent.
+import * as Sentry from '@sentry/node'
 import winston from 'winston'
 import DailyRotateFile from 'winston-daily-rotate-file'
+import Transport from 'winston-transport'
 import { useRuntimeConfig } from '#imports'
 
 // Define log levels
@@ -45,6 +48,21 @@ const fileFormat = winston.format.combine(
   winston.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`)
 )
 
+const sentryLogFilter = winston.format((info) => {
+  // Audit persistence fallbacks can contain identities
+  if (
+    typeof info.message === 'string' &&
+    info.message.startsWith('Failed to persist audit entry;')
+  ) {
+    return false
+  }
+  return info
+})
+
+const SentryWinstonTransport = Sentry.createSentryWinstonTransport(Transport, {
+  levels: ['info', 'warn', 'error'],
+})
+
 // Define transports (where to log)
 const transports = [
   // Console transport with colors
@@ -69,6 +87,11 @@ const transports = [
     maxSize: '20m', // Max size per file: 20MB
     maxFiles: '14d', // Keep logs for 14 days
     zippedArchive: true, // Compress archived logs
+  }),
+  // Sentry logs retain the active trace context while console and rotating-file output stay intact.
+  new SentryWinstonTransport({
+    level: 'info',
+    format: sentryLogFilter(),
   }),
 ]
 
@@ -114,7 +137,15 @@ const logAtLevel = (logLevel: LogLevel, ...args: unknown[]) => {
   return originalLog(logLevel, formatLogArgs(args))
 }
 
-logger.error = (...args: unknown[]) => logAtLevel('error', ...args)
+logger.error = (...args: unknown[]) => {
+  if (!isTestEnvironment()) {
+    const exception = args.find((arg): arg is Error => arg instanceof Error)
+    if (exception) {
+      Sentry.captureException(exception, { tags: { source: 'server-logger' } })
+    }
+  }
+  return logAtLevel('error', ...args)
+}
 logger.warn = (...args: unknown[]) => logAtLevel('warn', ...args)
 logger.info = (...args: unknown[]) => logAtLevel('info', ...args)
 logger.http = (...args: unknown[]) => logAtLevel('http', ...args)

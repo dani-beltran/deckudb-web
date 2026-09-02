@@ -3,6 +3,9 @@ ARG NODE_VERSION=22
 FROM node:${NODE_VERSION}-bookworm-slim AS build
 
 ARG NPM_VERSION=11.12.1
+ARG SENTRY_ORG
+ARG SENTRY_PROJECT
+ARG SENTRY_RELEASE
 
 # Avoid NUXT data collection and Playwright browser downloads in the build image.
 ENV NUXT_TELEMETRY_DISABLED=1 \
@@ -28,7 +31,15 @@ RUN --mount=type=cache,target=/root/.npm \
 
 COPY . .
 
-RUN npm run build
+# The optional auth token is mounted for this command only and never stored in an image layer.
+RUN --mount=type=secret,id=sentry_auth_token,required=false \
+    if [ -f /run/secrets/sentry_auth_token ]; then \
+      export SENTRY_AUTH_TOKEN="$(cat /run/secrets/sentry_auth_token)"; \
+    fi; \
+    SENTRY_ORG="${SENTRY_ORG}" \
+    SENTRY_PROJECT="${SENTRY_PROJECT}" \
+    SENTRY_RELEASE="${SENTRY_RELEASE}" \
+    npm run build
 
 FROM node:${NODE_VERSION}-bookworm-slim AS runtime
 
@@ -60,7 +71,7 @@ USER node
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD ["node", "-e", "fetch('http://127.0.0.1:3000/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+  CMD ["node", "-e", "fetch('http://127.0.0.1:8080/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", ".output/server/index.mjs"]
+CMD ["node", "--import", "./.output/server/sentry.server.config.mjs", ".output/server/index.mjs"]

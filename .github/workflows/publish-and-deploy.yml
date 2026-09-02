@@ -101,6 +101,12 @@ jobs:
           annotations: ${{ steps.metadata.outputs.annotations }}
           cache-from: type=gha,scope=production-image
           cache-to: type=gha,mode=max,scope=production-image
+          build-args: |
+            SENTRY_ORG=${{ vars.SENTRY_ORG }}
+            SENTRY_PROJECT=${{ vars.SENTRY_PROJECT }}
+            SENTRY_RELEASE=${{ github.ref_name }}
+          secrets: |
+            sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}
           provenance: true
           sbom: true
 
