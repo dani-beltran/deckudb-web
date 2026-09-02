@@ -13,7 +13,7 @@ import {
 
 /** Append-only repository used to record and inspect dashboard audit events. */
 export class AuditLogsModel implements Repository {
-  collection: Collection<AuditLog>
+  private collection: Collection<AuditLog>
 
   constructor(
     private readonly db: Db,
