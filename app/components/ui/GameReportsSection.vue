@@ -20,6 +20,7 @@
         </button>
         <FilterDropdown
           v-model="selectedSource"
+          class="source-filter-dropdown"
           :options="sourceOptions"
           all-label="All Sources"
         />
@@ -172,6 +173,10 @@ function formatSourceLabel(source: string): string {
   font-weight: 500;
   margin-right: 4px;
   color: var(--text-secondary);
+}
+
+.source-filter-dropdown :deep(.filter-dropdown-trigger) {
+  min-width: 116px;
 }
 
 .filter-button {
