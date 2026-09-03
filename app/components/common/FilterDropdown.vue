@@ -182,7 +182,6 @@ function handleFocusOut(event: FocusEvent) {
 
 .filter-dropdown-trigger {
   display: inline-flex;
-  min-width: 116px;
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
