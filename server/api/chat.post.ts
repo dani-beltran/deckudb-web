@@ -123,7 +123,7 @@ export default defineEventHandler((event) => {
       maxOutputTokens: 600,
       temperature: 0.3,
       timeout: { totalMs: 60_000 },
-      telemetry: {
+      experimental_telemetry: {
         isEnabled: true,
         functionId: 'deckubot-support-chat',
         recordInputs: serverConfig.sentryRecordChatContent,
