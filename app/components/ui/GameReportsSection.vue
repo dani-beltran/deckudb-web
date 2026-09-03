@@ -8,8 +8,13 @@
           v-for="filter in reportFilters"
           :key="filter.value"
           type="button"
-          :class="['filter-button', { active: selectedFilter === filter.value }]"
-          @click="selectedFilter = filter.value"
+          :class="[
+            'filter-button',
+            `filter-button-${filter.value}`,
+            { active: isFilterSelected(filter.value) },
+          ]"
+          :aria-pressed="isFilterSelected(filter.value)"
+          @click="toggleFilter(filter.value)"
         >
           {{ filter.label }}
         </button>
@@ -45,7 +50,7 @@ import type { GameReportData } from './types'
 
 defineOptions({ name: 'GameReportsSection' })
 
-type ReportFilter = 'all' | 'performance' | 'battery_saving'
+type ReportFilter = 'performance' | 'battery_saving'
 
 interface ReportFilterOption {
   label: string
@@ -61,10 +66,9 @@ const props = withDefaults(
   }
 )
 
-const selectedFilter = ref<ReportFilter>('all')
+const selectedFilters = ref<ReportFilter[]>([])
 const selectedSource = ref<string | null>(null)
 const reportFilters: ReportFilterOption[] = [
-  { label: 'All', value: 'all' },
   { label: '60 FPS', value: 'performance' },
   { label: 'Low TDP', value: 'battery_saving' },
 ]
@@ -100,28 +104,37 @@ watch(sourceOptions, (options) => {
 const filteredReports = computed<GameReportData[]>(() => {
   let reports = props.reports
 
-  if (selectedSource.value !== null && selectedFilter.value !== 'all') {
+  if (selectedSource.value !== null) {
     reports = reports.filter((report) => normalizeSource(report.source) === selectedSource.value)
   }
 
-  if (selectedFilter.value === 'all') {
-    return reports
-  }
-  if (selectedFilter.value === 'performance') {
-    return reports.filter((report) => {
+  if (isFilterSelected('performance')) {
+    reports = reports.filter((report) => {
       const fps =
         report.steamdeck_settings?.frame_rate_cap || report.steamdeck_experience?.average_frame_rate
       return fps ? Number.parseInt(String(fps), 10) >= 60 : false
     })
   }
-  if (selectedFilter.value === 'battery_saving') {
-    return reports.filter((report) => {
+
+  if (isFilterSelected('battery_saving')) {
+    reports = reports.filter((report) => {
       const tdp = report.steamdeck_settings?.tdp_limit
       return tdp ? Number.parseInt(String(tdp), 10) < 10 : false
     })
   }
+
   return reports
 })
+
+function isFilterSelected(filter: ReportFilter): boolean {
+  return selectedFilters.value.includes(filter)
+}
+
+function toggleFilter(filter: ReportFilter) {
+  selectedFilters.value = isFilterSelected(filter)
+    ? selectedFilters.value.filter((selectedFilter) => selectedFilter !== filter)
+    : [...selectedFilters.value, filter]
+}
 
 function normalizeSource(source: string): string {
   return source.trim().toLowerCase()
@@ -182,15 +195,15 @@ function formatSourceLabel(source: string): string {
   color: white;
 }
 
-.filter-button:nth-of-type(2).active,
-.filter-button:nth-of-type(2):hover {
+.filter-button-performance.active,
+.filter-button-performance:hover {
   /* +60FPS filter - green gradient */
   background: linear-gradient(135deg, #34d399, #10b981);
   color: #064e3b;
 }
 
-.filter-button:nth-of-type(3).active,
-.filter-button:nth-of-type(3):hover {
+.filter-button-battery_saving.active,
+.filter-button-battery_saving:hover {
   /* Low TDP filter - orange gradient */
   background: linear-gradient(135deg, #f59e0b, #d97706);
   color: #92400e;
