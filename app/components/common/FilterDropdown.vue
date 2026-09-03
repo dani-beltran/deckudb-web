@@ -202,13 +202,13 @@ function handleFocusOut(event: FocusEvent) {
 .filter-dropdown-trigger:hover,
 .filter-dropdown-trigger.active,
 .filter-dropdown-trigger.open {
-  background: var(--primary-color);
+  background: var(--filter-dropdown-accent, var(--primary-color));
   color: white;
 }
 
 .filter-dropdown-trigger:focus-visible,
 .filter-dropdown-option:focus-visible {
-  outline: 2px solid var(--primary-color);
+  outline: 2px solid var(--filter-dropdown-accent, var(--primary-color));
   outline-offset: 2px;
 }
 
@@ -264,7 +264,7 @@ function handleFocusOut(event: FocusEvent) {
 }
 
 .filter-dropdown-option.selected {
-  color: var(--primary-color);
+  color: var(--filter-dropdown-accent, var(--primary-color));
 }
 
 .filter-dropdown-check {
