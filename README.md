@@ -79,7 +79,9 @@ Keep all API keys, admin credentials, and the session secret out of version cont
 
 The Sentry DSN is safe to expose to the browser and Sentry stays disabled when it is empty. The
 trace sample rate accepts values from `0` through `1` and defaults to `0.1`. Use the
-`NUXT_PUBLIC_SENTRY_*` variables for both browser and server monitoring.
+`NUXT_PUBLIC_SENTRY_*` variables for both browser and server monitoring. Browser events are sent
+through the same-origin `/api/tunnel` endpoint to avoid ad-blocker interference. The endpoint accepts
+only envelopes whose host, project, and public key match `NUXT_PUBLIC_SENTRY_DSN`.
 
 ## Application routes
 
@@ -125,6 +127,7 @@ Nitro maps files in `server/api` directly to `/api` endpoints.
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/health` | Health check |
+| `POST` | `/api/tunnel` | Forward browser telemetry to the configured Sentry project |
 | `GET` | `/api/admin/auth/session` | Report whether the current session is authenticated |
 | `POST` | `/api/admin/auth/login` | Authenticate the admin session |
 | `POST` | `/api/admin/auth/logout` | Invalidate the admin session |

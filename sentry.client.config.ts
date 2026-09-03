@@ -14,6 +14,7 @@ const sampleRate = parseSentryTracesSampleRate(tracesSampleRate)
 
 Sentry.init({
   dsn: dsn || undefined,
+  tunnel: dsn ? '/api/tunnel' : undefined,
   enabled: Boolean(dsn) && environment !== 'test',
   environment,
   enableLogs: true,
