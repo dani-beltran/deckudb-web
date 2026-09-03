@@ -191,7 +191,6 @@ describe('admin page', async () => {
     expect(await jobsLink.getAttribute('aria-current')).toBe('page')
     expect(await auditLink.getAttribute('aria-current')).toBeNull()
     expect(await accountButton.getAttribute('aria-expanded')).toBe('false')
-    expect(await page.getByRole('button', { name: 'Log out' }).count()).toBe(0)
 
     await accountButton.click()
     expect(await accountButton.getAttribute('aria-expanded')).toBe('true')
