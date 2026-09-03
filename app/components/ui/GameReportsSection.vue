@@ -175,6 +175,11 @@ function formatSourceLabel(source: string): string {
   color: var(--text-secondary);
 }
 
+.source-filter-dropdown {
+  --filter-dropdown-accent: var(--primary-color);
+  --filter-dropdown-accent-hover: var(--primary-color-end);
+}
+
 .source-filter-dropdown :deep(.filter-dropdown-trigger) {
   min-width: 116px;
 }
@@ -207,11 +212,21 @@ function formatSourceLabel(source: string): string {
   color: #064e3b;
 }
 
+.filter-button-performance.active:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  color: white;
+}
+
 .filter-button-battery_saving.active,
 .filter-button-battery_saving:hover {
   /* Low TDP filter - orange gradient */
   background: linear-gradient(135deg, #f59e0b, #d97706);
   color: #92400e;
+}
+
+.filter-button-battery_saving.active:hover {
+  background: linear-gradient(135deg, #d97706, #92400e);
+  color: white;
 }
 
 .reports-container {

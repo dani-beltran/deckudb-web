@@ -205,6 +205,13 @@ function handleFocusOut(event: FocusEvent) {
   color: white;
 }
 
+.filter-dropdown-trigger.active:hover {
+  background: var(
+    --filter-dropdown-accent-hover,
+    var(--filter-dropdown-accent, var(--primary-color))
+  );
+}
+
 .filter-dropdown-trigger:focus-visible,
 .filter-dropdown-option:focus-visible {
   outline: 2px solid var(--filter-dropdown-accent, var(--primary-color));
