@@ -133,20 +133,30 @@ describe('game page', async () => {
     ).toBe(true)
   })
 
-  it('filters community reports by hardware, performance, and power usage', async () => {
+  it('filters community reports by source, performance, and power usage', async () => {
     const page = await createPage()
     await mockReadyGame(page)
 
     await page.goto(testUrl('/game/620'))
     await page.getByRole('heading', { name: 'Community Game Reports' }).waitFor()
 
-    await page.getByRole('button', { name: 'LCD', exact: true }).click()
+    expect(await page.getByRole('button', { name: 'All Sources', exact: true }).isVisible()).toBe(
+      true
+    )
+
+    await page.getByRole('button', { name: 'All Sources', exact: true }).click()
+    await page.getByRole('option', { name: 'ProtonDB', exact: true }).click()
     expect(await page.locator('.report-card').count()).toBe(1)
     expect(await page.getByText('Older LCD Player').isVisible()).toBe(true)
 
-    await page.getByRole('button', { name: 'OLED', exact: true }).click()
+    await page.getByRole('button', { name: 'ProtonDB', exact: true }).click()
+    await page.getByRole('option', { name: 'ShareDeck', exact: true }).click()
     expect(await page.locator('.report-card').count()).toBe(1)
     expect(await page.getByText('Recent OLED Player').isVisible()).toBe(true)
+
+    await page.getByRole('button', { name: 'ShareDeck', exact: true }).click()
+    await page.getByRole('option', { name: 'All Sources', exact: true }).click()
+    expect(await page.locator('.report-card').count()).toBe(2)
 
     await page.getByRole('button', { name: '60 FPS', exact: true }).click()
     expect(await page.locator('.report-card').count()).toBe(1)

@@ -4,14 +4,20 @@
       <h2 class="section-title">Community Game Reports</h2>
       <div class="filter-controls">
         <span class="filter-label">Filter by:</span>
-        <button 
-          v-for="filter in hardwareFilters" 
+        <button
+          v-for="filter in reportFilters"
           :key="filter.value"
+          type="button"
           :class="['filter-button', { active: selectedFilter === filter.value }]"
           @click="selectedFilter = filter.value"
         >
           {{ filter.label }}
         </button>
+        <FilterDropdown
+          v-model="selectedSource"
+          :options="sourceOptions"
+          all-label="All Sources"
+        />
       </div>
     </div>
     <Card>
@@ -31,16 +37,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Card from '../base/Card.vue'
+import FilterDropdown from '../common/FilterDropdown.vue'
 import GameReport from './GameReport.vue'
 import type { GameReportData } from './types'
 
 defineOptions({ name: 'GameReportsSection' })
 
-type ReportFilter = 'all' | 'lcd' | 'oled' | 'performance' | 'battery_saving'
+type ReportFilter = 'all' | 'performance' | 'battery_saving'
 
-interface HardwareFilter {
+interface ReportFilterOption {
   label: string
   value: ReportFilter
 }
@@ -55,35 +62,80 @@ const props = withDefaults(
 )
 
 const selectedFilter = ref<ReportFilter>('all')
-const hardwareFilters: HardwareFilter[] = [
+const selectedSource = ref<string | null>(null)
+const reportFilters: ReportFilterOption[] = [
   { label: 'All', value: 'all' },
-  { label: 'LCD', value: 'lcd' },
-  { label: 'OLED', value: 'oled' },
   { label: '60 FPS', value: 'performance' },
   { label: 'Low TDP', value: 'battery_saving' },
 ]
 
+const SOURCE_LABELS: Record<string, string> = {
+  other: 'Other',
+  protondb: 'ProtonDB',
+  reddit: 'Reddit',
+  sharedeck: 'ShareDeck',
+  youtube: 'YouTube',
+}
+
+const sourceOptions = computed(() =>
+  Array.from(new Set(props.reports.map((report) => normalizeSource(report.source)).filter(Boolean)))
+    .sort((firstSource, secondSource) =>
+      formatSourceLabel(firstSource).localeCompare(formatSourceLabel(secondSource))
+    )
+    .map((source) => ({
+      label: formatSourceLabel(source),
+      value: source,
+    }))
+)
+
+watch(sourceOptions, (options) => {
+  if (
+    selectedSource.value !== null &&
+    !options.some((option) => option.value === selectedSource.value)
+  ) {
+    selectedSource.value = null
+  }
+})
+
 const filteredReports = computed<GameReportData[]>(() => {
+  let reports = props.reports
+
+  if (selectedSource.value !== null && selectedFilter.value !== 'all') {
+    reports = reports.filter((report) => normalizeSource(report.source) === selectedSource.value)
+  }
+
   if (selectedFilter.value === 'all') {
-    return props.reports
+    return reports
   }
   if (selectedFilter.value === 'performance') {
-    return props.reports.filter((report) => {
+    return reports.filter((report) => {
       const fps =
         report.steamdeck_settings?.frame_rate_cap || report.steamdeck_experience?.average_frame_rate
       return fps ? Number.parseInt(String(fps), 10) >= 60 : false
     })
   }
   if (selectedFilter.value === 'battery_saving') {
-    return props.reports.filter((report) => {
+    return reports.filter((report) => {
       const tdp = report.steamdeck_settings?.tdp_limit
       return tdp ? Number.parseInt(String(tdp), 10) < 10 : false
     })
   }
-  return props.reports.filter(
-    (report) => report.steamdeck_hardware?.toLowerCase() === selectedFilter.value
-  )
+  return reports
 })
+
+function normalizeSource(source: string): string {
+  return source.trim().toLowerCase()
+}
+
+function formatSourceLabel(source: string): string {
+  return (
+    SOURCE_LABELS[source] ??
+    source
+      .split(/[_-]+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  )
+}
 </script>
 
 <style scoped>
@@ -130,26 +182,15 @@ const filteredReports = computed<GameReportData[]>(() => {
   color: white;
 }
 
-.filter-button:nth-child(3).active,.filter-button:nth-child(3):hover {
-  /* LCD filter - blue gradient matching hardware badge */
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  color: #1e3a8a;
-}
-
-
-.filter-button:nth-child(4).active,.filter-button:nth-child(4):hover {
-  /* OLED filter - orange gradient matching hardware badge */
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  color: #78350f;
-}
-
-.filter-button:nth-child(5).active,.filter-button:nth-child(5):hover {
+.filter-button:nth-of-type(2).active,
+.filter-button:nth-of-type(2):hover {
   /* +60FPS filter - green gradient */
   background: linear-gradient(135deg, #34d399, #10b981);
   color: #064e3b;
 }
 
-.filter-button:nth-child(6).active,.filter-button:nth-child(6):hover {
+.filter-button:nth-of-type(3).active,
+.filter-button:nth-of-type(3):hover {
   /* Low TDP filter - orange gradient */
   background: linear-gradient(135deg, #f59e0b, #d97706);
   color: #92400e;
@@ -194,6 +235,7 @@ const filteredReports = computed<GameReportData[]>(() => {
 
   .filter-controls {
     width: 100%;
+    flex-wrap: wrap;
     justify-content: space-evenly;
   }
 
