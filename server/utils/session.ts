@@ -1,4 +1,5 @@
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
+import type { UIMessage } from 'ai'
 import type { H3Event } from 'h3'
 import { deleteCookie, getCookie, setCookie } from 'h3'
 import { useStorage } from 'nitropack/runtime/internal/storage'
@@ -13,6 +14,7 @@ export type SessionData = Record<string, unknown> & {
   adminAuthenticated?: boolean
   adminAuthenticatedAt?: number
   adminUsername?: string
+  supportChatMessages?: UIMessage[]
 }
 
 export type StoredSession = {

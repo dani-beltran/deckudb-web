@@ -1,8 +1,7 @@
 import { defineTask } from 'nitropack/runtime'
-import { getServerConfig } from '../config'
 import type { GameReportBody } from '../models/game-reports.schema'
 import { JOB_TYPE, type Job } from '../models/jobs.schema'
-import { ClaudeService } from '../services/claude'
+import { generateAIText } from '../services/ai'
 import type { ServerDependencies } from '../utils/bootstrap'
 import { SCRAPE_SOURCES } from '../utils/data-mining/scrapes.schema'
 import { toError } from '../utils/errors/toError'
@@ -86,13 +85,9 @@ Summary:`
 
 async function askClaudeAI(msg: string) {
   if (!msg) return ''
-  const { claudeAiModel, claudeApiKey } = getServerConfig()
-  const claudeService = new ClaudeService({
-    apiKey: claudeApiKey,
-  })
-  return claudeService.prompt(msg, {
-    model: claudeAiModel,
-    maxTokens: 300,
+  return generateAIText({
+    prompt: msg,
+    maxOutputTokens: 300,
     temperature: 0.3,
   })
 }

@@ -19,6 +19,8 @@ Sentry.init({
   dataCollection: sentryDataCollection,
   // Downstream services are third-party APIs, so retain spans without forwarding trace headers.
   tracePropagationTargets: [],
+  // Chat-content collection is decided per call by the server-only runtime setting.
+  integrations: [Sentry.vercelAIIntegration()],
   tracesSampler: ({ name, inheritOrSampleWith }) =>
     name.includes('/api/health') ? 0 : inheritOrSampleWith(sampleRate),
   beforeSend: scrubServerSentryEvent,

@@ -34,6 +34,7 @@ describe('home page', async () => {
     expect(await page.getByTestId('search-title').isVisible()).toBe(true)
     expect(await page.getByLabel('Enter search term').isVisible()).toBe(true)
     expect(await page.getByLabel('Run the search').isVisible()).toBe(true)
+    expect(await page.getByRole('button', { name: 'Open support chat' }).count()).toBe(0)
     expect(await page.title()).toBe('DeckuDB - Optimize Every Game on the Steam Deck')
   })
 

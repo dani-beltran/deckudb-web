@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { Collection, Db, Filter } from 'mongodb'
+import { getServerConfig, type ServerConfig } from '../config'
 import type { Repository } from '../utils/bootstrap'
 import type { PaginatedResult, PaginationParams } from '../utils/pagination'
 import {
@@ -14,12 +15,14 @@ import {
 /** Append-only repository used to record and inspect dashboard audit events. */
 export class AuditLogsModel implements Repository {
   private collection: Collection<AuditLog>
+  private config: ServerConfig
 
   constructor(
     private readonly db: Db,
-    private readonly retentionDays: number
+    private readonly getConfig: () => ServerConfig = getServerConfig
   ) {
     this.collection = this.db.collection<AuditLog>('audit-logs')
+    this.config = this.getConfig()
   }
 
   /** Creates an audit entry; IDs and timestamps are always owned by the repository. */
@@ -109,7 +112,7 @@ export class AuditLogsModel implements Repository {
    */
   private ensureTTLIndex = async () => {
     const AUDIT_TTL_INDEX_NAME = 'audit_logs_created_at_ttl'
-    const expireAfterSeconds = this.retentionDays * 24 * 60 * 60
+    const expireAfterSeconds = this.config.auditLogRetentionDays * 24 * 60 * 60
 
     const indexes = await this.collection.listIndexes().toArray()
     const existing = indexes.find((index) => index.name === AUDIT_TTL_INDEX_NAME)

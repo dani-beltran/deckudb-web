@@ -1,0 +1,5 @@
+export type { DeckuBotTools, DeckuBotUIMessage } from './deckubot'
+export { createDeckuBotTools, DECKUBOT_INSTRUCTIONS } from './deckubot'
+export type { GenerateAITextOptions } from './generate-text'
+export { generateAIText } from './generate-text'
+export { createClaudeModel } from './model'

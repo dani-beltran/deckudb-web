@@ -2,6 +2,7 @@
   "name": "deckudb",
   "version": "0.4.1",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=22.18.0",
     "npm": ">=11.12.1"
@@ -19,9 +20,12 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "4.0.48",
+    "@ai-sdk/vue": "4.0.90",
     "@danilidonbeltran/webscrapper": "4.0.0",
     "@sentry/node": "10.73.0",
     "@sentry/nuxt": "10.73.0",
+    "ai": "7.0.90",
     "dayjs": "^1.11.20",
     "hls.js": "^1.6.15",
     "lucide-vue-next": "^0.544.0",

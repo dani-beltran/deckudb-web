@@ -9,6 +9,7 @@ The browser app, API, database bootstrap, and the job worker all live in this re
 - Search the Steam catalog and browse the most-played Steam Deck games.
 - View community-reported graphics settings, performance, compatibility, and source links.
 - Generate concise AI summaries from collected reports.
+- Ask DeckuBot questions in a floating, multi-turn game support chat.
 - Vote on the usefulness of a game summary with an anonymous session.
 - Monitor, queue, and remove processing jobs from the session-protected admin dashboard.
 - Review an immutable audit trail of admin sign-ins, job actions, and sign-outs.
@@ -18,7 +19,7 @@ The browser app, API, database bootstrap, and the job worker all live in this re
 - Nuxt 4, Vue 3, and Vue Router
 - Nitro file-based API routes
 - MongoDB with repository-style data models
-- Anthropic Claude, Firecrawl, and Steam integrations
+- Vercel AI SDK, Anthropic Claude, Firecrawl, and Steam integrations
 - Vitest, Nuxt Test Utils, and Playwright
 - Biome for linting and formatting
 
@@ -28,10 +29,10 @@ Nuxt is currently configured as a client-rendered application (`ssr: false`). Th
 
 ### Requirements
 
-- Node.js 20 or newer
-- npm 11.10 or newer
+- Node.js 22.18 or newer
+- npm 11.12.1 or newer
 - A running MongoDB instance
-- Claude and Firecrawl API keys for the data-processing pipeline
+- Claude and Firecrawl API keys
 
 ### Setup
 
@@ -62,12 +63,14 @@ Server configuration is validated at startup. Nuxt runtime overrides use the `NU
 
 | Area | Variables |
 | --- | --- |
-| Sentry runtime | `NUXT_PUBLIC_SENTRY_DSN`, `NUXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` |
+| Sentry runtime | `NUXT_PUBLIC_SENTRY_DSN`, `NUXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE`, `NUXT_SENTRY_RECORD_CHAT_CONTENT` |
 | Sentry builds | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`, `SENTRY_RELEASE` |
 | Database | `NUXT_MONGODB_URI`, `NUXT_MONGODB_DATABASE` |
 | AI and scraping | `NUXT_CLAUDE_API_KEY`, `NUXT_CLAUDE_AI_MODEL`, `NUXT_FIRECRAWL_API_KEY`, `NUXT_DAYS_BETWEEN_SCRAPES` |
+| Support chat | `NUXT_PUBLIC_CHAT_ENABLED` and the Claude credentials above |
 | Sessions | `NUXT_SESSION_SECRET`, `NUXT_SESSION_MAX_AGE_MS` |
 | Login rate limiting | `NUXT_LOGIN_RATE_LIMIT_ENABLED`, `NUXT_LOGIN_RATE_LIMIT_MAX_REQUESTS`, `NUXT_LOGIN_RATE_LIMIT_WINDOW_MS`, `NUXT_LOGIN_RATE_LIMIT_TRUSTED_PROXY_HOPS` |
+| Chat rate limiting | `NUXT_CHAT_RATE_LIMIT_ENABLED`, `NUXT_CHAT_RATE_LIMIT_MAX_REQUESTS`, `NUXT_CHAT_RATE_LIMIT_WINDOW_MS` |
 | Admin dashboard | `NUXT_ADMIN_USERNAME`, `NUXT_ADMIN_PASSWORD` |
 | Job execution | `NUXT_JOB_TIMEOUT_MINUTES`, `NUXT_JOB_MAX_ATTEMPTS`, `NUXT_WORKER_ENABLED` |
 | Worker polling | `NUXT_WORKER_POLL_INTERVAL_MS`, `NUXT_WORKER_POLL_JITTER_MS`, `NUXT_WORKER_REQUEUE_SWEEP_MS` |
@@ -126,6 +129,7 @@ Nitro maps files in `server/api` directly to `/api` endpoints.
 | `POST` | `/api/admin/auth/login` | Authenticate the admin session |
 | `POST` | `/api/admin/auth/logout` | Invalidate the admin session |
 | `GET` | `/api/admin/audit-logs` | List and filter immutable dashboard audit entries |
+| `POST` | `/api/chat` | Send a message to the session's DeckuBot conversation |
 | `GET` | `/api/games/:id` | Return a game and its reports; queue stale or missing data |
 | `POST` | `/api/games/:id/summary-vote` | Record an anonymous `up` or `down` summary vote |
 | `GET` | `/api/steam/games?term=...&limit=...` | Search Steam games |
@@ -140,15 +144,36 @@ The job endpoints accept the authenticated admin session used by the integrated 
 
 ### Rate limiting
 
-Only `POST /api/admin/auth/login` is rate-limited. Its MongoDB-backed sliding window allows 5
-attempts per IP every 15 minutes by default and is shared across application instances. Other API
-endpoints are not rate-limited. Rejected login requests return `429 Too Many Requests`,
-`Retry-After`, and rate-limit policy headers.
+`POST /api/admin/auth/login` and `POST /api/chat` use MongoDB-backed sliding-window limits shared
+across application instances. Login allows 5 attempts per IP every 15 minutes by default. Chat
+allows 10 messages per anonymous session every minute by default. Rejected requests return
+`429 Too Many Requests`, `Retry-After`, and rate-limit policy headers.
 
 The login IP policy uses the direct socket address by default. Behind trusted reverse proxies that
 append `X-Forwarded-For`, set `NUXT_LOGIN_RATE_LIMIT_TRUSTED_PROXY_HOPS` to the exact number of
 proxies between the client and the app. Do not trust forwarded headers when clients can connect
 directly to the app.
+
+## Support chat
+
+Set `NUXT_PUBLIC_CHAT_ENABLED=true` to show the floating DeckuBot widget throughout the public
+application. The widget is hidden when the variable is unset or has any other value. It uses Vercel
+AI SDK to stream Claude responses from DeckuDB's same-origin `/api/chat` endpoint. Claude
+credentials, instructions, and tools remain on the server. Conversation history is bounded and
+stored in the signed anonymous server-side session, so callers cannot choose or access another
+conversation.
+
+Configure the Claude provider in `.env`:
+
+```dotenv
+NUXT_CLAUDE_API_KEY=your_anthropic_api_key
+NUXT_CLAUDE_AI_MODEL=claude-haiku-4-5-20251001
+NUXT_PUBLIC_CHAT_ENABLED=true
+```
+
+DeckuBot can search the Steam catalog and retrieve DeckuDB performance summaries and recent
+community reports through server-side tools. The endpoint accepts only one bounded user-text part;
+callers cannot override the assistant instructions, tools, model settings, or conversation history.
 
 ## Background processing
 
@@ -171,7 +196,7 @@ server/config/       Runtime configuration schema and validation
 server/middleware/   CORS and anonymous-session middleware
 server/models/       MongoDB repositories and schemas
 server/plugins/      Database bootstrap and queue worker lifecycle
-server/services/     Claude, Firecrawl, and Steam clients
+server/services/     AI SDK, Firecrawl, and Steam integrations
 server/tasks/        Background processing pipeline
 server/utils/        Database, mining, logging, and API utilities
 shared/              Utilities shared by browser and server code
@@ -229,16 +254,20 @@ The official `@sentry/nuxt` integration monitors uncaught browser and Nitro erro
 route changes, same-origin `/api` requests, server request performance, and supported downstream
 operations such as MongoDB calls. Frontend and backend spans are joined with Sentry trace headers.
 The `/api/health` transaction is excluded so container health checks do not consume trace volume.
+DeckuBot's Vercel AI SDK pipeline is identified as `deckubot-support-chat` and emits nested Sentry
+LLM spans for model calls and tool execution, including latency, completion status, and token usage.
+Chat prompts and responses are excluded by default. Set `NUXT_SENTRY_RECORD_CHAT_CONTENT=true` to
+include them in Sentry traces when that content is safe for your telemetry retention policy.
 
 Server `info`, `warn`, and `error` messages are also forwarded from Winston to Sentry Logs while
 remaining in the console and rotating files. Repetitive worker-idle and audit-payload fallback
 messages stay local. Browser console warnings and errors are captured as Sentry Logs, and logged
 `Error` objects are captured as Sentry Issues. Expected HTTP `3xx` and `4xx` responses are excluded
 from Issues. Automatic
-collection of users, cookies, headers, bodies, query strings, AI prompts and responses, database
-values, and stack-frame variables is disabled; application-authored events and logs receive an
-additional credential, identity, and URL-query scrub before they are sent, as do performance span
-attributes.
+collection of users, cookies, headers, bodies, query strings, database values, and stack-frame
+variables is disabled. AI prompts and responses follow the opt-in setting above. Application-authored
+events and logs receive an additional credential, identity, and URL-query scrub before they are sent,
+as do performance span attributes.
 
 For readable production stack traces, set `SENTRY_ORG`, `SENTRY_PROJECT`, and the
 `SENTRY_AUTH_TOKEN` secret during the build. Source maps are generated, uploaded, and removed from
