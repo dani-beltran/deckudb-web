@@ -24,6 +24,13 @@ const streamHeaders = {
 describe('support chat', async () => {
   await setup({
     ...(DEBUG ? getDebugConfig() : {}),
+    nuxtConfig: {
+      runtimeConfig: {
+        public: {
+          chatEnabled: true,
+        },
+      },
+    },
   })
 
   it('opens from the greeting and sends messages with the keyboard', async () => {

@@ -3,7 +3,7 @@
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <ScrollToTopButton />
     <DarkModeToggle />
-    <SupportChat />
+    <SupportChat v-if="chatEnabled" />
     <div class="container">
       <main class="main-content" id="main-content">
         <slot />
@@ -16,6 +16,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { useRuntimeConfig } from '#imports'
 import DarkModeToggle from '../components/common/DarkModeToggle.vue'
 import ScrollToTopButton from '../components/common/ScrollToTopButton.vue'
 import SupportChat from '../components/common/SupportChat.vue'
@@ -33,6 +34,10 @@ export default defineComponent({
   setup() {
     // Initialize dark mode
     useDarkMode()
+
+    const chatEnabled = String(useRuntimeConfig().public.chatEnabled) === 'true'
+
+    return { chatEnabled }
   },
 })
 </script>

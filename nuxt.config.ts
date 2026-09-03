@@ -93,6 +93,7 @@ export default defineNuxtConfig({
     ...getEnvConfig(),
     public: {
       apiBase: '/api',
+      chatEnabled: process.env.NUXT_PUBLIC_CHAT_ENABLED === 'true',
       sentry: {
         dsn: sentryDsn,
         environment: sentryEnvironment,

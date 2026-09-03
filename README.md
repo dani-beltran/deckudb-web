@@ -67,7 +67,7 @@ Server configuration is validated at startup. Nuxt runtime overrides use the `NU
 | Sentry builds | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`, `SENTRY_RELEASE` |
 | Database | `NUXT_MONGODB_URI`, `NUXT_MONGODB_DATABASE` |
 | AI and scraping | `NUXT_CLAUDE_API_KEY`, `NUXT_CLAUDE_AI_MODEL`, `NUXT_FIRECRAWL_API_KEY`, `NUXT_DAYS_BETWEEN_SCRAPES` |
-| Support chat | Uses the Claude credentials above |
+| Support chat | `NUXT_PUBLIC_CHAT_ENABLED` and the Claude credentials above |
 | Sessions | `NUXT_SESSION_SECRET`, `NUXT_SESSION_MAX_AGE_MS` |
 | Login rate limiting | `NUXT_LOGIN_RATE_LIMIT_ENABLED`, `NUXT_LOGIN_RATE_LIMIT_MAX_REQUESTS`, `NUXT_LOGIN_RATE_LIMIT_WINDOW_MS`, `NUXT_LOGIN_RATE_LIMIT_TRUSTED_PROXY_HOPS` |
 | Chat rate limiting | `NUXT_CHAT_RATE_LIMIT_ENABLED`, `NUXT_CHAT_RATE_LIMIT_MAX_REQUESTS`, `NUXT_CHAT_RATE_LIMIT_WINDOW_MS` |
@@ -156,16 +156,19 @@ directly to the app.
 
 ## Support chat
 
-The floating DeckuBot widget is available throughout the public application. It uses Vercel AI SDK
-to stream Claude responses from DeckuDB's same-origin `/api/chat` endpoint. Claude credentials,
-instructions, and tools remain on the server. Conversation history is bounded and stored in the
-signed anonymous server-side session, so callers cannot choose or access another conversation.
+Set `NUXT_PUBLIC_CHAT_ENABLED=true` to show the floating DeckuBot widget throughout the public
+application. The widget is hidden when the variable is unset or has any other value. It uses Vercel
+AI SDK to stream Claude responses from DeckuDB's same-origin `/api/chat` endpoint. Claude
+credentials, instructions, and tools remain on the server. Conversation history is bounded and
+stored in the signed anonymous server-side session, so callers cannot choose or access another
+conversation.
 
 Configure the Claude provider in `.env`:
 
 ```dotenv
 NUXT_CLAUDE_API_KEY=your_anthropic_api_key
 NUXT_CLAUDE_AI_MODEL=claude-haiku-4-5-20251001
+NUXT_PUBLIC_CHAT_ENABLED=true
 ```
 
 DeckuBot can search the Steam catalog and retrieve DeckuDB performance summaries and recent
