@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { Collection, Db, Filter } from 'mongodb'
+import { getServerConfig, type ServerConfig } from '../config'
 import type { Repository } from '../utils/bootstrap'
 import type { PaginatedResult, PaginationParams } from '../utils/pagination'
 import {
@@ -10,13 +11,12 @@ import {
   createAuditLogSchema,
   sanitizeAuditContext,
 } from './audit-logs.schema'
-import { getServerConfig, type ServerConfig } from '../config'
 
 /** Append-only repository used to record and inspect dashboard audit events. */
 export class AuditLogsModel implements Repository {
   private collection: Collection<AuditLog>
   private config: ServerConfig
-  
+
   constructor(
     private readonly db: Db,
     private readonly getConfig: () => ServerConfig = getServerConfig

@@ -1,7 +1,7 @@
-import { MockLanguageModelV4 } from 'ai/test'
 import { createDeckuBotTools, generateAIText } from '@server/services/ai'
 import { createClaudeModel } from '@server/services/ai/model'
 import type { ServerDependencies } from '@server/utils/bootstrap'
+import { MockLanguageModelV4 } from 'ai/test'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@server/services/ai/model', () => ({
@@ -85,10 +85,7 @@ describe('AI SDK services', () => {
     const tools = createDeckuBotTools(repositories)
     const executionOptions = { toolCallId: 'tool-1', messages: [], context: {} }
 
-    const searchResult = await tools.searchGames.execute?.(
-      { query: 'Portal' },
-      executionOptions
-    )
+    const searchResult = await tools.searchGames.execute?.({ query: 'Portal' }, executionOptions)
     expect(searchResult).toEqual({
       games: [
         {
