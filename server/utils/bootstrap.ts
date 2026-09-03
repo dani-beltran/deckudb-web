@@ -60,7 +60,7 @@ export const bootstrapDependencies = async (
   return {
     databaseClient,
     repositories: {
-      auditLogs: new AuditLogsModel(db, config.auditLogRetentionDays),
+      auditLogs: new AuditLogsModel(db),
       gameSources: new GameSourcesModel(db),
       gameReports: new GameReportsModel(db),
       gameSummaryVotes: new GameSummaryVotesModel(db),
