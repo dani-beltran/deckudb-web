@@ -3,6 +3,7 @@
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <ScrollToTopButton />
     <DarkModeToggle />
+    <SupportChat />
     <div class="container">
       <main class="main-content" id="main-content">
         <slot />
@@ -17,6 +18,7 @@
 import { defineComponent } from 'vue'
 import DarkModeToggle from '../components/common/DarkModeToggle.vue'
 import ScrollToTopButton from '../components/common/ScrollToTopButton.vue'
+import SupportChat from '../components/common/SupportChat.vue'
 import Footer from '../components/ui/Footer.vue'
 import { useDarkMode } from '../composables/useDarkMode'
 
@@ -26,6 +28,7 @@ export default defineComponent({
     Footer,
     ScrollToTopButton,
     DarkModeToggle,
+    SupportChat,
   },
   setup() {
     // Initialize dark mode

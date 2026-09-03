@@ -26,6 +26,8 @@ describe('getServerConfig', () => {
     ['LOGIN_RATE_LIMIT_WINDOW_MS', '-1', /loginRateLimitWindowMs/],
     ['LOGIN_RATE_LIMIT_MAX_REQUESTS', '0', /loginRateLimitMaxRequests/],
     ['LOGIN_RATE_LIMIT_TRUSTED_PROXY_HOPS', '11', /loginRateLimitTrustedProxyHops/],
+    ['CHAT_RATE_LIMIT_WINDOW_MS', '-1', /chatRateLimitWindowMs/],
+    ['CHAT_RATE_LIMIT_MAX_REQUESTS', '0', /chatRateLimitMaxRequests/],
   ])('rejects invalid rate-limit config in %s', (name, value, expectedError) => {
     vi.stubEnv(name, value)
 
@@ -47,6 +49,22 @@ describe('getServerConfig', () => {
       loginRateLimitMaxRequests: 5,
       loginRateLimitWindowMs: 15 * 60_000,
       loginRateLimitTrustedProxyHops: 0,
+    })
+  })
+
+  it('applies chat rate-limit defaults when Nitro serializes unset config as empty strings', () => {
+    for (const name of [
+      'CHAT_RATE_LIMIT_ENABLED',
+      'CHAT_RATE_LIMIT_MAX_REQUESTS',
+      'CHAT_RATE_LIMIT_WINDOW_MS',
+    ]) {
+      vi.stubEnv(`NUXT_${name}`, '')
+    }
+
+    expect(getServerConfig()).toMatchObject({
+      chatRateLimitEnabled: true,
+      chatRateLimitMaxRequests: 10,
+      chatRateLimitWindowMs: 60_000,
     })
   })
 })

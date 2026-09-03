@@ -2,6 +2,7 @@ import adminAuditLogsHandler from '@server/api/admin/audit-logs.get'
 import adminLoginHandler from '@server/api/admin/auth/login.post'
 import adminLogoutHandler from '@server/api/admin/auth/logout.post'
 import adminSessionHandler from '@server/api/admin/auth/session.get'
+import chatHandler from '@server/api/chat.post'
 import gameSummaryVoteHandler from '@server/api/games/[id]/summary-vote.post'
 import gameByIdHandler from '@server/api/games/[id].get'
 import deleteJobHandler from '@server/api/jobs/[job_id].delete'
@@ -30,6 +31,7 @@ export const createNuxtTestServer = (dependencies: ServerDependencies) => {
   router.get('/api/admin/auth/session', adminSessionHandler)
   router.post('/api/admin/auth/login', adminLoginHandler)
   router.post('/api/admin/auth/logout', adminLogoutHandler)
+  router.post('/api/chat', chatHandler)
   router.get('/api/games/:id', gameByIdHandler)
   router.post('/api/games/:id/summary-vote', gameSummaryVoteHandler)
   router.delete('/api/jobs/:job_id', deleteJobHandler)

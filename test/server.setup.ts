@@ -33,8 +33,40 @@ vi.mock('@server/services/firecrawl/FirecrawlService', () => ({
   })),
 }))
 
-vi.mock('@server/services/claude/ClaudeService', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    sendMessage: vi.fn(),
-  })),
-}))
+vi.mock('@server/services/ai/model', async () => {
+  const { simulateReadableStream } = await import('ai')
+  const { MockLanguageModelV4 } = await import('ai/test')
+  const usage = {
+    inputTokens: { total: 3, noCache: 3, cacheRead: undefined, cacheWrite: undefined },
+    outputTokens: { total: 4, text: 4, reasoning: undefined },
+  }
+
+  return {
+    createClaudeModel: vi.fn(
+      () =>
+        new MockLanguageModelV4({
+          doGenerate: async () => ({
+            content: [{ type: 'text', text: 'Test AI response' }],
+            finishReason: { unified: 'stop', raw: undefined },
+            usage,
+            warnings: [],
+          }),
+          doStream: async () => ({
+            stream: simulateReadableStream({
+              chunks: [
+                { type: 'text-start', id: 'text-1' },
+                { type: 'text-delta', id: 'text-1', delta: 'Test AI response' },
+                { type: 'text-end', id: 'text-1' },
+                {
+                  type: 'finish',
+                  finishReason: { unified: 'stop', raw: undefined },
+                  logprobs: undefined,
+                  usage,
+                },
+              ],
+            }),
+          }),
+        })
+    ),
+  }
+})

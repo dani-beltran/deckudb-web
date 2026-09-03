@@ -45,6 +45,12 @@ export const configSchema = z.object({
   loginRateLimitWindowMs: defaultedPositiveInteger(15 * 60_000),
   // Number of trusted reverse proxies that append to X-Forwarded-For for login requests
   loginRateLimitTrustedProxyHops: defaultedTrustedProxyHops,
+  // Whether anonymous-session support-chat rate limiting is enabled
+  chatRateLimitEnabled: defaultedBoolean(true),
+  // Maximum support-chat requests per anonymous session in the sliding window
+  chatRateLimitMaxRequests: defaultedPositiveInteger(10),
+  // Support-chat sliding-window duration in milliseconds
+  chatRateLimitWindowMs: defaultedPositiveInteger(60_000),
   // Single-user dashboard credentials (server-only)
   adminUsername: z.string().trim().min(1).max(128),
   adminPassword: z.string().min(12).max(1024),
