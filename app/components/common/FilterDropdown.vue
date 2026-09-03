@@ -12,6 +12,7 @@
       @click="toggleDropdown"
       @keydown.down.prevent="openDropdown('selected')"
       @keydown.up.prevent="openDropdown('last')"
+      @keydown.esc.stop.prevent="closeDropdown(true)"
     >
       <span>{{ selectedLabel }}</span>
       <ChevronDown class="filter-dropdown-chevron" :class="{ open: isOpen }" aria-hidden="true" />
