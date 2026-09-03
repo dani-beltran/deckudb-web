@@ -51,6 +51,8 @@ export const configSchema = z.object({
   chatRateLimitMaxRequests: defaultedPositiveInteger(10),
   // Support-chat sliding-window duration in milliseconds
   chatRateLimitWindowMs: defaultedPositiveInteger(60_000),
+  // Whether Sentry records chat prompts and model responses
+  sentryRecordChatContent: defaultedBoolean(false),
   // Single-user dashboard credentials (server-only)
   adminUsername: z.string().trim().min(1).max(128),
   adminPassword: z.string().min(12).max(1024),

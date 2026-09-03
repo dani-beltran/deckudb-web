@@ -1,7 +1,12 @@
-import { simulateReadableStream } from 'ai'
-import { MockLanguageModelV4 } from 'ai/test'
+import { tracingChannel } from 'node:diagnostics_channel'
 import { createClaudeModel } from '@server/services/ai/model'
 import { bootstrapDependencies, type ServerDependencies } from '@server/utils/bootstrap'
+import {
+  AI_SDK_TELEMETRY_TRACING_CHANNEL,
+  simulateReadableStream,
+  type TelemetryTracingChannelMessage,
+} from 'ai'
+import { MockLanguageModelV4 } from 'ai/test'
 import type { NodeListener } from 'h3'
 import request from 'supertest'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -86,6 +91,51 @@ describe('chat API', () => {
     expect(response.text).not.toContain('Tell me about Hades')
   })
 
+  it.each([
+    ['disabled', 'false', false],
+    ['enabled', 'true', true],
+  ])(
+    'emits telemetry with chat content recording %s',
+    async (_state, configuredValue, expected) => {
+      type ChatTelemetryEvent = TelemetryTracingChannelMessage<{
+        functionId?: string
+        recordInputs?: boolean
+        recordOutputs?: boolean
+      }>
+      vi.stubEnv('NUXT_SENTRY_RECORD_CHAT_CONTENT', configuredValue)
+      const events: ChatTelemetryEvent[] = []
+      const channel = tracingChannel<unknown, ChatTelemetryEvent>(AI_SDK_TELEMETRY_TRACING_CHANNEL)
+      const onStart = (event: unknown) => {
+        events.push(event as ChatTelemetryEvent)
+      }
+      channel.start.subscribe(onStart)
+
+      try {
+        await request(testServer)
+          .post('/api/chat')
+          .send(chatBody('Tell me about Hades'))
+          .expect(200)
+      } finally {
+        channel.start.unsubscribe(onStart)
+      }
+
+      for (const type of ['streamText', 'languageModelCall']) {
+        expect(events).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              type,
+              event: expect.objectContaining({
+                functionId: 'deckubot-support-chat',
+                recordInputs: expected,
+                recordOutputs: expected,
+              }),
+            }),
+          ])
+        )
+      }
+    }
+  )
+
   it('reuses server-side conversation history for later messages in the same session', async () => {
     const client = request.agent(testServer)
 
@@ -154,10 +204,7 @@ describe('chat API', () => {
     expect(accepted.headers['ratelimit-policy']).toBe('"chat-session";q=1;w=60')
     expect(accepted.headers.ratelimit).toMatch(/^"chat-session";r=0;t=\d+$/)
 
-    const rejected = await client
-      .post('/api/chat')
-      .send(chatBody('Second', 'user-2'))
-      .expect(429)
+    const rejected = await client.post('/api/chat').send(chatBody('Second', 'user-2')).expect(429)
     expect(rejected.headers['cache-control']).toBe('no-store')
     expect(rejected.headers['retry-after']).toMatch(/^\d+$/)
     expect(rejected.body.data).toEqual({

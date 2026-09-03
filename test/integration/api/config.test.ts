@@ -22,6 +22,21 @@ describe('getServerConfig', () => {
     expect(() => getServerConfig()).toThrow(/workerEnabled/)
   })
 
+  it('rejects an invalid Sentry chat-content setting', () => {
+    vi.stubEnv('NUXT_SENTRY_RECORD_CHAT_CONTENT', 'yes')
+
+    expect(() => getServerConfig()).toThrow(/sentryRecordChatContent/)
+  })
+
+  it.each([
+    ['false', false],
+    ['true', true],
+  ])('parses Sentry chat-content setting %s', (value, expected) => {
+    vi.stubEnv('NUXT_SENTRY_RECORD_CHAT_CONTENT', value)
+
+    expect(getServerConfig().sentryRecordChatContent).toBe(expected)
+  })
+
   it.each([
     ['LOGIN_RATE_LIMIT_WINDOW_MS', '-1', /loginRateLimitWindowMs/],
     ['LOGIN_RATE_LIMIT_MAX_REQUESTS', '0', /loginRateLimitMaxRequests/],
@@ -66,5 +81,11 @@ describe('getServerConfig', () => {
       chatRateLimitMaxRequests: 10,
       chatRateLimitWindowMs: 60_000,
     })
+  })
+
+  it('disables Sentry chat-content recording by default', () => {
+    vi.stubEnv('NUXT_SENTRY_RECORD_CHAT_CONTENT', '')
+
+    expect(getServerConfig().sentryRecordChatContent).toBe(false)
   })
 })

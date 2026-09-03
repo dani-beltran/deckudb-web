@@ -47,9 +47,12 @@ function getChatRateLimitPartitionKey(sessionId: string) {
   return createHash('sha256').update(`chat-session:${sessionId}`).digest('hex')
 }
 
-async function enforceChatRateLimit(event: H3Event, sessionId: string) {
-  const { chatRateLimitEnabled, chatRateLimitMaxRequests, chatRateLimitWindowMs } =
-    getServerConfig()
+async function enforceChatRateLimit(
+  event: H3Event,
+  sessionId: string,
+  config: ReturnType<typeof getServerConfig>
+) {
+  const { chatRateLimitEnabled, chatRateLimitMaxRequests, chatRateLimitWindowMs } = config
   if (!chatRateLimitEnabled) return {}
 
   const result = await event.context.repositories.rateLimits.consume(
@@ -94,7 +97,8 @@ export default defineEventHandler((event) => {
     const session = event.context.session
     if (!session) throw new Error('Session middleware is not configured')
 
-    const rateLimitHeaders = await enforceChatRateLimit(event, sessionId)
+    const serverConfig = getServerConfig()
+    const rateLimitHeaders = await enforceChatRateLimit(event, sessionId, serverConfig)
     const tools = createDeckuBotTools(event.context.repositories)
     const storedMessages = Array.isArray(session.data.supportChatMessages)
       ? session.data.supportChatMessages
@@ -119,6 +123,12 @@ export default defineEventHandler((event) => {
       maxOutputTokens: 600,
       temperature: 0.3,
       timeout: { totalMs: 60_000 },
+      telemetry: {
+        isEnabled: true,
+        functionId: 'deckubot-support-chat',
+        recordInputs: serverConfig.sentryRecordChatContent,
+        recordOutputs: serverConfig.sentryRecordChatContent,
+      },
     })
 
     return createUIMessageStreamResponse({
