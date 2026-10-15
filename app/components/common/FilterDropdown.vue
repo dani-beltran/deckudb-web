@@ -12,7 +12,7 @@
       @click="toggleDropdown"
       @keydown.down.prevent="openDropdown('selected')"
       @keydown.up.prevent="openDropdown('last')"
-      @keydown.esc.stop.prevent="closeDropdown(true)"
+      @keydown.esc="handleTriggerEscape"
     >
       <span>{{ selectedLabel }}</span>
       <ChevronDown class="filter-dropdown-chevron" :class="{ open: isOpen }" aria-hidden="true" />
@@ -143,6 +143,13 @@ function closeDropdown(restoreFocus = false) {
   if (restoreFocus) {
     triggerButton.value?.focus()
   }
+}
+
+function handleTriggerEscape(event: KeyboardEvent) {
+  if (!isOpen.value) return
+  event.stopPropagation()
+  event.preventDefault()
+  closeDropdown(true)
 }
 
 function selectOption(value: string | null) {

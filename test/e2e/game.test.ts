@@ -181,6 +181,40 @@ describe('game page', async () => {
     expect(await page.locator('.report-card').count()).toBe(2)
   })
 
+  it('handles Escape only while the source dropdown is open and restores trigger focus', async () => {
+    const page = await createPage()
+    await mockReadyGame(page)
+    await page.goto(testUrl('/game/620'))
+
+    const trigger = page.getByRole('button', { name: 'All Sources', exact: true })
+    await trigger.waitFor()
+    await page.evaluate(() => {
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          document.body.dataset.escapeDefaultPrevented = String(event.defaultPrevented)
+        }
+      })
+    })
+
+    // Mouse and Enter leave focus on the trigger; ArrowDown moves it into the menu.
+    for (const activation of ['click', 'Enter', 'ArrowDown']) {
+      if (activation === 'click') {
+        await trigger.click()
+      } else {
+        await trigger.press(activation)
+      }
+      expect(await trigger.getAttribute('aria-expanded')).toBe('true')
+      await page.keyboard.press('Escape')
+      expect(await trigger.getAttribute('aria-expanded')).toBe('false')
+      expect(await page.getByRole('listbox').count()).toBe(0)
+      expect(await trigger.evaluate((element) => element === document.activeElement)).toBe(true)
+      expect(await page.locator('body').getAttribute('data-escape-default-prevented')).toBeNull()
+    }
+
+    await trigger.press('Escape')
+    expect(await page.locator('body').getAttribute('data-escape-default-prevented')).toBe('false')
+  })
+
   it('shows the AI summary and submits helpful feedback', async () => {
     const page = await createPage()
     await mockReadyGame(page)
