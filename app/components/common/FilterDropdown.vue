@@ -12,6 +12,7 @@
       @click="toggleDropdown"
       @keydown.down.prevent="openDropdown('selected')"
       @keydown.up.prevent="openDropdown('last')"
+      @keydown.esc="handleTriggerEscape"
     >
       <span>{{ selectedLabel }}</span>
       <ChevronDown class="filter-dropdown-chevron" :class="{ open: isOpen }" aria-hidden="true" />
@@ -144,6 +145,13 @@ function closeDropdown(restoreFocus = false) {
   }
 }
 
+function handleTriggerEscape(event: KeyboardEvent) {
+  if (!isOpen.value) return
+  event.stopPropagation()
+  event.preventDefault()
+  closeDropdown(true)
+}
+
 function selectOption(value: string | null) {
   emit('update:modelValue', value)
   closeDropdown(true)
@@ -182,6 +190,7 @@ function handleFocusOut(event: FocusEvent) {
 
 .filter-dropdown-trigger {
   display: inline-flex;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
   gap: 6px;
@@ -200,13 +209,20 @@ function handleFocusOut(event: FocusEvent) {
 .filter-dropdown-trigger:hover,
 .filter-dropdown-trigger.active,
 .filter-dropdown-trigger.open {
-  background: var(--primary-color);
+  background: var(--filter-dropdown-accent, var(--primary-color));
   color: white;
+}
+
+.filter-dropdown-trigger.active:hover {
+  background: var(
+    --filter-dropdown-accent-hover,
+    var(--filter-dropdown-accent, var(--primary-color))
+  );
 }
 
 .filter-dropdown-trigger:focus-visible,
 .filter-dropdown-option:focus-visible {
-  outline: 2px solid var(--primary-color);
+  outline: 2px solid var(--filter-dropdown-accent, var(--primary-color));
   outline-offset: 2px;
 }
 
@@ -262,7 +278,7 @@ function handleFocusOut(event: FocusEvent) {
 }
 
 .filter-dropdown-option.selected {
-  color: var(--primary-color);
+  color: var(--filter-dropdown-accent, var(--primary-color));
 }
 
 .filter-dropdown-check {

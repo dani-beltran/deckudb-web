@@ -144,30 +144,75 @@ describe('game page', async () => {
       true
     )
 
+    const performanceFilter = page.getByRole('button', { name: '60 FPS', exact: true })
+    const powerFilter = page.getByRole('button', { name: 'Low TDP', exact: true })
+    expect(await performanceFilter.getAttribute('aria-pressed')).toBe('false')
+    expect(await powerFilter.getAttribute('aria-pressed')).toBe('false')
+
     await page.getByRole('button', { name: 'All Sources', exact: true }).click()
     await page.getByRole('option', { name: 'ProtonDB', exact: true }).click()
     expect(await page.locator('.report-card').count()).toBe(1)
     expect(await page.getByText('Older LCD Player').isVisible()).toBe(true)
 
+    await performanceFilter.click()
+    expect(await performanceFilter.getAttribute('aria-pressed')).toBe('true')
+    expect(await page.locator('.report-card').count()).toBe(1)
+
+    await powerFilter.click()
+    expect(await powerFilter.getAttribute('aria-pressed')).toBe('true')
+    expect(await page.locator('.report-card').count()).toBe(0)
+    expect(await page.getByText('No reports to display.').isVisible()).toBe(true)
+
+    await powerFilter.click()
+    expect(await powerFilter.getAttribute('aria-pressed')).toBe('false')
+    expect(await page.locator('.report-card').count()).toBe(1)
+
     await page.getByRole('button', { name: 'ProtonDB', exact: true }).click()
     await page.getByRole('option', { name: 'ShareDeck', exact: true }).click()
+    expect(await page.locator('.report-card').count()).toBe(0)
+
+    await performanceFilter.click()
+    expect(await performanceFilter.getAttribute('aria-pressed')).toBe('false')
     expect(await page.locator('.report-card').count()).toBe(1)
     expect(await page.getByText('Recent OLED Player').isVisible()).toBe(true)
 
     await page.getByRole('button', { name: 'ShareDeck', exact: true }).click()
     await page.getByRole('option', { name: 'All Sources', exact: true }).click()
     expect(await page.locator('.report-card').count()).toBe(2)
+  })
 
-    await page.getByRole('button', { name: '60 FPS', exact: true }).click()
-    expect(await page.locator('.report-card').count()).toBe(1)
-    expect(await page.getByText('Older LCD Player').isVisible()).toBe(true)
+  it('handles Escape only while the source dropdown is open and restores trigger focus', async () => {
+    const page = await createPage()
+    await mockReadyGame(page)
+    await page.goto(testUrl('/game/620'))
 
-    await page.getByRole('button', { name: 'Low TDP', exact: true }).click()
-    expect(await page.locator('.report-card').count()).toBe(1)
-    expect(await page.getByText('Recent OLED Player').isVisible()).toBe(true)
+    const trigger = page.getByRole('button', { name: 'All Sources', exact: true })
+    await trigger.waitFor()
+    await page.evaluate(() => {
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          document.body.dataset.escapeDefaultPrevented = String(event.defaultPrevented)
+        }
+      })
+    })
 
-    await page.getByRole('button', { name: 'All', exact: true }).click()
-    expect(await page.locator('.report-card').count()).toBe(2)
+    // Mouse and Enter leave focus on the trigger; ArrowDown moves it into the menu.
+    for (const activation of ['click', 'Enter', 'ArrowDown']) {
+      if (activation === 'click') {
+        await trigger.click()
+      } else {
+        await trigger.press(activation)
+      }
+      expect(await trigger.getAttribute('aria-expanded')).toBe('true')
+      await page.keyboard.press('Escape')
+      expect(await trigger.getAttribute('aria-expanded')).toBe('false')
+      expect(await page.getByRole('listbox').count()).toBe(0)
+      expect(await trigger.evaluate((element) => element === document.activeElement)).toBe(true)
+      expect(await page.locator('body').getAttribute('data-escape-default-prevented')).toBeNull()
+    }
+
+    await trigger.press('Escape')
+    expect(await page.locator('body').getAttribute('data-escape-default-prevented')).toBe('false')
   })
 
   it('shows the AI summary and submits helpful feedback', async () => {
