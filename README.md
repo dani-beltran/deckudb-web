@@ -284,7 +284,7 @@ The test suite is configured in `vitest.config.mts` as three named Vitest projec
 | --- | --- | --- |
 | `unit` | `test/unit/**/*.test.ts` | Runs in Node and tests services and utilities in isolation. Tests mock dependencies such as `fetch` as needed. |
 | `api` | `test/integration/api/**/*.test.ts` | Runs the real H3 route handlers, middleware, repositories, and database client through Supertest. `test/server.setup.ts` supplies an in-memory session store and mocks external services like Steam, Firecrawl, and Claude. |
-| `e2e` | `test/e2e/**/*.test.ts` | Uses the Nuxt Test Utils environment, which builds and starts the full Nuxt application for requests and Playwright-based browser tests. |
+| `e2e` | `test/e2e/**/*.test.ts` | Runs in Node and uses Nuxt Test Utils to build and start the full Nuxt application for requests and Playwright-based browser tests. |
 
 Vitest runs in `test` mode and loads the placeholder configuration from `.env.test`. Unit and API projects do not need working third-party API keys. The root `test/mongodb.global-setup.ts` starts one `mongodb-memory-server` process for the API and e2e projects, passes its URI to both, and stops it after the suite. A local MongoDB installation is therefore not required, although the first run may need to download a MongoDB binary.
 

@@ -1,8 +1,11 @@
+import { loadEnvFile } from 'node:process'
 import { fileURLToPath } from 'node:url'
-import { defineVitestProject } from '@nuxt/test-utils/config'
 import { defineConfig } from 'vitest/config'
 
+loadEnvFile(fileURLToPath(new URL('./.env.test', import.meta.url)))
+
 const aliases = {
+  '~': fileURLToPath(new URL('./app', import.meta.url)),
   '@server': fileURLToPath(new URL('./server', import.meta.url)),
   '@app': fileURLToPath(new URL('./app', import.meta.url)),
   '@shared': fileURLToPath(new URL('./shared', import.meta.url)),
@@ -44,10 +47,13 @@ export default defineConfig({
           setupFiles: ['test/server.setup.ts'],
         },
       },
-      await defineVitestProject({
+      {
+        resolve: {
+          alias: aliases,
+        },
         test: {
           name: 'e2e',
-          environment: 'nuxt',
+          environment: 'node',
           // Browser navigation can exceed Vitest's 5-second Node default on shared CI runners.
           testTimeout: 15_000,
           env: {
@@ -56,7 +62,7 @@ export default defineConfig({
           },
           include: ['test/e2e/**/*.test.ts'],
         },
-      }),
+      },
     ],
   },
 })
