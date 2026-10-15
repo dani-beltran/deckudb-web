@@ -29,7 +29,7 @@ export const getWebsiteApproximatePublishedDate = async (url: string): Promise<D
   }
 
   const data = (await res.json().catch(() => [])) as WaybackResponse
-  if (!data[0] || data[0][0] !== 'timestamp' || !data[1] || !data[1][0]) {
+  if (data[0]?.[0] !== 'timestamp' || !data[1]?.[0]) {
     return null
   }
 

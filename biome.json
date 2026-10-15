@@ -27,9 +27,10 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "style": {
-        "useConst": "error"
+        "useConst": "error",
+        "useVueMultiWordComponentNames": "off"
       },
       "correctness": {
         "noUnusedVariables": "warn"
