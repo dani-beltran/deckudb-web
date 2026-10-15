@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.18.0",
+    "node": "^24.11.0",
     "npm": ">=11.12.1"
   },
   "scripts": {
@@ -43,7 +43,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.3",
+    "@biomejs/biome": "2.5.15",
     "@nuxt/test-utils": "3.23.0",
     "@types/node": "^20.10.6",
     "@types/supertest": "7.2.1",

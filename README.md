@@ -29,7 +29,7 @@ Nuxt is currently configured as a client-rendered application (`ssr: false`). Th
 
 ### Requirements
 
-- Node.js 22.18 or newer
+- Node.js 24.11 or newer within Node 24
 - npm 11.12.1 or newer
 - A running MongoDB instance
 - Claude and Firecrawl API keys
